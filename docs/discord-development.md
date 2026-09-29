@@ -2,6 +2,16 @@
 
 Phase 4の自動テストは模擬ユーザーと隔離DBを使用します。Discord自体へのログイン成功を代替しません。
 
+## 現在のDocker UI環境へ安全に入力
+
+Developer Portalで `http://127.0.0.1:8082/auth/discord/callback` を登録後、リポジトリで以下を実行できます。
+
+```powershell
+./bin/configure-discord.ps1
+```
+
+Client IDとSecretを対話入力します。Secretは画面表示・コマンド引数・ホスト上のファイルへ保存しません。Git除外のコンテナ設定ファイルに保存します。設定後は `http://127.0.0.1:8082/account` を開きます。
+
 1. [Discord Developer Portal](https://discord.com/developers/applications) で開発用アプリを作成または選択します。
 2. OAuth2のRedirectsに、開発サイトのURLに `/auth/discord/callback` を付けたURLを登録します。例: `http://127.0.0.1:8082/auth/discord/callback`。
 3. 開発環境のGit除外ファイル `config/config.php` で `site.url` を上と同じホスト・ポートに設定し、`discord.client_id` と `discord.client_secret` を入力します。Secretはチャットや進捗ファイルへ貼り付けないでください。
