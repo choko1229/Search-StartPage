@@ -40,9 +40,9 @@ final class AccountController
 
     public function logout(Request $request): Response
     {
-        $this->auth->requireUser();
+        $user=$this->auth->requireUser();
         $this->auth->logout();
-        return new Response($this->view->render('logged-out'));
+        return new Response($this->view->render('logged-out',['user_id'=>$user['id']]));
     }
 
     public function device(Request $request): Response

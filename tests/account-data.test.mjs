@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {removeSyncedData,localUsage} from '../public/assets/js/account-data.js';
+const state={favorites:[{id:'cloud'},{id:'local'}],backgrounds:[{id:'cloud',size:50},{id:'local',localOnly:true,size:100}],settings:{theme:'dark',local:true},syncOwnership:{userId:1,collections:{favorites:['cloud'],backgrounds:['cloud','local']},settings:['theme']},syncStatus:{lastSync:'2026-09-29T00:00:00Z'}};
+const result=removeSyncedData(state,'1');
+assert.deepEqual(result.favorites,[{id:'local'}]);
+assert.deepEqual(result.backgrounds,[{id:'local',localOnly:true,size:100}]);
+assert.deepEqual(result.settings,{local:true});
+assert.equal(result.syncOwnership,undefined);
+assert.equal(result.syncStatus,undefined);
+assert.equal(state.favorites.length,2);
+assert.equal(removeSyncedData(state,2),state);
+assert.equal(removeSyncedData({favorites:[{id:'local'}]},1).favorites.length,1);
+assert.equal(localUsage(state).backgroundBytes,150);
+assert.equal(localUsage(state).lastSync,'2026-09-29T00:00:00Z');
+assert.ok(localUsage({name:'日本語'}).bytes>JSON.stringify({name:'日本語'}).length);
+assert.deepEqual(removeSyncedData({'providers-web':[{id:'cloud'}],syncOwnership:{userId:1,collections:{'providers-web':['cloud']}}},1)['providers-web'],[]);
+console.log('12 account data assertions passed.');

@@ -76,4 +76,7 @@ return [
     'OAUTH_NOT_CONFIGURED' => 'Discordログインは管理者による設定が必要です。',
     'OAUTH_STATE_INVALID' => 'ログイン要求が無効または期限切れです。アカウント画面からやり直してください。',
     'OAUTH_FAILED' => 'Discordログインを完了できませんでした。アカウント画面からやり直してください。',
+    'local_storage_usage' => '端末内データ容量', 'background_storage_usage' => '背景ファイル容量',
+    'last_sync' => '最終同期', 'clear_synced_logout' => 'ログアウト時に同期済みの端末内データを削除する',
+    'local_cleanup_failed' => '端末内の同期済みデータを削除できませんでした。ブラウザの保存設定を確認してください。',
 ];

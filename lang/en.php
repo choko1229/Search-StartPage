@@ -76,4 +76,7 @@ return [
     'OAUTH_NOT_CONFIGURED' => 'Discord sign-in requires configuration by the administrator.',
     'OAUTH_STATE_INVALID' => 'This sign-in request is invalid or expired. Start again from your account page.',
     'OAUTH_FAILED' => 'Discord sign-in could not be completed. Start again from your account page.',
+    'local_storage_usage' => 'Local data usage', 'background_storage_usage' => 'Background file usage',
+    'last_sync' => 'Last sync', 'clear_synced_logout' => 'Remove synced local data when signing out',
+    'local_cleanup_failed' => 'Synced local data could not be removed. Check your browser storage settings.',
 ];

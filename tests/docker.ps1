@@ -23,10 +23,10 @@ if ($StartOnly) {
     return
 }
 foreach ($service in @('app-mysql', 'app-mariadb')) {
-    foreach ($test in @('tests/lint.php', 'tests/run.php', 'tests/integration.php', 'tests/search-api.php', 'tests/metadata.php', 'tests/auth.php')) {
+    foreach ($test in @('tests/lint.php', 'tests/run.php', 'tests/integration.php', 'tests/search-api.php', 'tests/metadata.php', 'tests/auth.php', 'tests/auth-http.php')) {
         & $dockerExecutable compose exec --user www-data -T $service php $test
         if ($LASTEXITCODE -ne 0) { throw "Failed: $service $test" }
     }
 }
-Write-Host 'Phase 1 automated tests passed. Containers remain available for browser verification.'
+Write-Host 'Automated tests passed. Containers remain available for browser verification.'
 Write-Host 'To stop this test project without deleting data: docker compose stop'

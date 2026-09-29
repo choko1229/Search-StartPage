@@ -12,6 +12,12 @@
     <h2><?= $e($user['discord_display_name'] ?: $user['discord_username']) ?></h2>
     <p>Discord: <?= $e($user['discord_username']) ?></p>
     <p><?= $e($t->get('sync_not_enabled')) ?></p>
+    <dl>
+        <dt><?= $e($t->get('local_storage_usage')) ?></dt><dd id="account-local-bytes">—</dd>
+        <dt><?= $e($t->get('background_storage_usage')) ?></dt><dd id="account-background-bytes">—</dd>
+        <dt><?= $e($t->get('last_sync')) ?></dt><dd id="account-last-sync"><?= $e($t->get('never')) ?></dd>
+    </dl>
+    <label><input id="clear-synced-on-logout" type="checkbox" checked><?= $e($t->get('clear_synced_logout')) ?></label>
     <h2><?= $e($t->get('devices')) ?></h2>
     <?php foreach ($data['devices'] as $device): ?>
     <article class="panel">
@@ -34,3 +40,4 @@
     </form>
 <?php endif; ?>
 </section>
+<script type="module" src="/assets/js/account.js"></script>

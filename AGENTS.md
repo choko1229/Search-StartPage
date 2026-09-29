@@ -12,6 +12,7 @@
 ## 実装・検証
 
 - Phase 1〜12を順番に進め、各Phaseの不具合を修正してから次へ進む。
+- 各Phaseで最低3回の検証を実行し、対象・結果を記録する。Phaseごとにコミットする（2026-09-29の追加指示）。
 - PHP 8.2+、MySQL 8+とMariaDB 10.11+、Vanilla JavaScript。PHPフレームワークやnpm buildを必須にしない。
 - ControllerにSQLを書かず、ViewにDB処理を書かない。DB変更はMigration化する。
 - CSRF、Escape、prepared statements、サーバー側の権限検証を維持する。

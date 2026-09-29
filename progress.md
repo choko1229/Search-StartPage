@@ -45,3 +45,12 @@ Phase 1〜3完了。Phase 4 Discord Authは実装・検証中。Phase 5〜12は�
 `app/Auth/Auth.php`, `OAuthState.php`, `DeviceAgent.php`、`app/Services/DiscordOAuth.php`、`app/Repositories/AuthRepository.php`、`app/Controllers/AccountController.php`、account/logged-out Views、`004_auth.php`、`tests/auth.php`。
 
 ブラウザはIABのタブ2を利用。旧標準confirmの代わりにHTML dialogで削除確認。画面保存は `.test-output/` （Git除外）。
+
+## 追加目標の再開地点
+
+- 最新指示: Phase 12まで継続、各Phase最低3回検証、各Phaseでコミット。不明点は質問。
+- 基準コミット6254f38は、従来未追跡だったPhase 1〜3とPhase 4途中の保存。Phase 4完了を意味しない。
+- Phase 4の容量/最終同期表示・ログアウトの同期済み削除処理を追加。同期所有権マニフェストはPhase 5の成功応答時に接続する。
+- 追加指示後に3回検証を実施し成功。詳細はphase-status末尾。
+- 次はDiscord通信の失敗/応答検証をさらに確認し、ログイン済みアカウントUIを検証。開発用アプリ有無を再質問済み、回答待ち。
+- 目標はactive。Phase 4は実OAuth未確認で未完了。Phase 5へはまだ進まない。
