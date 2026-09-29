@@ -1,0 +1,17 @@
+{
+  "name": "choko1229/search-startpage",
+  "description": "Framework-free search start page",
+  "type": "project",
+  "require": {
+    "php": ">=8.2",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-curl": "*",
+    "ext-json": "*",
+    "ext-openssl": "*",
+    "ext-mbstring": "*",
+    "ext-fileinfo": "*"
+  },
+  "autoload": { "psr-4": { "App\\": "app/" } },
+  "scripts": { "test": "php tests/run.php" }
+}

@@ -1,0 +1,30 @@
+#favorites-section { margin-top: 2rem; }
+.favorites-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
+.favorites-toolbar h2 { flex: 1; font-size: 1rem; margin: 0; }
+.favorites-toolbar label { font-size: .8rem; }
+#favorite-filter { flex: 1; min-width: 120px; }
+#folder-tabs { display: flex; gap: .5rem; overflow-x: auto; padding: .3rem 0 1rem; }
+#folder-tabs button { white-space: nowrap; }
+#folder-tabs [aria-selected=false] { background: transparent; color: var(--muted); }
+.folder-overflow { display: none; }
+#favorites-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); gap: .8rem; }
+.favorite-item { display: flex; flex-direction: column; position: relative; align-items: stretch; border: 1px solid var(--border); border-radius: .8rem; padding: .6rem; background: var(--panel); min-width: 0; }
+.favorite-item.is-hidden { opacity: .6; }
+.favorite-open { display: flex; flex-direction: column; align-items: center; gap: .5rem; border: 0; background: transparent; color: inherit; padding: .6rem .1rem; }
+.favorite-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: .7rem; font-size: 1.4rem; }
+.favorite-name { max-width: 100%; overflow-wrap: anywhere; font-size: .9rem; }
+.favorite-menu-button { align-self: flex-end; padding: 0 .4rem; background: transparent; color: var(--muted); }
+.favorite-description { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.favorite-tags { display: flex; gap: .3rem; flex-wrap: wrap; }
+.favorite-tags button { font-size: .7rem; padding: .2rem .4rem; }
+.favorite-stats { font-size: .7rem; color: var(--muted); }
+#favorites-grid[data-display=card] { grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); }
+#favorites-grid[data-display=icon] .favorite-name { display: none; }
+#favorites-grid[data-display=icon] { grid-template-columns: repeat(auto-fill,minmax(80px,1fr)); }
+#favorite-form, #folder-form { display: grid; gap: .8rem; }
+#favorite-form label, #folder-form label { display: grid; gap: .3rem; }
+#favorite-form label:has(input[type=checkbox]) { display: flex; }
+#favorite-form textarea { font: inherit; background: var(--panel); color: inherit; min-height: 80px; }
+#favorite-menu-actions { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+#favorites-more { margin: 1rem 0; }
+@media(max-width: 600px) { .folder-overflow { display: block; } #folder-tabs .overflow-tab { display: none; } }

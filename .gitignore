@@ -1,0 +1,8 @@
+/config/config.php
+/config/install.key
+/config/.config-*
+/storage/*
+!/storage/.gitkeep
+/vendor/
+/.tools/
+/.test-output/

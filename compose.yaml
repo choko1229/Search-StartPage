@@ -1,0 +1,67 @@
+name: search-startpage-tests
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: startpage
+      MYSQL_USER: startpage
+      MYSQL_PASSWORD: ${TEST_DB_PASSWORD:?Set TEST_DB_PASSWORD for disposable tests}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u startpage startpage -e 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - mysql-data:/var/lib/mysql
+  mariadb:
+    image: mariadb:10.11
+    environment:
+      MARIADB_DATABASE: startpage
+      MARIADB_USER: startpage
+      MARIADB_PASSWORD: ${TEST_DB_PASSWORD:?Set TEST_DB_PASSWORD for disposable tests}
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - mariadb-data:/var/lib/mysql
+  app-mysql:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports: ["127.0.0.1:8080:80"]
+    environment:
+      SEARCH_TEST_MODE: "1"
+      SEARCH_LOCAL_DEVELOPMENT: "1"
+      TEST_DB_HOST: mysql
+      TEST_DB_PASSWORD: ${TEST_DB_PASSWORD}
+    depends_on:
+      mysql: {condition: service_healthy}
+    volumes:
+      - mysql-config:/var/www/app/config
+      - mysql-storage:/var/www/app/storage
+  app-mariadb:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports: ["127.0.0.1:8081:80"]
+    environment:
+      SEARCH_TEST_MODE: "1"
+      SEARCH_LOCAL_DEVELOPMENT: "1"
+      TEST_DB_HOST: mariadb
+      TEST_DB_PASSWORD: ${TEST_DB_PASSWORD}
+    depends_on:
+      mariadb: {condition: service_healthy}
+    volumes:
+      - mariadb-config:/var/www/app/config
+      - mariadb-storage:/var/www/app/storage
+volumes:
+  mysql-data:
+  mariadb-data:
+  mysql-config:
+  mariadb-config:
+  mysql-storage:
+  mariadb-storage:
