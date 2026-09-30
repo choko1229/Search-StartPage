@@ -119,10 +119,17 @@ function renderHistory() {
         row.append(open, node('small', new Date(item.at).toLocaleDateString()), remove); container.append(row);
     }
 }
-document.getElementById('history-open').addEventListener('click', () => {renderHistory(); document.getElementById('history-dialog').showModal();});
+function openHistory() {renderHistory(); document.getElementById('history-dialog').showModal();}
+document.getElementById('history-open').addEventListener('click', openHistory);
+document.querySelector('a[href="/#history"]')?.addEventListener('click', event => {
+    event.preventDefault(); openHistory();
+});
+// Other pages use the same header link to reach the history on the home page.
+function openLinkedHistory() {if (location.hash === '#history') openHistory();}
+window.addEventListener('hashchange', openLinkedHistory);
 document.addEventListener('keydown',event=>{
     if(matchesShortcut(event,setting('historyKey',defaultKeys.historyKey)) && !document.querySelector('dialog[open]')) {
-        event.preventDefault();renderHistory();document.getElementById('history-dialog').showModal();
+        event.preventDefault();openHistory();
     }
 });
 function renderHistoryArea() {
@@ -140,3 +147,4 @@ document.getElementById('history-clear').addEventListener('click', () => {if (co
 window.addEventListener('storage-unavailable', () => {status.textContent = t('storage_unavailable');});
 initializeSettings(refresh);
 refresh();
+openLinkedHistory();
