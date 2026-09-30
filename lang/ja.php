@@ -87,4 +87,6 @@ return [
     'favorite_position'=>'お気に入りの位置', 'favorite_position_below'=>'検索欄の下', 'favorite_position_above'=>'検索欄の上', 'favorite_position_bottom'=>'履歴の下',
     'favorite_width'=>'幅（%）', 'favorite_height'=>'一覧の高さ（px、0: 自動）', 'favorite_gap'=>'検索欄との距離（px）',
     'favorite_limit'=>'表示件数（0: 自動・最大10件）', 'favorite_columns'=>'列数（0: 自動）', 'favorite_remember_expanded'=>'お気に入りの展開状態を記憶',
+    'RATE_LIMITED'=>'ログイン試行回数が上限に達しました。少し待ってから再試行してください。',
+    'RATE_LIMIT_UNAVAILABLE'=>'ログインを一時的に利用できません。時間をおいて再試行してください。',
 ];

@@ -26,15 +26,35 @@ $core = new CoreController($config, $view);
 $installer = new InstallerController(new InstallationService($root), new EnvironmentCheck($root), $view, new FileLogger($root . '/storage/logs'));
 $router = new Router();
 if ($config->get('installed')) {
-    $authRepository = new App\Repositories\AuthRepository(App\Database\Database::connect($config->get('database')));
-    $auth = new App\Auth\Auth($config, $authRepository);
-    $auth->restore();
-    $account = new App\Controllers\AccountController($auth, $authRepository, new App\Services\DiscordOAuth($config), $view);
-    $router->add('GET', '/account', $account->account(...));
-    $router->add('POST', '/auth/discord', $account->start(...), [new Csrf()]);
-    $router->add('GET', '/auth/discord/callback', $account->callback(...));
-    $router->add('POST', '/auth/logout', $account->logout(...), [new Csrf()]);
-    $router->add('POST', '/account/device', $account->device(...), [new Csrf()]);
+    // Authentication is resolved only for routes that need it. Local search and
+    // favorites remain available when the database cannot be reached.
+    $account = null;
+    $handler = static function (string $method) use (&$account, $config, $view): Closure {
+        return static function (Request $request, array $params = []) use (&$account, $config, $view, $method): App\Http\Response {
+            if ($account === null) {
+                try { $pdo = App\Database\Database::connect($config->get('database')); }
+                catch (PDOException) { throw new App\Http\HttpException(503, 'DATABASE_UNAVAILABLE'); }
+                $repository = new App\Repositories\AuthRepository($pdo);
+                $auth = new App\Auth\Auth($config, $repository);
+                $auth->restore();
+                $account = new App\Controllers\AccountController($auth, $repository, new App\Services\DiscordOAuth($config), $view);
+            }
+            return $account->$method($request, $params);
+        };
+    };
+    $loginLimit = new App\Middleware\LoginRateLimit($root . '/storage/rate-limits',
+        (int)$config->get('login_rate_limit.attempts', 20), (int)$config->get('login_rate_limit.window_seconds', 60));
+    $router->add('GET', '/account', $handler('account'));
+    $router->add('POST', '/auth/discord', $handler('start'), [$loginLimit, new Csrf()]);
+    $router->add('GET', '/auth/discord/callback', $handler('callback'), [$loginLimit]);
+    $router->add('POST', '/auth/logout', $handler('logout'), [new Csrf()]);
+    $router->add('POST', '/account/device', $handler('device'), [new Csrf()]);
+    $router->add('GET', '/api/auth/discord', $handler('start'), [$loginLimit]);
+    $router->add('GET', '/api/auth/discord/callback', $handler('callback'), [$loginLimit]);
+    $router->add('POST', '/api/auth/logout', $handler('logout'), [new Csrf()]);
+    $router->add('GET', '/api/user', $handler('currentUser'));
+    $router->add('GET', '/api/user/devices', $handler('devices'));
+    $router->add('DELETE', '/api/user/devices/{id}', $handler('revokeDevice'), [new Csrf()]);
 }
 $router->add('GET', '/', $core->home(...));
 $router->add('GET', '/api/health', $core->health(...));

@@ -229,3 +229,15 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: ブラウザで位置3種、幅75%、高さ180px、距離48px、1件/2列、展開後再読込、記憶OFF後の折畳みを確認。Autoは850pxでCard、390pxでIcon+Name。document375px、console warn/errorなし。
 - 画像: .test-output/phase3-layout.png（Git除外）。Phase 3既存CRUD等の検証記録と合わせて仕様補修を確認。Phase 4補修へ進む。
 - Phase 5同期・Phase 6設定全体との接続はそれぞれのPhaseで追加検証する。
+
+## Phase 4 API・ログイン制限・障害対応補修（2026-09-30）
+
+- API: GET /api/auth/discord、GET /api/auth/discord/callback、POST /api/auth/logout、GET /api/user、GET /api/user/devices、DELETE /api/user/devices/{id}。JSON形式、認証・CSRF・所有者条件を適用。開始APIはauthorization_urlを返す。既存HTMLルートも保持。
+- Rate Limit: ログイン開始/CallbackだけにIP単位20回/60秒の共通制限。configで変更可能。転送ヘッダーを信用せず接続元を使用、IPはハッシュで短期保存、排他ロックで更新。通常検索を制限しない。
+- DB接続を認証画面/APIへ遅延。ゲスト検索/お気に入りはDB停止時も利用可能。認証接続失敗は503、内部例外や認証情報を返さない。
+- DB Migration追加なし。
+- 検証1: 両DBでPHP構文61ファイル、単体39、認証30、HTTP認証12、Rate Limit単体7、検索API4成功。
+- 検証2: 両方の隔離DBを一時停止し、トップ/CSRF成功・user/healthの安全な503の4項目がそれぞれ成功。finallyで再起動、両DBhealthy確認。
+- 検証3: 両DBで実HTTPログイン上限429と検索API継続200を確認。account-data12/検索23/既存favorites JS回帰成功。
+- 注意: login-rate-http.phpはループバック元のログイン枠を消費するため最後に実行。再実行の認証検証は60秒の窓が過ぎてから。
+- Pending: 実Discord認証、ログイン済みUI、成功したAPIログアウト/現在端末解除の専用ケース、API Callback成功、同時要求時Rate Limitの追加検証。Phase 4未完了。設定状況をユーザーへ質問済み。Secretは求めない。

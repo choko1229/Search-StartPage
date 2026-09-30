@@ -87,4 +87,6 @@ return [
     'favorite_position'=>'Favorites position', 'favorite_position_below'=>'Below search', 'favorite_position_above'=>'Above search', 'favorite_position_bottom'=>'Below history',
     'favorite_width'=>'Width (%)', 'favorite_height'=>'Grid height (px, 0: automatic)', 'favorite_gap'=>'Distance from search (px)',
     'favorite_limit'=>'Visible entries (0: automatic, up to 10)', 'favorite_columns'=>'Columns (0: automatic)', 'favorite_remember_expanded'=>'Remember expanded favorites',
+    'RATE_LIMITED'=>'Too many sign-in attempts. Please wait a minute and try again.',
+    'RATE_LIMIT_UNAVAILABLE'=>'Sign-in is temporarily unavailable. Please try again later.',
 ];

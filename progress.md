@@ -32,9 +32,9 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 2/3補修済み。Phase 4の/api認証・端末ルート、ログインRate Limit、DB停止時ゲスト継続から再開する。
+1. Phase 2/3補修済み。Phase 4の実Discord認証とログイン済みUI、API成功系の追加検証から再開する。
 2. Phase 3補修検証: レイアウト単体16と既存favorites成功、両DB構文59/単体39/SSRF8/検索API4成功、ブラウザ位置3種・幅75%・高さ180px・距離48px・1件/2列・展開保持ON/OFF・Autoの850px/390px切替成功。
-3. Phase 4の/api認証・端末ルート、ログインRate Limit、DB停止時のゲスト継続を補修。ユーザーはDiscordアプリを用意・設定可能と回答済み。設定済みか未確認。docs/discord-development.mdとbin/configure-discord.ps1を利用しSecretをチャットに求めない。
+3. Phase 4の/api認証・端末ルート、ログインRate Limit、DB停止時のゲスト継続を補修済み。ユーザーはDiscordアプリを用意・設定可能と回答済み。設定済みか未確認。docs/discord-development.mdとbin/configure-discord.ps1を利用しSecretをチャットに求めない。
 4. 実OAuthとログイン済みUIを検証しPhase 4を判定。その後Phase 5〜12を順番に進める。
 
 ## 保存履歴
@@ -42,3 +42,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 6254f38: 既存Phase 1〜3とPhase 4途中の基準保存。
 6ca6bd3: アカウント容量表示・同期済みデータ削除処理。同期所有権マニフェストの書込みはPhase 5に未接続。
 29d5bdb: 仕様全文監査。今回のPhase 2補修は別コミットで保存する。
+
+## Phase 4最新検証
+
+両DBで認証30/HTTP12/Rate Limit7/単体39/検索API4合格。専用DB停止試験各4項目合格、両DB復旧healthy。HTTPログイン429と通常検索200も合格。API成功ログアウト・現在端末解除・Callback成功・同時Rate Limitの追加確認が残る。設定状況の返答待ちでも独立した検証を進める。詳細はphase-status末尾。

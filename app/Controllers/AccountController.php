@@ -26,6 +26,7 @@ final class AccountController
     public function start(Request $request): Response
     {
         $url=$this->oauth->authorizationUrl(OAuthState::issue($_SESSION,time()));
+        if ($request->isApi()) { return Response::json(['authorization_url'=>$url]); }
         return new Response('',303,['Location'=>$url,'Referrer-Policy'=>'no-referrer']);
     }
 
@@ -35,6 +36,7 @@ final class AccountController
         $code=$request->query['code'] ?? null;
         if (isset($request->query['error']) || !is_string($code)) { throw new HttpException(400,'OAUTH_FAILED'); }
         $this->auth->login($this->oauth->identify($code),$request->server['HTTP_USER_AGENT'] ?? '');
+        if ($request->isApi()) { return Response::json(['user'=>$this->auth->requireUser()]); }
         return Response::redirect('/account');
     }
 
@@ -42,6 +44,7 @@ final class AccountController
     {
         $user=$this->auth->requireUser();
         $this->auth->logout();
+        if ($request->isApi()) { return Response::json(['logged_out'=>true,'user_id'=>$user['id']]); }
         return new Response($this->view->render('logged-out',['user_id'=>$user['id']]));
     }
 
@@ -59,5 +62,26 @@ final class AccountController
             $this->repository->rename((int)$user['id'],$id,$name);
         } else { throw new HttpException(422,'INVALID_INPUT'); }
         return Response::redirect('/account');
+    }
+
+    public function currentUser(Request $request): Response
+    {
+        return Response::json(['user'=>$this->auth->requireUser()]);
+    }
+
+    public function devices(Request $request): Response
+    {
+        $user=$this->auth->requireUser();
+        return Response::json(['devices'=>$this->repository->devices((int)$user['id']), 'current_device'=>$_SESSION['device_id'] ?? '']);
+    }
+
+    public function revokeDevice(Request $request, array $params): Response
+    {
+        $user=$this->auth->requireUser();
+        $id=$params['id'] ?? '';
+        if (!preg_match('/^[a-f0-9]{32}$/D',$id)) { throw new HttpException(422,'INVALID_INPUT'); }
+        if ($id===($_SESSION['device_id'] ?? '')) { return $this->logout($request); }
+        $this->repository->revoke((int)$user['id'],$id);
+        return Response::json(['revoked'=>true]);
     }
 }

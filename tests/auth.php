@@ -69,6 +69,26 @@ try {
     }
     preg_match('/name="_csrf" value="([a-f0-9]+)"/',$page,$csrf);
     $cookieHeader='Cookie: '.implode('; ',array_map(static fn($key,$value)=>$key.'='.$value,array_keys($cookies),$cookies));
+    $api=static function(string $method,string $path,bool $withCsrf=true) use ($cookieHeader,$csrf): array {
+        $context=stream_context_create(['http'=>['method'=>$method,'header'=>$cookieHeader.($withCsrf?"\r\nX-CSRF-Token: ".$csrf[1]:''),'ignore_errors'=>true,'follow_location'=>0]]);
+        $result=file_get_contents('http://127.0.0.1'.$path,false,$context);
+        preg_match('/\s(\d{3})\s/',$http_response_header[0],$status);
+        return [(int)$status[1],json_decode($result,true,flags:JSON_THROW_ON_ERROR)];
+    };
+    [$status,$json]=$api('GET','/api/user');
+    $check($status===200 && (int)$json['data']['user']['id']===$uid,'current user API');
+    [$status,$json]=$api('GET','/api/user/devices');
+    $check($status===200 && count($json['data']['devices'])===2 && !str_contains(json_encode($json),'token_hash'),'device list API omits token hashes');
+    [$status]=$api('DELETE','/api/user/devices/'.$second,false);
+    $check($status===403 && count($repository->devices($uid))===2,'device API requires CSRF');
+    [$status]=$api('DELETE','/api/user/devices/invalid');
+    $check($status===422,'device API validates identifiers');
+    $foreign=bin2hex(random_bytes(16));
+    $repository->createDevice($otherId,$foreign,$hash,DeviceAgent::parse('Firefox/1'),$now);
+    [$status]=$api('DELETE','/api/user/devices/'.$foreign);
+    $check($status===200 && count($repository->devices($otherId))===1,'device API cannot revoke another owner');
+    [$status]=$api('DELETE','/api/user/devices/'.$second);
+    $check($status===200 && count($repository->devices($uid))===1,'device API revokes owned device');
     $post=static function(string $body) use ($cookieHeader): array {
         $context=stream_context_create(['http'=>['method'=>'POST','header'=>$cookieHeader."\r\nContent-Type: application/x-www-form-urlencoded",'content'=>$body,'ignore_errors'=>true,'follow_location'=>0]]);
         $result=file_get_contents('http://127.0.0.1/auth/logout',false,$context);
