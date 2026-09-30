@@ -25,6 +25,7 @@
     <p id="search-status" role="status" aria-live="polite"></p>
 </section>
 <?php require __DIR__ . '/favorites.php'; ?>
+<section id="history-area" hidden aria-label="<?= $e($t->get('history')) ?>"></section>
 <link rel="stylesheet" href="/assets/css/favorites.css">
 <dialog id="history-dialog" aria-labelledby="history-title">
     <h2 id="history-title"><?= $e($t->get('history')) ?></h2>

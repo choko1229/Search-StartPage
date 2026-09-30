@@ -25,7 +25,7 @@ return [
     'name' => '名前', 'template_url' => 'URLテンプレート（{query}を含む）', 'prefix' => 'プレフィックス', 'icon' => 'アイコン文字', 'save' => '保存',
     'new_provider' => '新規追加', 'copy_query' => 'AIサービスに質問を渡す', 'copy_help' => 'このサービスではトップページを開きます。質問をコピーして、移動先で貼り付けてください。',
     'copy' => 'コピー', 'copied' => 'コピーしました', 'open_ai' => 'AIを開く', 'initial_mode' => '起動時のモード', 'last_mode' => '最後に使用したもの',
-    'web_default' => '既定のWeb検索先', 'ai_default' => '既定のAIサービス', 'save_history' => '検索履歴を保存（300件・90日）',
+    'web_default' => '既定のWeb検索先', 'ai_default' => '既定のAIサービス', 'save_history' => '検索履歴を保存',
     'external_suggest_setting' => '外部サジェスト', 'external_suggest_privacy' => '有効にすると、入力中のキーワードをGoogleへ送信して候補を取得します。',
     'enabled' => '有効', 'provider_required' => '各モードで少なくとも1つを有効にしてください。', 'edit' => '編集', 'move_up' => '上へ移動',
     'delete' => '削除', 'confirm_delete' => 'この検索先を削除しますか？', 'invalid_provider' => '{query}を含むHTTP(S)のURL、名前、重複しないプレフィックスを指定してください。',
@@ -79,4 +79,9 @@ return [
     'local_storage_usage' => '端末内データ容量', 'background_storage_usage' => '背景ファイル容量',
     'last_sync' => '最終同期', 'clear_synced_logout' => 'ログアウト時に同期済みの端末内データを削除する',
     'local_cleanup_failed' => '端末内の同期済みデータを削除できませんでした。ブラウザの保存設定を確認してください。',
+    'ai_order'=>'AI候補の並び順', 'url_policy'=>'URL入力時の動作',
+    'url_suggest_only'=>'候補表示のみ', 'url_auto'=>'検索実行時にURLを開く', 'url_full'=>'検索実行時に完全URLのみ開く',
+    'history_limit'=>'履歴保存件数', 'history_days'=>'履歴保存期間（日）',
+    'webKey'=>'Web検索キー', 'aiKey'=>'AI検索キー', 'historyKey'=>'履歴画面キー',
+    'suggest_on_focus'=>'検索欄を選択したときも候補を表示', 'history_area'=>'トップ画面に履歴を表示',
 ];

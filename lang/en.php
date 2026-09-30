@@ -25,7 +25,7 @@ return [
     'name' => 'Name', 'template_url' => 'URL template with {query}', 'prefix' => 'Prefix', 'icon' => 'Icon text', 'save' => 'Save',
     'new_provider' => 'New provider', 'copy_query' => 'Take your question to AI', 'copy_help' => 'This provider opens its home page. Copy your question and paste it there.',
     'copy' => 'Copy', 'copied' => 'Copied', 'open_ai' => 'Open AI', 'initial_mode' => 'Startup mode', 'last_mode' => 'Last used',
-    'web_default' => 'Default web engine', 'ai_default' => 'Default AI provider', 'save_history' => 'Save search history (300 entries / 90 days)',
+    'web_default' => 'Default web engine', 'ai_default' => 'Default AI provider', 'save_history' => 'Save search history',
     'external_suggest_setting' => 'External suggestions', 'external_suggest_privacy' => 'When enabled, typed queries are sent to Google for suggestions.',
     'enabled' => 'Enabled', 'provider_required' => 'Keep at least one provider enabled in each mode.', 'edit' => 'Edit', 'move_up' => 'Move up',
     'delete' => 'Delete', 'confirm_delete' => 'Delete this provider?', 'invalid_provider' => 'Use an HTTP(S) URL with {query}, a name, and a unique prefix.',
@@ -79,4 +79,9 @@ return [
     'local_storage_usage' => 'Local data usage', 'background_storage_usage' => 'Background file usage',
     'last_sync' => 'Last sync', 'clear_synced_logout' => 'Remove synced local data when signing out',
     'local_cleanup_failed' => 'Synced local data could not be removed. Check your browser storage settings.',
+    'ai_order'=>'AI provider order', 'url_policy'=>'URL input behavior',
+    'url_suggest_only'=>'Suggestions only', 'url_auto'=>'Open detected URLs when executing search', 'url_full'=>'Open complete URLs when executing search',
+    'history_limit'=>'History entry limit', 'history_days'=>'History retention (days)',
+    'webKey'=>'Web search shortcut', 'aiKey'=>'AI search shortcut', 'historyKey'=>'History shortcut',
+    'suggest_on_focus'=>'Show suggestions when focusing search', 'history_area'=>'Show history on the home page',
 ];

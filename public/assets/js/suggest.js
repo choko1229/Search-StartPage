@@ -12,7 +12,10 @@ export async function suggestions(query, mode, current, render) {
     const generation = ++sequence;
     controller?.abort();
     const text = query.trim();
-    if (!text) { render([]); return; }
+    if (!text) {
+        render(setting('suggestOnFocus',false) ? history().slice(0,5).map(item=>({label:item.query,category:t('history'),query:item.query,mode:item.mode,providerId:item.provider})) : []);
+        return;
+    }
     const results = [];
     if (recommendAi(text)) results.push({label: t('ai_recommend'), category: t('ai_mode'), query: text, mode: 'ai'});
     const url = detectUrl(text);

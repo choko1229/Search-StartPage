@@ -1,6 +1,7 @@
 import {t, node} from './i18n.js';
 import {setting, setSetting} from './store.js';
-import {providers, selected, remember} from './providers.js';
+import {providers, selected, remember, recordProvider} from './providers.js';
+import {defaultKeys,matchesShortcut,directUrl} from './search-preferences.js';
 import {prefixQuery, queryUrl, recommendAi, safeUrl} from './search-core.js';
 import {history, record, removeHistory, clearHistory} from './history.js';
 import {suggestions, cancelSuggestions} from './suggest.js';
@@ -17,6 +18,8 @@ if (!['web', 'ai'].includes(mode)) mode = 'web';
 let rows = [], index = -1, timer;
 const active = {web: selected('web')?.id, ai: selected('ai')?.id};
 function refresh() {
+    renderHistoryArea();
+    document.getElementById('search-help').textContent=`${setting('webKey',defaultKeys.webKey)}: Web · ${setting('aiKey',defaultKeys.aiKey)}: AI · ${setting('historyKey',defaultKeys.historyKey)}: ${t('history')}`;
     for (const target of ['web', 'ai']) document.getElementById(`mode-${target}`).setAttribute('aria-pressed', String(mode === target));
     select.replaceChildren(...providers(mode).map(item => node('option', item.name, {value: item.id})));
     select.value = providers(mode).some(item => item.id === active[mode]) ? active[mode] : selected(mode)?.id;
@@ -58,16 +61,18 @@ function updateSuggestions() {
     suggestions(input.value, mode, current(mode), renderSuggestions);
 }
 input.addEventListener('input', () => {clearTimeout(timer); cancelSuggestions(); renderSuggestions([]); timer = setTimeout(updateSuggestions, 180);});
+input.addEventListener('focus',()=>{if(setting('suggestOnFocus',false))updateSuggestions();});
 function navigate(url) {if (safeUrl(url)) window.location.assign(url);}
 let pendingAi;
 function execute(query, target, id, usePrefix = true) {
     query = query.trim(); if (!query) return;
     const prefixed = usePrefix ? prefixQuery(query, {web: providers('web'), ai: providers('ai')}) : null;
     if (prefixed) {target = prefixed.mode; id = prefixed.provider.id; query = prefixed.query;}
+    if(!prefixed && target==='web') {const url=directUrl(query,setting('urlPolicy','suggest'));if(url){navigate(url);return;}}
     const provider = providers(target).find(item => item.id === id) ?? current(target);
     if (!provider) return;
     const url = queryUrl(provider, query); if (!url) return;
-    const go = () => {record(query, provider.id, target); remember(target, provider.id); setSetting('lastMode', target); navigate(url);};
+    const go = () => {record(query, provider.id, target); recordProvider(provider.id); remember(target, provider.id); setSetting('lastMode', target); navigate(url);};
     if (provider.copy) {
         document.getElementById('copy-query').value = query;
         pendingAi = go; document.getElementById('ai-copy-dialog').showModal();
@@ -86,11 +91,13 @@ document.getElementById('copy-query-button').addEventListener('click', async () 
 });
 input.addEventListener('keydown', event => {
     if (event.isComposing) return;
-    if (event.key === 'Enter') {
+    if(matchesShortcut(event,setting('webKey',defaultKeys.webKey))) {
+        event.preventDefault();execute(input.value,'web',active.web);
+    } else if(matchesShortcut(event,setting('aiKey',defaultKeys.aiKey))) {
+        event.preventDefault();execute(input.value,'ai',selected('ai')?.id);
+    } else if (event.key === 'Enter') {
         event.preventDefault();
-        if (event.shiftKey) execute(input.value, 'web', active.web);
-        else if (event.altKey) execute(input.value, 'ai', active.ai);
-        else if (index >= 0) executeItem(rows[index]);
+        if (!event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && index >= 0) executeItem(rows[index]);
     } else if (['ArrowDown', 'ArrowUp'].includes(event.key) && rows.length) {
         event.preventDefault(); highlight((index + (event.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length);
     } else if (event.key === 'Escape') {clearTimeout(timer); cancelSuggestions(); renderSuggestions([]);}
@@ -113,6 +120,22 @@ function renderHistory() {
     }
 }
 document.getElementById('history-open').addEventListener('click', () => {renderHistory(); document.getElementById('history-dialog').showModal();});
+document.addEventListener('keydown',event=>{
+    if(matchesShortcut(event,setting('historyKey',defaultKeys.historyKey)) && !document.querySelector('dialog[open]')) {
+        event.preventDefault();renderHistory();document.getElementById('history-dialog').showModal();
+    }
+});
+function renderHistoryArea() {
+    const area=document.getElementById('history-area');
+    if(!area)return;
+    area.hidden=!setting('historyArea',false);
+    area.replaceChildren(node('h2',t('history')));
+    for(const item of history().slice(0,10)) {
+        const button=node('button',item.query,{type:'button',class:'secondary'});
+        button.addEventListener('click',()=>execute(item.query,item.mode,item.provider,false));area.append(button);
+    }
+}
+window.addEventListener('data-change',event=>{if(event.detail==='history')renderHistoryArea();});
 document.getElementById('history-clear').addEventListener('click', () => {if (confirm(t('confirm_clear_history'))) {clearHistory(); renderHistory();}});
 window.addEventListener('storage-unavailable', () => {status.textContent = t('storage_unavailable');});
 initializeSettings(refresh);
