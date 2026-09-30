@@ -241,3 +241,14 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: 両DBで実HTTPログイン上限429と検索API継続200を確認。account-data12/検索23/既存favorites JS回帰成功。
 - 注意: login-rate-http.phpはループバック元のログイン枠を消費するため最後に実行。再実行の認証検証は60秒の窓が過ぎてから。
 - Pending: 実Discord認証、ログイン済みUI、成功したAPIログアウト/現在端末解除の専用ケース、API Callback成功、同時要求時Rate Limitの追加検証。Phase 4未完了。設定状況をユーザーへ質問済み。Secretは求めない。
+
+### Phase 4 成功系と同時実行検証（2026-09-30）
+
+- APIログアウト・現在端末解除を実HTTPで検証。JSON成功、Cookie失効、DBトークン失効、古いCookieの401をそれぞれ確認。
+- 不正なDiscord token_typeが配列の場合にTypeErrorになり得る箇所を修正。応答検証11項目（型、ヘッダー注入、長さ、identity形式）成功。
+- API開始は/api/auth/discord/callbackへ戻るよう修正。Web用/auth/discord/callbackとの区別は固定bool分岐、任意URLを受け付けない。Discord登録URL2種を手順書に追記。
+- 検証1: 両DBでPHP構文65、OAuth応答検証11、認証38成功（Callback選択追加前）。
+- 検証2: 両DBで24プロセス同時要求を実行し、許可5/拒否19を確認。排他ロックによる上限維持を検証。
+- 検証3: Callback選択修正後、両DBで認証39、HTTP認証12、基盤単体39、OAuth応答11成功。
+- 開発UI /account のHTTP200とDiscord未設定表示を現時点で確認。実Discord往復・API Callback成功・ログイン後の実ブラウザ操作は未確認。自動テストは実Discord成功の代替としない。
+- 今回DB変更なし。Phase 4は未完了、Phase 5へ進まない。

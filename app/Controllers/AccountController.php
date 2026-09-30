@@ -25,7 +25,7 @@ final class AccountController
 
     public function start(Request $request): Response
     {
-        $url=$this->oauth->authorizationUrl(OAuthState::issue($_SESSION,time()));
+        $url=$this->oauth->authorizationUrl(OAuthState::issue($_SESSION,time()),$request->isApi());
         if ($request->isApi()) { return Response::json(['authorization_url'=>$url]); }
         return new Response('',303,['Location'=>$url,'Referrer-Policy'=>'no-referrer']);
     }
@@ -35,7 +35,7 @@ final class AccountController
         OAuthState::consume($_SESSION,$request->query['state'] ?? null,time());
         $code=$request->query['code'] ?? null;
         if (isset($request->query['error']) || !is_string($code)) { throw new HttpException(400,'OAUTH_FAILED'); }
-        $this->auth->login($this->oauth->identify($code),$request->server['HTTP_USER_AGENT'] ?? '');
+        $this->auth->login($this->oauth->identify($code,$request->isApi()),$request->server['HTTP_USER_AGENT'] ?? '');
         if ($request->isApi()) { return Response::json(['user'=>$this->auth->requireUser()]); }
         return Response::redirect('/account');
     }

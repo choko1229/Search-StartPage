@@ -22,12 +22,12 @@ final class DiscordOAuth
             && $this->config->get('discord.client_secret', '') !== '';
     }
 
-    public function callbackUrl(): string
+    public function callbackUrl(bool $api = false): string
     {
-        return rtrim($this->config->get('site.url'), '/') . '/auth/discord/callback';
+        return rtrim($this->config->get('site.url'), '/') . ($api ? '/api/auth/discord/callback' : '/auth/discord/callback');
     }
 
-    public function authorizationUrl(string $state): string
+    public function authorizationUrl(string $state, bool $api = false): string
     {
         if (!$this->configured()) {
             throw new HttpException(503, 'OAUTH_NOT_CONFIGURED');
@@ -35,11 +35,11 @@ final class DiscordOAuth
         return self::AUTHORIZE . '?' . http_build_query([
             'client_id' => $this->config->get('discord.client_id'),
             'response_type' => 'code', 'scope' => 'identify',
-            'redirect_uri' => $this->callbackUrl(), 'state' => $state,
+            'redirect_uri' => $this->callbackUrl($api), 'state' => $state,
         ], '', '&', PHP_QUERY_RFC3986);
     }
 
-    public function identify(string $code): array
+    public function identify(string $code, bool $api = false): array
     {
         if (!$this->configured() || $code === '' || strlen($code) > 2048) {
             throw new HttpException(400, 'OAUTH_FAILED');
@@ -48,15 +48,22 @@ final class DiscordOAuth
             'client_id' => $this->config->get('discord.client_id'),
             'client_secret' => $this->config->get('discord.client_secret'),
             'grant_type' => 'authorization_code', 'code' => $code,
-            'redirect_uri' => $this->callbackUrl(),
+            'redirect_uri' => $this->callbackUrl($api),
         ]);
+        $accessToken = self::validateAccessToken($token);
+        // Tokens are used only for this identity lookup and are never persisted.
+        return self::validateIdentity($this->request(self::USER, null, $accessToken));
+    }
+
+    public static function validateAccessToken(array $token): string
+    {
         if (!is_string($token['access_token'] ?? null)
             || !preg_match('/^[\x21-\x7E]{1,4096}$/D', $token['access_token'])
-            || strcasecmp($token['token_type'] ?? '', 'Bearer') !== 0) {
+            || !is_string($token['token_type'] ?? null)
+            || strcasecmp($token['token_type'], 'Bearer') !== 0) {
             throw new HttpException(502, 'OAUTH_FAILED');
         }
-        // Tokens are used only for this identity lookup and are never persisted.
-        return self::validateIdentity($this->request(self::USER, null, $token['access_token']));
+        return $token['access_token'];
     }
 
     public static function validateIdentity(array $user): array

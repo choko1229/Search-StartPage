@@ -23,7 +23,7 @@ if ($StartOnly) {
     return
 }
 foreach ($service in @('app-mysql', 'app-mariadb')) {
-    foreach ($test in @('tests/lint.php', 'tests/run.php', 'tests/integration.php', 'tests/search-api.php', 'tests/metadata.php', 'tests/auth.php', 'tests/auth-http.php', 'tests/login-rate-limit.php', 'tests/login-rate-http.php')) {
+    foreach ($test in @('tests/lint.php', 'tests/run.php', 'tests/integration.php', 'tests/search-api.php', 'tests/metadata.php', 'tests/oauth-validation.php', 'tests/auth.php', 'tests/auth-http.php', 'tests/login-rate-limit.php', 'tests/login-rate-concurrency.php', 'tests/login-rate-http.php')) {
         & $dockerExecutable compose exec --user www-data -T $service php $test
         if ($LASTEXITCODE -ne 0) { throw "Failed: $service $test" }
     }

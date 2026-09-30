@@ -28,6 +28,8 @@ $check(DeviceAgent::parse('Windows Chrome/120 Edg/120')===['browser'=>'Edge','os
 $oauth=new DiscordOAuth(new Config(['site'=>['url'=>'https://example.test'],'discord'=>['client_id'=>'123456789012345678','client_secret'=>'synthetic']]));
 parse_str(parse_url($oauth->authorizationUrl(str_repeat('a',64)),PHP_URL_QUERY),$query);
 $check($query['scope']==='identify' && $query['redirect_uri']==='https://example.test/auth/discord/callback','OAuth scope and fixed callback');
+parse_str(parse_url($oauth->authorizationUrl(str_repeat('a',64),true),PHP_URL_QUERY),$apiQuery);
+$check($apiQuery['redirect_uri']==='https://example.test/api/auth/discord/callback' && $apiQuery['scope']==='identify','API OAuth uses the JSON callback');
 $pdo=Database::connect(Config::load(dirname(__DIR__))->get('database'));
 $repository=new AuthRepository($pdo);
 $identity=DiscordOAuth::validateIdentity(['id'=>'999999999999999991','username'=>'Auth Test']);
@@ -102,6 +104,27 @@ try {
     $check($repository->authenticate($device,$hash,$now)===null,'revoked token rejected');
     $page=file_get_contents('http://127.0.0.1/account',false,$context);
     $check(!str_contains($page,'Updated'),'revoked device loses HTTP authentication');
+    foreach (['logout','current-device'] as $operation) {
+        $freshDevice=bin2hex(random_bytes(16));
+        $freshToken=bin2hex(random_bytes(32));
+        $repository->createDevice($uid,$freshDevice,hash('sha256',$freshToken),DeviceAgent::parse('Firefox/1'),time());
+        $freshCookies=['search_remember'=>$freshDevice.'.'.$freshToken];
+        $freshContext=stream_context_create(['http'=>['header'=>'Cookie: search_remember='.$freshCookies['search_remember'],'ignore_errors'=>true]]);
+        $freshPage=file_get_contents('http://127.0.0.1/account',false,$freshContext);
+        foreach($http_response_header as $line)if(preg_match('/^Set-Cookie: ([^=]+)=([^;]*)/i',$line,$cookie))$freshCookies[$cookie[1]]=$cookie[2];
+        preg_match('/name="_csrf" value="([a-f0-9]+)"/',$freshPage,$freshCsrf);
+        $freshHeader='Cookie: '.implode('; ',array_map(static fn($key,$value)=>$key.'='.$value,array_keys($freshCookies),$freshCookies));
+        $path=$operation==='logout'?'/api/auth/logout':'/api/user/devices/'.$freshDevice;
+        $method=$operation==='logout'?'POST':'DELETE';
+        $freshContext=stream_context_create(['http'=>['method'=>$method,'header'=>$freshHeader."\r\nX-CSRF-Token: ".$freshCsrf[1],'ignore_errors'=>true]]);
+        $json=json_decode(file_get_contents('http://127.0.0.1'.$path,false,$freshContext),true,flags:JSON_THROW_ON_ERROR);
+        $check(str_contains($http_response_header[0],'200') && ($json['data']['logged_out']??false) && (int)$json['data']['user_id']===$uid,"$operation API succeeds with JSON");
+        $check((bool)array_filter($http_response_header,static fn($line)=>preg_match('/^Set-Cookie: search_remember=.*Max-Age=0/i',$line)===1),"$operation clears remember cookie");
+        $check($repository->authenticate($freshDevice,hash('sha256',$freshToken),time())===null,"$operation revokes DB token");
+        $freshContext=stream_context_create(['http'=>['header'=>$freshHeader,'ignore_errors'=>true]]);
+        file_get_contents('http://127.0.0.1/api/user',false,$freshContext);
+        $check(str_contains($http_response_header[0],'401'),"$operation rejects old cookies");
+    }
 } finally {
     $pdo->prepare('DELETE FROM installation_claims WHERE discord_id=?')->execute([$identity['id']]);
     $pdo->prepare('DELETE FROM users WHERE id IN (?,?)')->execute([$uid,$otherId]);

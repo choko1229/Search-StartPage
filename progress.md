@@ -45,4 +45,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## Phase 4最新検証
 
-両DBで認証30/HTTP12/Rate Limit7/単体39/検索API4合格。専用DB停止試験各4項目合格、両DB復旧healthy。HTTPログイン429と通常検索200も合格。API成功ログアウト・現在端末解除・Callback成功・同時Rate Limitの追加確認が残る。設定状況の返答待ちでも独立した検証を進める。詳細はphase-status末尾。
+両DBで認証30/HTTP12/Rate Limit7/単体39/検索API4合格。専用DB停止試験各4項目合格、両DB復旧healthy。HTTPログイン429と通常検索200も合格。API成功ログアウト・現在端末解除・同時Rate Limitは確認済み。実Discord Callback成功・ログイン後ブラウザ操作が残る。設定状況の返答待ちでも独立した検証を進める。詳細はphase-status末尾。
+
+## Phase 4追加検証
+
+両DBで認証39、HTTP12、OAuth応答11、同時要求24プロセス（許可5/拒否19）を確認。API専用Callbackを使用するよう補修。docs/discord-development.mdの2つのRedirect URLをDiscordへ登録する。開発UI /accountの未設定表示をHTTPで再確認済み。ユーザーへの設定状況の質問は未回答。次は実Discord往復・ログイン後ブラウザ操作、残るPhase 4条件の照合。Phase 5未着手。
