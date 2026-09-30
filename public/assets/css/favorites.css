@@ -1,4 +1,7 @@
-#favorites-section { margin-top: 2rem; }
+#favorites-section { margin: 2rem auto 0; max-width: 100%; min-width: min(100%,280px); }
+.favorite-layout-settings { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr)); gap: .8rem; margin: 1rem 0; }
+.favorite-layout-settings label { display: grid; gap: .3rem; min-width: 0; }
+.favorite-layout-settings label:has(input[type=checkbox]) { display: flex; align-items: center; }
 .favorites-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
 .favorites-toolbar h2 { flex: 1; font-size: 1rem; margin: 0; }
 .favorites-toolbar label { font-size: .8rem; }

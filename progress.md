@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査によりPhase 2/3を再確認中。Phase 4は途中の実装を保持、実Discord往復未確認。Phase 5〜12未着手。過去のPhase 2/3完了表記より本記録とdocs/spec-audit.mdを優先する。
+Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4は途中の実装を保持、実Discord往復未確認。Phase 5〜12未着手。過去のPhase 2/3完了表記より本記録とdocs/spec-audit.mdを優先する。
 
 Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリック候補、履歴件数/期間/エリアを実装し3種類の検証を実施。ヘッダー履歴導線（§33）も実装・ブラウザ検証済み。Command Palette導線はPhase 8、履歴同期はPhase 5に接続する。
 
@@ -20,7 +20,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 - 9/30に停止していた上記コンテナのみ再起動。旧環境のボリュームを保持。他の旧アプリは停止したまま。
 - UI configはコンテナ内/var/www/app/config/config.php。ホストとは共有しない。
 - Docker cpで反映する構成。直近public/lang/appは両DB検証環境へ反映済み。
-- IABタブ2、検証画面。画像.test-output/phase2-settings.png（Git除外）。
+- IABタブ2、検証画面。画像.test-output/phase3-layout.png（Git除外）。
 
 ## 今回の検証
 
@@ -32,8 +32,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 2補修済み。Phase 3の仕様不足から再開する。
-2. Phase 3の§36件数によるAuto、§37位置/幅/高さ/件数/列数、§38自動表示数を補修。3回検証・コミットする。
+1. Phase 2/3補修済み。Phase 4の/api認証・端末ルート、ログインRate Limit、DB停止時ゲスト継続から再開する。
+2. Phase 3補修検証: レイアウト単体16と既存favorites成功、両DB構文59/単体39/SSRF8/検索API4成功、ブラウザ位置3種・幅75%・高さ180px・距離48px・1件/2列・展開保持ON/OFF・Autoの850px/390px切替成功。
 3. Phase 4の/api認証・端末ルート、ログインRate Limit、DB停止時のゲスト継続を補修。ユーザーはDiscordアプリを用意・設定可能と回答済み。設定済みか未確認。docs/discord-development.mdとbin/configure-discord.ps1を利用しSecretをチャットに求めない。
 4. 実OAuthとログイン済みUIを検証しPhase 4を判定。その後Phase 5〜12を順番に進める。
 
@@ -42,4 +42,3 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 6254f38: 既存Phase 1〜3とPhase 4途中の基準保存。
 6ca6bd3: アカウント容量表示・同期済みデータ削除処理。同期所有権マニフェストの書込みはPhase 5に未接続。
 29d5bdb: 仕様全文監査。今回のPhase 2補修は別コミットで保存する。
-

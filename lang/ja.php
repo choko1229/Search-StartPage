@@ -84,4 +84,7 @@ return [
     'history_limit'=>'履歴保存件数', 'history_days'=>'履歴保存期間（日）',
     'webKey'=>'Web検索キー', 'aiKey'=>'AI検索キー', 'historyKey'=>'履歴画面キー',
     'suggest_on_focus'=>'検索欄を選択したときも候補を表示', 'history_area'=>'トップ画面に履歴を表示',
+    'favorite_position'=>'お気に入りの位置', 'favorite_position_below'=>'検索欄の下', 'favorite_position_above'=>'検索欄の上', 'favorite_position_bottom'=>'履歴の下',
+    'favorite_width'=>'幅（%）', 'favorite_height'=>'一覧の高さ（px、0: 自動）', 'favorite_gap'=>'検索欄との距離（px）',
+    'favorite_limit'=>'表示件数（0: 自動・最大10件）', 'favorite_columns'=>'列数（0: 自動）', 'favorite_remember_expanded'=>'お気に入りの展開状態を記憶',
 ];

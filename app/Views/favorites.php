@@ -14,6 +14,7 @@
             <option value="main"><?= $e($t->get('favorite_search_main')) ?></option>
             <option value="dedicated"><?= $e($t->get('favorite_search_dedicated')) ?></option>
         </select></label>
+        <div id="favorite-layout-settings" class="favorite-layout-settings"></div>
     </details>
     <div class="favorites-toolbar">
         <input id="favorite-filter" type="search" aria-label="<?= $e($t->get('find_favorites')) ?>" placeholder="<?= $e($t->get('find_favorites')) ?>">

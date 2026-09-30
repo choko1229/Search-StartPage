@@ -84,4 +84,7 @@ return [
     'history_limit'=>'History entry limit', 'history_days'=>'History retention (days)',
     'webKey'=>'Web search shortcut', 'aiKey'=>'AI search shortcut', 'historyKey'=>'History shortcut',
     'suggest_on_focus'=>'Show suggestions when focusing search', 'history_area'=>'Show history on the home page',
+    'favorite_position'=>'Favorites position', 'favorite_position_below'=>'Below search', 'favorite_position_above'=>'Above search', 'favorite_position_bottom'=>'Below history',
+    'favorite_width'=>'Width (%)', 'favorite_height'=>'Grid height (px, 0: automatic)', 'favorite_gap'=>'Distance from search (px)',
+    'favorite_limit'=>'Visible entries (0: automatic, up to 10)', 'favorite_columns'=>'Columns (0: automatic)', 'favorite_remember_expanded'=>'Remember expanded favorites',
 ];

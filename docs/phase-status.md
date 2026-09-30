@@ -218,3 +218,14 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - layoutに翻訳された履歴アイコンを追加。トップではダイアログを開き、他画面では/#historyへ遷移後に開く。
 - 検証1: JS構文確認。検証2: UI/両DB PHP構文59ファイル、両DB単体39合格。検証3: ヘッダーからEnterで履歴を開く、アカウント画面から遷移後に履歴が表示されることを確認。390px幅ではみ出しなし、console warn/errorなし。
 - §21/25/26/29/30/32/33のPhase 2補修を確認。Phase 5の履歴同期、Phase 8のPalette接続は未実装として継続追跡する。Phase 3補修へ進む。
+
+## Phase 3 仕様補修（2026-09-30）
+
+- Files: favorites-layout.js、favorites.js、favorites View/CSS、ja/en、favorites-layout.test.mjs。DB変更なし。
+- §36: Autoが画面幅と件数からCard/Icon+Name/Iconを選択。§37: 上/下/履歴下、距離、幅、高さ、件数、列数を調整可能。狭い画面は列数を安全に縮小。
+- §38: 自動件数は画面幅に応じた2行分、最大10件。件数指定と「もっと見る」、展開保持ON/OFFに対応。展開時は固定高さを解除し下方向に伸びる。
+- 検証1: レイアウト単体16項目、既存favorites全項目、JS構文成功。
+- 検証2: 両DBでPHP構文59、単体39、SSRF8、検索API4成功。DB構造変更なし。
+- 検証3: ブラウザで位置3種、幅75%、高さ180px、距離48px、1件/2列、展開後再読込、記憶OFF後の折畳みを確認。Autoは850pxでCard、390pxでIcon+Name。document375px、console warn/errorなし。
+- 画像: .test-output/phase3-layout.png（Git除外）。Phase 3既存CRUD等の検証記録と合わせて仕様補修を確認。Phase 4補修へ進む。
+- Phase 5同期・Phase 6設定全体との接続はそれぞれのPhaseで追加検証する。
