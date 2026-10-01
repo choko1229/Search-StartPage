@@ -36,6 +36,9 @@ try {
     $query=$pdo->prepare('SELECT folder_id FROM favorites WHERE user_id=? AND client_id=?');$query->execute([$uid,'favorite']);$check($query->fetchColumn()===null,'folder detach reaches relational DB');
     [$status,$json]=$request('POST','/api/search/history',['version'=>$version,'item'=>(object)['query'=>'Test query','provider'=>'google','mode'=>'web']],$csrf);$historyId=array_key_first($json['data']['document']['history']);$check($status===201 && is_string($historyId) && $json['data']['document']['history'][$historyId]['at']>0,'history ID and time generated');$version=$json['data']['version'];
     [$status,$json]=$request('GET','/api/search/history');$check($status===200 && count($json['data']['items'])===1,'history listed');
+    [$status,$json]=$request('POST','/api/search/history',['version'=>$version,'item'=>(object)['id'=>'long-history','query'=>str_repeat('あ',10000),'provider'=>'ai','mode'=>'ai']],$csrf);
+    $check($status===201 && mb_strlen($json['data']['document']['history']['long-history']['query'])===10000,'long AI query matches input limit');$version=$json['data']['version'];
+    [$status,$json]=$request('DELETE','/api/search/history/long-history',['version'=>$version],$csrf);$check($status===200,'long history deletion');$version=$json['data']['version'];
     foreach(['/api/search-engines'=>'engine','/api/ai-providers'=>'ai'] as $path=>$id) {
         [$status,$json]=$request('POST',$path,['version'=>$version,'item'=>(object)['id'=>$id,'name'=>'Provider','url'=>'https://example.test/?q={query}','prefix'=>$id]],$csrf);$check($status===201,'provider create '.$path);$version=$json['data']['version'];
         [$status,$json]=$request('PUT',$path.'/'.$id,['version'=>$version,'item'=>(object)['enabled'=>false]],$csrf);$check($status===200,'provider update '.$path);$version=$json['data']['version'];

@@ -32,9 +32,9 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 5の実HTTPを使う2端末同期エンジン統合検証を追加する。テスト用CLIが通常のAuthRepositoryで作る隔離ユーザー/端末Cookieを使い、秘密値を表示せずGit除外の一時ファイルで受け渡す。実Discord成功や認証済みブラウザの証明とは区別する。現在の純粋関数検証を実APIの端末整合・CAS再試行・オフライン復帰へ広げる。
-2. 履歴同期OFFの送受信抑制を実HTTPで確認し、OFFからONへ切り替える際に端末履歴と既存クラウド履歴を不用意に削除しないことを検証・補修する。サーバーの履歴件数/期間の物理削除も同期版と整合させる。競合ルール保存とユーザー切替の永続状態を確認。
-3. §117のCRUD、POST同期/競合解決は実装済み。docs/cloud-api.md参照。新規Installer/7 Migration往復を両DBで検証済み。新しい変更に必要なチェックを追加し、Phase 5の添付仕様にあるoffline queue foundation/device consistencyの証拠を確認する。背景設定の実利用はPhase 7へ接続する。
+1. Phase 5の同期容量上限と永続ストレージを補修する。検索欄/履歴は最大12,000文字、履歴既定300件なのに、生成した300件の日本語長文（UTF-8文書10,823,525 bytes）が現在の512KiB文書Validationで422となることを確認。HTTP Body上限1MiB、RequestのJSON二重decode、LocalStorageへの本体/checkpoint二重保存も調べ、仕様の入力長・保存件数を縮小して解決しない。再現用.test-output/sync-capacity-probe.phpを保持（Git除外）。
+2. 通常の同期データ量と長文履歴で、JSONサイズ/メモリ・DB・ブラウザ永続保存を確認する。必要ならIndexedDBで保存し、再読込/オフライン復帰を検証。旧LocalStorageデータを消さず移行する。同期根幹の版/所有者/CSRF/初回3択/競合ルールを維持する。
+3. 実HTTP2端末の整合・並列CAS再試行・オフライン編集の再構成/復帰・履歴OFF/ON/削除・競合ルール共有は検証済み（tests/sync-http.ps1）。履歴の物理期限/件数削除も両DB9項目検証済み。修正に必要な検証を追加してPhase 5ゲートを判定。背景設定の実利用はPhase 7へ接続する。
 4. Phase 5の全条件を照合し最低3回の検証とコミットを行ってからPhase 6へ。Phase 4実OAuthは未確認として最終監査に留保し、認証バイパスは追加しない。
 
 ## 保存履歴
@@ -122,3 +122,21 @@ POST /api/syncを追加しWebをPOSTへ変更。PUTも互換維持。POST /api/s
 最初の新規試験search-test-20261002020315ではInstaller最終HTTPが20秒でタイムアウト。サーバー303、installed=yes・Migration7を確認。試験のInstaller完了リクエストだけ120秒へ修正し、新規環境で再検証合格。初回ログ.test-output/phase5-fresh-docker.logは保持し成功扱いにしない。失敗環境の4コンテナは停止・ボリューム保持。旧search-test-20260929221803のアプリ2つは停止・DB/ボリューム保持。現在8080/8081は成功した新規環境。
 
 Phase 5は未完了。次は冒頭の2端末エンジン+実HTTP統合、履歴同期ON/OFF/物理期限削除、オフライン復帰を確認する。実OAuth/認証済み実ブラウザの未確認は留保。Phase 6未着手。
+
+## Phase 5 実HTTP2端末・履歴・保存ルール（2026-10-02）
+
+tests/sync-http-fixture.php/ps1/test.mjsで通常AuthRepositoryの専用ユーザー・端末Cookieを使用し、Webと共通のSyncSession/data/apiを実HTTPへ接続。認証値を出力せずGit除外の一時ファイルで受渡し、finallyでファイルとユーザーを除去。プロジェクト名を専用テスト形式へ限定。実Discord/認証済みブラウザの代替とはしない。
+
+2端末の設定/背景設定メタ/フォルダ/タグ/お気に入り/利用回数、一方だけの履歴同期OFF、異なる項目の並列マージ（実409再試行1回）、同一項目競合、保存ルール共有/エンジン再構成後の適用、オフライン編集をJSON再構成してオンライン復帰、別ユーザー分離/初回Laterを確認。両DBで3回繰返し成功、追加修正後も両DB再成功。端末専用の背景ファイルは送信しない。
+
+不具合補修: 初回並列保存で一度HTTP失敗。INSERT IGNOREの共有→排他ロック競合を避け、INSERT ON DUPLICATE KEY UPDATEで初めから排他取得し実並列試験を繰返し成功。履歴OFF→ONで既存Cloud履歴が消える不具合を再現し、同じユーザーのcheckpointと切替フラグで初回だけ両方を保持するよう修正。その後の個別削除は正常同期。初回Local/Cloud選択や別ユーザーのcheckpointにはこのマージを適用しない。
+
+競合ルールはsettings.syncRulesとして共有保存し、JSONパス/選択をサーバーValidation。古いローカル保存ルールは同じユーザーのcheckpointから移行。ACK後の所有権は履歴OFFでも以前同期したIDだけ保持し、ログアウトで同期済みを削除・新しい非同期履歴を保持する。
+
+SyncRetentionは保存/取得時に既定300件/90日・ユーザー設定で削除し、文書・関係行・削除版を同一CASで更新。変更なしは版を進めない。古い版は削除済み履歴を復活できない。queryの上限を検索欄と同じ12,000文字に補修、長いAI入力10,000文字の実HTTPを追加。
+
+検証1: 両DB構文84、基盤39、sync17、projection34、cloud API52、retention9、PHP merge8、認証42/HTTP12/検索4成功。Migration変更なし、前回の新規7本往復は維持。
+検証2: 実HTTP2端末試験を両DBで3回成功＋追加後も再成功。一時ファイルなし・ユーザー0を確認。初回失敗は保持し成功扱いにしない。
+検証3: JS構文、merge23/session32/data23/通信12/store12/account-data12、検索23/設定18/favorites/layout16成功。ブラウザの履歴同期チェックが保存イベントで元に戻る問題を発見し、設定と切替フラグを一括保存して修正。ON→再読込保持→OFF・同期ON/OFF表示を確認。390px document375/dialog375/content358、warn/error0。画像.test-output/phase5-history-sync.png。ゲスト画面の検証であり実OAuth成功とはしない。
+
+残る容量不整合を生成データで確認: 既定300件×日本語12,000文字=文書10,823,525 bytes、現在の512KiB Validationでは422。検索・履歴の上限値を小さくして回避しない。API Body/文書/メモリ/ブラウザ本体+checkpointの永続保存を実装・検証してからPhase 5を判定する。Phase 5未完了、Phase 6未着手。再開手順は冒頭を優先する。

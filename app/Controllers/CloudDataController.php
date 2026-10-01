@@ -4,7 +4,7 @@ namespace App\Controllers;
 use App\Auth\Auth;
 use App\Http\{Request,Response,HttpException};
 use App\Repositories\SyncRepository;
-use App\Services\{CloudMutation,SyncInput};
+use App\Services\{CloudMutation,SyncInput,SyncRetention};
 final class CloudDataController
 {
     public function __construct(private readonly Auth $auth,private readonly SyncRepository $repository) {}
@@ -12,7 +12,7 @@ final class CloudDataController
     {
         $user=(int)$this->auth->requireUser()['id'];
         if($action==='read') {
-            $current=$this->repository->read($user);$value=$current['document']->$collection??(object)[];
+            $current=SyncRetention::read($this->repository,$user);$value=$current['document']->$collection??(object)[];
             $items=$collection==='settings'?$value:array_values((array)$value);
             if($collection==='history')usort($items,static fn($a,$b)=>$b->at<=>$a->at);
             if(in_array($collection,['favorite-folders','providers-web','providers-ai'],true))usort($items,static fn($a,$b)=>($a->sortOrder??0)<=>($b->sortOrder??0));

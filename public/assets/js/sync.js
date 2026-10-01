@@ -1,4 +1,4 @@
-import {get,setMany,setting,setSetting,snapshot} from './store.js';
+import {get,setMany,setting,snapshot} from './store.js';
 import {presets,t,node} from './i18n.js';
 import {SyncSession,syncInterval} from './sync-session.js';
 import {syncDocument,syncValues,syncCollections} from './sync-data.js';
@@ -10,7 +10,13 @@ const status=node('span',t('sync_ready'),{role:'status','aria-live':'polite'});
 const button=node('button',t('sync_now'),{type:'button',class:'secondary'});
 function control(key,label,fallback) {
     const input=node('input',undefined,{type:'checkbox'});input.checked=setting(key,fallback);
-    input.addEventListener('change',()=>{setSetting(key,input.checked);session.paused=false;schedule(0);});
+    input.addEventListener('change',()=>{
+        const checked=input.checked;
+        const values={settings:{...get('settings',{}),[key]:checked}};
+        if(key==='syncHistory')values.syncHistoryMergePending=checked;
+        try {setMany(values);}catch {input.checked=setting(key,fallback);return;}
+        session.paused=false;schedule(0);
+    });
     const wrapper=node('label',t(label));wrapper.prepend(input);panel.append(wrapper);return input;
 }
 const enabled=control('syncEnabled','sync_enabled',true);
@@ -21,7 +27,8 @@ const session=new SyncSession({
     user,
     current:async id=>setting('syncEnabled',true) && String((await user())?.id)===String(id),
     checkpoint:id=>{const value=get('syncCheckpoint',null);return String(value?.userId)===String(id)?value:null;},
-    local:()=>syncDocument(snapshot(),presets,cloudHistory),
+    preferences:()=>({historyEnabled:setting('syncHistory',false)}),
+    local:checkpoint=>syncDocument(snapshot(),presets,cloudHistory,checkpoint),
     read:async()=>{
         const result=await request('/api/sync');if(result.status!==200)throw new Error('sync_read_failed');
         cloudHistory=result.data.document.history || {};return result.data;

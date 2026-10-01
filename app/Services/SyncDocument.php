@@ -27,7 +27,7 @@ final class SyncDocument
         };
         foreach($item as $field=>$value)if(!in_array($field,$fields,true))self::invalid();
         if($type==='history') {
-            self::text($item,'query',4000,true);self::text($item,'provider',100,true);
+            self::text($item,'query',12000,true);self::text($item,'provider',100,true);
             if(!in_array($item->mode??null,['web','ai'],true))self::invalid();
             self::number($item,'at',253402300799000,true);return;
         }
@@ -78,6 +78,16 @@ final class SyncDocument
             if(!in_array($key,$allowed,true) || !is_object($collection))throw new HttpException(422,'INVALID_INPUT');
             if($key==='settings')foreach($collection as $setting=>$value) {
                 if(!preg_match('/^[a-zA-Z0-9_-]{1,100}$/D',$setting) || in_array($setting,['syncEnabled','syncHistory','clearSyncedOnLogout'],true))self::invalid();
+                if(in_array($setting,['historyLimit','historyDays'],true) && (!is_int($value) || $value<1 || $value>($setting==='historyLimit'?10000:3650)))self::invalid();
+                if($setting==='syncRules') {
+                    if(!is_object($value))self::invalid();
+                    foreach($value as $path=>$choice) {
+                        if(!in_array($choice,['local','cloud'],true))self::invalid();
+                        try {$segments=json_decode($path,true,20,JSON_THROW_ON_ERROR);}catch(\JsonException){self::invalid();}
+                        if(!is_array($segments) || !array_is_list($segments) || count($segments)<1 || count($segments)>16)self::invalid();
+                        foreach($segments as $segment)if(!is_string($segment) || strlen($segment)>1000 || in_array($segment,['__proto__','prototype','constructor'],true))self::invalid();
+                    }
+                }
             }
             $unique=[];
             if($key!=='settings')foreach($collection as $id=>$item){

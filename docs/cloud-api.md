@@ -41,4 +41,8 @@ POST `/api/sync/resolve-conflict` は `version/previous/local` と任意の `cho
 
 選択のキーはJSON配列を文字列化したパス（例: `["settings","theme"]`）、値は `local` または `cloud`。choicesは今回の選択、rulesは保存済みの選択ルール。choicesを優先する。成功時は同期スナップショットと `data.rules` を返し、クライアントはルールを保存する。保存前に版が変われば409で再確認が必要。
 
+ルールは `settings.syncRules` に保存し、同じアカウントの別端末にも同期する。競合解決APIでrules省略時は現在の保存済みルールを利用する。手動choicesをルールとして保存する場合はrulesにも指定する。
+
+履歴の既定は300件・90日でsettings.historyLimit/historyDaysから変更する。保存時と取得時に期限切れ・超過分を取り除き、正本・エンティティDB・削除版を同じトランザクションで更新する。期限削除が発生した場合もversionが増える。端末の履歴同期OFFでは送受信せず、ONに切り替えた最初の成功時に端末とクラウドの履歴を保持する。その後は通常の個別削除を同期する。
+
 PHPとJavaScriptのマージは同じ存在/削除/null/配列の扱いを使用する。認証済みのWeb画面・端末間往復と全DoDの最終検証はPhase記録を参照する。本書だけでPhase完了とはしない。

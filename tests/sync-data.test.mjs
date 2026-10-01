@@ -20,4 +20,12 @@ assert.equal(syncDocument({...state,settings:{syncHistory:true}},presets).histor
 const ordered=syncDocument({'providers-web':[{id:'b'},{id:'a'}]},presets);
 assert.equal(ordered['providers-web'].a.sortOrder,1);
 assert.deepEqual(syncValues({}, {'providers-web':{a:ordered['providers-web'].a,b:ordered['providers-web'].b}},{userId:'1',document:{}},'now',presets)['providers-web'].map(row=>row.id),['b','a']);
-console.log('18 sync data assertions passed.');
+const enabledHistory=syncDocument({...state,settings:{syncHistory:true},syncCheckpoint:{preferences:{historyEnabled:false}}},presets,cloudHistory);
+assert.deepEqual(Object.keys(enabledHistory.history).sort(),['remote','secret']);
+const continuedHistory=syncDocument({...state,settings:{syncHistory:true},history:[],syncCheckpoint:{preferences:{historyEnabled:true}}},presets,cloudHistory);
+assert.deepEqual(continuedHistory.history,{});
+assert.equal(syncValues({...state,settings:{syncHistory:true},syncHistoryMergePending:true},document,checkpoint,'now',presets).syncHistoryMergePending,false);
+assert.deepEqual(Object.keys(syncDocument({...state,settings:{syncHistory:true},syncHistoryMergePending:true},presets,cloudHistory,null).history),['secret']);
+const offAfterSync=syncValues({...state,history:[{id:'owned'},{id:'private'}],syncOwnership:{userId:'1',collections:{history:['owned','removed']}}},document,checkpoint,'now',presets);
+assert.deepEqual(offAfterSync.syncOwnership.collections.history,['owned']);
+console.log('23 sync data assertions passed.');

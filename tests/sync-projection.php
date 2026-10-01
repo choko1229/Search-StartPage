@@ -18,6 +18,7 @@ try {
     $check($legacy['version']===0 && $legacy['document']->favorites->{'legacy-favorite'}->folderId==='legacy-folder','existing relational data loaded before first sync');
     $check($repo->write($uid,0,$legacy['document'])['version']===1,'first sync preserves legacy favorites');
     $doc=json_decode('{"settings":{"theme":"dark","fontSize":18},"favorite-folders":{"folder":{"id":"folder","name":"Work","sortOrder":0}},"favorites":{"same":{"id":"same","name":"Favorite","url":"https://example.test","folderId":"folder","tags":["é","e"],"sortOrder":1700000000000,"usageCount":2,"lastAccess":1700000000000}},"history":{"h":{"id":"h","query":"search","provider":"google","mode":"web","at":1700000000000}},"providers-web":{"google":{"id":"google","name":"Google","url":"https://google.com/?q={query}","prefix":"g","sortOrder":0}},"providers-ai":{"claude":{"id":"claude","name":"Claude","url":"https://claude.ai/new","prefix":"cl","copy":true}}}');
+    $doc->history->h->at=(int)floor(microtime(true)*1000);
     $saved=$repo->write($uid,1,$doc);$check($saved['version']===2,'document transaction advances');
     $favorite=$rows('favorites',$uid)[0];$folder=$rows('favorite_folders',$uid)[0];
     $check($favorite['client_id']==='same' && $favorite['folder_id']===$folder['id'],'client IDs map to owned relational folder');
@@ -57,6 +58,9 @@ try {
         '{"providers-web":{"a":{"id":"a","name":"A","url":"https://example.test","prefix":"g"},"b":{"id":"b","name":"B","url":"https://example.test","prefix":"G"}}}',
         '{"history":{"a":{"id":"a","query":"Q","provider":"g","mode":"unsafe","at":1}}}',
         '{"settings":{"syncHistory":true}}',
+        '{"settings":{"historyLimit":0}}',
+        '{"settings":{"historyDays":-1}}',
+        '{"settings":{"syncRules":{"invalid":"cloud"}}}',
     ];
     foreach($badCases as $bad) {
         try {SyncDocument::validate(json_decode($bad));throw new RuntimeException('invalid entity accepted');}

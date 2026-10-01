@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\Repositories;
 use PDO;
-use App\Services\SyncDocument;
+use App\Services\{SyncDocument,SyncRetention};
 
 final class SyncRepository
 {
@@ -17,10 +17,13 @@ final class SyncRepository
     public function write(int $userId,int $expected,object $document): ?array
     {
         SyncDocument::validate($document);
+        $document=SyncRetention::prune($document);
         $this->pdo->beginTransaction();
         try {
             // Serialize the first write as well as later compare-and-swap updates.
-            $this->pdo->prepare("INSERT IGNORE INTO sync_states (user_id,version,document,updated_at) VALUES (?,0,'{}',UTC_TIMESTAMP())")->execute([$userId]);
+            // Acquire an exclusive row lock immediately; INSERT IGNORE can
+            // acquire competing shared locks before both writers upgrade them.
+            $this->pdo->prepare("INSERT INTO sync_states (user_id,version,document,updated_at) VALUES (?,0,'{}',UTC_TIMESTAMP()) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)")->execute([$userId]);
             $query=$this->pdo->prepare('SELECT version,document FROM sync_states WHERE user_id=? FOR UPDATE');$query->execute([$userId]);$before=$query->fetch(PDO::FETCH_ASSOC);
             $previous=(int)$before['version']===0 ? (new SyncProjectionRepository($this->pdo))->read($userId) : json_decode($before['document'],false,32,JSON_THROW_ON_ERROR);
             $statement=$this->pdo->prepare('UPDATE sync_states SET version=version+1,document=?,updated_at=UTC_TIMESTAMP() WHERE user_id=? AND version=?');

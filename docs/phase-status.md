@@ -327,3 +327,15 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: JS構文、同期23/32/18/通信12/store12/account-data12、検索23/設定18、favorites/layout16回帰成功。UI構文81・トップ200。
 - Issues: 最初の新規Installer試験は20秒のHTTPタイムアウト（サーバー側installed=yes/7Migration適用は確認）。Installer完了試験だけ120秒にし、別の新規隔離環境で全検証成功。初回の失敗は未合格としてログ保持。既存・失敗環境のボリュームを削除しない。
 - Remaining: 実HTTP2端末のフロントエンジン整合、履歴同期のON切替/物理期限削除、オフライン復帰、認証済み実ブラウザ/実OAuth留保、背景設定のPhase 7接続。Phase 5未完了、Phase 6未着手。
+
+### Phase 5 実HTTP端末整合・履歴・ルール共有（2026-10-02）
+
+- Files: SyncRetention、SyncRepository/Document/Controllers、sync-session/data/sync.js、sync-httpのPHP/Node/PowerShell、retention/data/projection/API検証とDocker一覧、cloud API仕様。
+- Sync: 通常の端末Cookieを使う実HTTPで2端末整合、設定/背景設定メタ/フォルダ/タグ/お気に入り/統計、並列409の再試行、同一項目選択、ルール共有・エンジン再構成、オフラインJSON再構成からの復帰、別ユーザー・Laterを確認。実OAuthと認証済みブラウザとは区別。
+- History: OFFは送受信しない。ON切替の最初だけ同一ユーザーの端末+Cloud履歴を保持、その後の削除は通常同期。初回選択や他ユーザーへ自動マージを適用しない。OFF後も同期済みIDの所有権を保持。件数・期限は文書/DB/削除版で物理削除、未変更は版維持。入力上限12,000文字へ整合。
+- Rules: settings.syncRulesへ保存・共有。パス/選択Validation、以前のローカルルール移行。同じルールをエンジン再構成後も使用。
+- Issues resolved: 並列保存のロック取得を初めから排他へ変更。履歴ON切替のCloud履歴削除を補修。ブラウザ保存イベントによるチェック反転を一括保存で補修。失敗後に再検証。
+- 検証1: 両DB構文84/基盤39/sync17/projection34/cloud API52/retention9/PHP merge8/認証42/HTTP12/検索4成功。
+- 検証2: 実HTTP2端末試験を両DBで3回＋追加後再実行成功、CAS再試行1回を確認。一時認証ファイルと専用ユーザーを除去。
+- 検証3: JS merge23/session32/data23/API12/store12/account-data12/検索23/設定18/favorites/layout16成功。ゲストブラウザのON再読込保持・OFF・同期ON/OFF表示、390px document/dialog375/content358、warn/error0。画像.test-output/phase5-history-sync.png。
+- Remaining: 既定300件×日本語12,000文字（10,823,525 bytes）が512KiB文書制限で422になることを確認。Body1MiB、二重JSON decode、本体/checkpointのLocalStorage永続容量も補修が必要。仕様の保存件数/入力長を縮小しない。Phase 5未完了、Phase 6未着手。実OAuth未確認を最終監査へ留保。
