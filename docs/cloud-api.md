@@ -35,6 +35,8 @@ Settings PUTは `{"version": 3, "settings": {...}}` で設定全体を置換す�
 
 GET `/api/sync` は `version/document/updated_at` を返す。文書の各コレクションは、項目idをキーにしたオブジェクト。配列や空配列ではなく、空コレクションは `{}`。
 
+文書はDBと同じUnicode非エスケープUTF-8 JSONで16MiB未満（MEDIUMTEXTの上限）まで。同期と競合解決のJSON要求は32MiB、その他APIは1MiBまで。PHPのpost_max_sizeとWebサーバーの本文制限は32MiB以上を設定する（Docker設定済み）。JSONは一度だけ解析し、保存前のValidation・認証・CSRF・版照合を維持する。既定300件×最大12,000文字の履歴を両DBの実HTTPで確認。ブラウザの永続保存容量はPhase記録の残件。
+
 POST `/api/sync` は `{"version": 3, "document": {...}}`。既存クライアント向けPUTも同じ処理を使用する。Web版はPOSTを使用する。初回の端末/クラウド選択は利用者が行い、両方にデータがある状態を自動マージしない。
 
 POST `/api/sync/resolve-conflict` は `version/previous/local` と任意の `choices/rules` オブジェクトを送る。cloudはサーバーの現在文書を使用し、要求で指定できない。異なるフィールドを自動マージし、同じフィールドの未解決競合は409で `data.conflicts` にPrevious/Local/Cloud・存在フラグを返す。まだ保存しない。

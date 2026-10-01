@@ -16,8 +16,7 @@ final class SyncController
     public function write(Request $request): Response
     {
         $user=$this->auth->requireUser();$version=SyncInput::version($request,(int)$user['id']);
-        // Request decodes objects as arrays; preserve empty maps and their types
-        // through the raw JSON document, captured independently by the request.
+        // Keep empty maps and document types from the single JSON decode.
         $document=SyncDocument::validate($request->jsonObject?->document ?? null);
         $result=$this->repository->write((int)$user['id'],$version,$document);
         if($result===null)return self::conflict($this->repository->read((int)$user['id']));

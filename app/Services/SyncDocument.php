@@ -63,7 +63,8 @@ final class SyncDocument
     }
     public static function validate(mixed $document): object
     {
-        if(!is_object($document) || strlen(json_encode($document,JSON_THROW_ON_ERROR))>524288)throw new HttpException(422,'INVALID_INPUT');
+        // Match the UTF-8 serialization written into MEDIUMTEXT (16 MiB - 1).
+        if(!is_object($document) || strlen(json_encode($document,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE))>16777215)throw new HttpException(422,'INVALID_INPUT');
         $allowed=['settings','favorites','favorite-folders','history','providers-web','providers-ai'];
         $nodes=0;
         $walk=static function(mixed $value,int $depth) use (&$walk,&$nodes): void {

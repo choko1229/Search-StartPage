@@ -68,3 +68,36 @@ assert.equal(other.state.settings.theme,'other account');await a.run();assert.eq
 const switched=device(fixture[1].devices[1],structuredClone(b.state),'later');await switched.run();
 assert.equal(switched.status,'later');assert.equal(switched.state.syncCheckpoint.userId,fixture[0].userId);
 console.log('Live sync HTTP checks passed; retry count: '+(a.retries+b.retries));
+// Exercise the default history count at the search field's maximum length.
+// Astral Unicode is the largest UTF-8 input at the allowed character count.
+await context.run(a,async()=>{
+    const query='😀'.repeat(12000);
+    const history=Object.fromEntries(Array.from({length:300},(_,i)=>[`capacity-${i}`,{id:`capacity-${i}`,query,provider:'g',mode:'ai',at:now+i}]));
+    const document={settings:{historyLimit:300,historyDays:90,theme:'before'},history};
+    const current=(await request('/api/sync')).data;
+    const saved=await writeSync(current.version,document,fixture[0].userId);
+    assert.equal(saved.status,200,'maximum-length default history writes over real HTTP');
+    assert.equal(Object.keys(saved.data.document.history).length,300);
+    assert.equal(saved.data.document.history['capacity-299'].query,query);
+    const cloud=await request('/api/sync');assert.equal(cloud.status,200);
+    assert.equal(cloud.data.document.history['capacity-0'].query,query);
+    const local={...document,settings:{...document.settings,theme:'after'}};
+    const csrf=(await request('/api/csrf')).data.csrf_token;
+    const resolved=await request('/api/sync/resolve-conflict',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({version:cloud.data.version,previous:document,local})});
+    assert.equal(resolved.status,200,'two large documents resolve within bounded memory');
+    assert.equal(resolved.data.document.settings.theme,'after');
+    assert.equal(Object.keys(resolved.data.document.history).length,300);
+    const stale=await writeSync(current.version,document,fixture[0].userId);
+    assert.equal(stale.status,409);assert.equal(stale.data.document.settings.theme,'after');
+    const isolated=await context.run(other,()=>request('/api/sync'));
+    assert.equal(isolated.data.document.settings.theme,'other account');
+    const invalidRoot=await request('/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:'[]'});
+    assert.equal(invalidRoot.status,400,'JSON arrays remain invalid request roots');
+    const ordinary=await request('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({version:resolved.data.version,settings:{padding:'x'.repeat(1048576)}})});
+    assert.equal(ordinary.status,413,'ordinary APIs retain the smaller request bound');
+    const tooLarge={...document,history:Object.fromEntries(Array.from({length:350},(_,i)=>[`large-${i}`,{id:`large-${i}`,query,provider:'g',mode:'ai',at:now+i}]))};
+    const rejected=await writeSync(resolved.data.version,tooLarge,fixture[0].userId);
+    assert.equal(rejected.status,422,'documents exceeding MEDIUMTEXT capacity are rejected');
+    assert.equal((await request('/api/sync')).data.version,resolved.data.version,'rejection leaves the saved version intact');
+    console.log('Large Unicode history HTTP checks passed; document bytes: '+Buffer.byteLength(JSON.stringify(document)));
+});

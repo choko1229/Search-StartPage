@@ -21,19 +21,23 @@ final class Request
         $body = $_POST;
         $jsonObject = null;
         if (str_starts_with($_SERVER['CONTENT_TYPE'] ?? '', 'application/json')) {
-            $raw = file_get_contents('php://input', false, null, 0, 1048577);
-            if ($raw === false || strlen($raw) > 1048576) {
+            // Conflict resolution carries both previous and local documents.
+            $limit = in_array($path, ['/api/sync', '/api/sync/resolve-conflict'], true) ? 33554432 : 1048576;
+            $raw = file_get_contents('php://input', false, null, 0, $limit + 1);
+            if ($raw === false || strlen($raw) > $limit) {
                 throw new HttpException(413, 'BODY_TOO_LARGE');
             }
             try {
-                $body = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
                 $jsonObject = json_decode($raw, false, 32, JSON_THROW_ON_ERROR);
             } catch (\JsonException) {
                 throw new HttpException(400, 'INVALID_JSON');
             }
-            if (!is_array($body) || !str_starts_with(ltrim($raw), '{')) {
+            if (!is_object($jsonObject)) {
                 throw new HttpException(400, 'INVALID_JSON');
             }
+            // Root scalar inputs share the decoded document instead of keeping
+            // a second complete copy of every history entry in memory.
+            $body = (array) $jsonObject;
         }
         return new self(strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'), is_string($path) ? $path : '/', $_GET, $body, $_SERVER, $jsonObject);
     }

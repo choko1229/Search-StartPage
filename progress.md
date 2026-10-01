@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 5の同期容量上限と永続ストレージを補修する。検索欄/履歴は最大12,000文字、履歴既定300件なのに、生成した300件の日本語長文（UTF-8文書10,823,525 bytes）が現在の512KiB文書Validationで422となることを確認。HTTP Body上限1MiB、RequestのJSON二重decode、LocalStorageへの本体/checkpoint二重保存も調べ、仕様の入力長・保存件数を縮小して解決しない。再現用.test-output/sync-capacity-probe.phpを保持（Git除外）。
+1. Phase 5のブラウザ永続ストレージを補修する。サーバー側は文書16MiB未満・同期本文32MiB・JSON一度解析・不要な文書の早期解放へ修正済み。300件×12,000文字の4バイトUnicode文書14,428,059 bytesを両DBの実HTTPで保存/読込/競合解決/409/所有者分離まで成功。LocalStorageへの本体/checkpoint二重保存は容量不足のまま。IndexedDBなどへ移行し入力長/保存件数を縮小しない。旧データを保持する。
 2. 通常の同期データ量と長文履歴で、JSONサイズ/メモリ・DB・ブラウザ永続保存を確認する。必要ならIndexedDBで保存し、再読込/オフライン復帰を検証。旧LocalStorageデータを消さず移行する。同期根幹の版/所有者/CSRF/初回3択/競合ルールを維持する。
 3. 実HTTP2端末の整合・並列CAS再試行・オフライン編集の再構成/復帰・履歴OFF/ON/削除・競合ルール共有は検証済み（tests/sync-http.ps1）。履歴の物理期限/件数削除も両DB9項目検証済み。修正に必要な検証を追加してPhase 5ゲートを判定。背景設定の実利用はPhase 7へ接続する。
 4. Phase 5の全条件を照合し最低3回の検証とコミットを行ってからPhase 6へ。Phase 4実OAuthは未確認として最終監査に留保し、認証バイパスは追加しない。
@@ -140,3 +140,15 @@ SyncRetentionは保存/取得時に既定300件/90日・ユーザー設定で削
 検証3: JS構文、merge23/session32/data23/通信12/store12/account-data12、検索23/設定18/favorites/layout16成功。ブラウザの履歴同期チェックが保存イベントで元に戻る問題を発見し、設定と切替フラグを一括保存して修正。ON→再読込保持→OFF・同期ON/OFF表示を確認。390px document375/dialog375/content358、warn/error0。画像.test-output/phase5-history-sync.png。ゲスト画面の検証であり実OAuth成功とはしない。
 
 残る容量不整合を生成データで確認: 既定300件×日本語12,000文字=文書10,823,525 bytes、現在の512KiB Validationでは422。検索・履歴の上限値を小さくして回避しない。API Body/文書/メモリ/ブラウザ本体+checkpointの永続保存を実装・検証してからPhase 5を判定する。Phase 5未完了、Phase 6未着手。再開手順は冒頭を優先する。
+
+## Phase 5 サーバー容量・メモリ補修（2026-10-02）
+
+3676e58に直前の実HTTP2端末/履歴/ルール共有実装を保存。今回はSyncDocumentの計測をDB同様Unicode非エスケープJSONへ統一しMEDIUMTEXT上限16MiB未満、同期/解決本文32MiB（他API1MiB維持）、Requestの二重decodeを一度へ変更。bodyはroot配列でnestedオブジェクトをjsonObjectと共有、全利用箇所を照合。Docker post_max_size=32M。本番Web/PHPも本文32MiB以上が必要とAPI手順に記載。
+
+大文書の競合解決で128MiBメモリ不足を再現。RepositoryでSQL読込行/statementが保持するJSON/前回文書をACKの読込前に解放し、memory_limitを増やさず両DBで成功。初回試験の403は試験側のJSON/CSRF指定漏れ、修正後の500は上記メモリ不足。失敗を成功扱いにしない。
+
+検証1: 実HTTPを両DBで2回成功。各回、通常2端末/CASと300件×12,000文字の4バイトUnicode（14,428,059 bytes）、読込/競合解決/古い版409/所有者分離。最後の回にはJSON root配列400、一般API1MiB超413、文書16MiB超422・版維持も追加成功。一時認証ファイル/専用ユーザーはfinallyで除去。
+検証2: 両DB構文84/基盤39/sync17/projection34/merge8/retention9/cloud API52/auth42/auth HTTP12/search4成功。Migration変更なし、全7本の新規往復は既存証拠を使用。
+検証3: JS merge23/session32/data23/API12/store12/account-data12回帰成功。UIへapp/php.iniを反映しApacheを設定再読込。今回新しいブラウザ操作検証は未実施。
+
+残件: ブラウザ本体+checkpointの永続保存容量・書込失敗時のACK保持/オフライン再読込/複数タブ。次は冒頭1からIndexedDB移行を実装し実ブラウザで確認する。Phase 5未完了、Phase 6未着手、実OAuthはユーザーの進行前提に従い未確認を留保。

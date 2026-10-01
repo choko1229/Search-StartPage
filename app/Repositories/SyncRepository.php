@@ -26,10 +26,14 @@ final class SyncRepository
             $this->pdo->prepare("INSERT INTO sync_states (user_id,version,document,updated_at) VALUES (?,0,'{}',UTC_TIMESTAMP()) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)")->execute([$userId]);
             $query=$this->pdo->prepare('SELECT version,document FROM sync_states WHERE user_id=? FOR UPDATE');$query->execute([$userId]);$before=$query->fetch(PDO::FETCH_ASSOC);
             $previous=(int)$before['version']===0 ? (new SyncProjectionRepository($this->pdo))->read($userId) : json_decode($before['document'],false,32,JSON_THROW_ON_ERROR);
+            unset($before,$query);
             $statement=$this->pdo->prepare('UPDATE sync_states SET version=version+1,document=?,updated_at=UTC_TIMESTAMP() WHERE user_id=? AND version=?');
             $statement->execute([json_encode($document,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),$userId,$expected]);
             if ($statement->rowCount()!==1) {$this->pdo->rollBack();return null;}
             (new SyncProjectionRepository($this->pdo))->replace($userId,$previous,$document,$expected+1);
+            // Release the previous snapshot and PDO's bound JSON buffer before
+            // decoding the acknowledgement, especially for large histories.
+            unset($previous,$statement);
             $result=$this->read($userId);$this->pdo->commit();return $result;
         } catch(\Throwable $error) {if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }

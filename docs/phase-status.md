@@ -339,3 +339,14 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証2: 実HTTP2端末試験を両DBで3回＋追加後再実行成功、CAS再試行1回を確認。一時認証ファイルと専用ユーザーを除去。
 - 検証3: JS merge23/session32/data23/API12/store12/account-data12/検索23/設定18/favorites/layout16成功。ゲストブラウザのON再読込保持・OFF・同期ON/OFF表示、390px document/dialog375/content358、warn/error0。画像.test-output/phase5-history-sync.png。
 - Remaining: 既定300件×日本語12,000文字（10,823,525 bytes）が512KiB文書制限で422になることを確認。Body1MiB、二重JSON decode、本体/checkpointのLocalStorage永続容量も補修が必要。仕様の保存件数/入力長を縮小しない。Phase 5未完了、Phase 6未着手。実OAuth未確認を最終監査へ留保。
+
+### Phase 5 大容量文書の実HTTP検証（2026-10-02）
+
+- Files: Request、SyncDocument/Repository/Controller、docker/php.ini、sync-http.test.mjs、cloud-api.md。
+- Capacity: DBと同じUTF-8 JSONで文書16MiB未満、同期/競合解決本文32MiB、他API1MiB。単一JSON decodeでroot bodyとdocumentを共有。Docker post_max_size=32M。本番設定手順を記録。
+- Memory: 300件×12,000文字の4バイトUnicode（14,428,059 bytes）。競合解決で128MiB不足を再現し、旧JSON行・PDO buffer・前回文書をACK decode前に解放して同じ128MiBで成功。メモリ上限を増やさず補修。
+- 検証1: 両DBの実HTTP通常2端末/409と長文保存/読込/競合解決/409/所有者分離を2回成功。最後はroot配列400、一般API上限413、文書上限422・版維持も確認。一時認証ファイル・専用ユーザーを除去。
+- 検証2: 両DB構文84/基盤39/sync17/projection34/merge8/retention9/cloud API52/auth42/HTTP12/search4成功。DB変更なし。
+- 検証3: JS merge23/session32/data23/API12/store12/account-data12成功。UI appとPHP設定を反映、今回の新規ブラウザ検証は未実施。
+- Failures: テスト403はJSON/CSRF漏れを修正、続く500は実メモリ不足を上記補修。成功と区別して記録。
+- Remaining: LocalStorage本体/checkpointの容量不足。旧データを保持してIndexedDBへ移行、ACK保存失敗/再読込/オフライン復帰/複数タブを実ブラウザ検証。Phase 5未完了、Phase 6未着手。
