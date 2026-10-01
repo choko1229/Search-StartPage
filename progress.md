@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先しPhase 5を実装中。Phase 6〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
+Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先。Phase 5の同期機能ゲートは検証済み（実OAuthを留保）。次はPhase 6。Phase 6〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
 
 Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリック候補、履歴件数/期間/エリアを実装し3種類の検証を実施。ヘッダー履歴導線（§33）も実装・ブラウザ検証済み。Command Palette導線はPhase 8、履歴同期はPhase 5に接続する。
 
@@ -32,11 +32,10 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 5のブラウザ永続ストレージを補修する。サーバー側は文書16MiB未満・同期本文32MiB・JSON一度解析・不要な文書の早期解放へ修正済み。300件×12,000文字の4バイトUnicode文書14,428,059 bytesを両DBの実HTTPで保存/読込/競合解決/409/所有者分離まで成功。LocalStorageへの本体/checkpoint二重保存は容量不足のまま。IndexedDBなどへ移行し入力長/保存件数を縮小しない。旧データを保持する。
-2. 通常の同期データ量と長文履歴で、JSONサイズ/メモリ・DB・ブラウザ永続保存を確認する。必要ならIndexedDBで保存し、再読込/オフライン復帰を検証。旧LocalStorageデータを消さず移行する。同期根幹の版/所有者/CSRF/初回3択/競合ルールを維持する。
-3. 実HTTP2端末の整合・並列CAS再試行・オフライン編集の再構成/復帰・履歴OFF/ON/削除・競合ルール共有は検証済み（tests/sync-http.ps1）。履歴の物理期限/件数削除も両DB9項目検証済み。修正に必要な検証を追加してPhase 5ゲートを判定。背景設定の実利用はPhase 7へ接続する。
-4. Phase 5の全条件を照合し最低3回の検証とコミットを行ってからPhase 6へ。Phase 4実OAuthは未確認として最終監査に留保し、認証バイパスは追加しない。
-
+1. Phase 6の仕様をspec.md §37/53–56/68–82と添付Phase 6から照合。既存settings/storeを拡張し、設定メニュー、検索・お気に入り・パネルの共通配置、Undo最大20、設定初期化とユーザーデータ初期化の分離を実装する。
+2. Theme（Light/Dark/OS/Custom/Presets、複数保存、地域の日の出/日の入り、0.5〜1秒transition）、Font（system/preset/Google/custom、size/weight/line height/spacing）、Animation None/Low/Standard/Richを実装。検索box/glassと時計/日付/挨拶の既定OFF、オンボーディング可変7〜8stepsへ接続する。
+3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
+4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
 ## 保存履歴
 
 6254f38: 既存Phase 1〜3とPhase 4途中の基準保存。
@@ -152,3 +151,14 @@ SyncRetentionは保存/取得時に既定300件/90日・ユーザー設定で削
 検証3: JS merge23/session32/data23/API12/store12/account-data12回帰成功。UIへapp/php.iniを反映しApacheを設定再読込。今回新しいブラウザ操作検証は未実施。
 
 残件: ブラウザ本体+checkpointの永続保存容量・書込失敗時のACK保持/オフライン再読込/複数タブ。次は冒頭1からIndexedDB移行を実装し実ブラウザで確認する。Phase 5未完了、Phase 6未着手、実OAuthはユーザーの進行前提に従い未確認を留保。
+## Phase 5 IndexedDB・同期機能ゲート（2026-10-02）
+
+store-database.jsでtop-levelキーごとのIndexedDB保存。モジュール初期化時にLocalStorageの全データを同じwrite transaction内のmarker照合で移行しreadback後に旧コピーだけ除去（ログアウト削除後の第二コピー残存を防止）。初期化失敗時のクラウド同期/削除は停止、ローカル検索は維持。LocalStorage-only fallbackも維持。
+
+通常setは画面即時反映、キー別永続キューと失敗した変更のflush再試行。setManyはtransaction成功後にACK/所有権/文書を公開。保存中編集のrevision保護、生成関数で変更を再マージして保存し直し、queued setは最新のキー値を保存する。SyncSessionはasync accept完了を待つ。Webでは保存待ち中の編集も項目マージし次回即時同期を予定。BroadcastChannelで別タブをDBから再読込。検索/お気に入りの遷移はflushを待つ。accountも同じstoreで使用量/設定/ログアウト削除。
+
+検証1: JS全構文、store12/IndexedDB21/session37/merge23/data23/API12/account12/search23/preferences18/favorites/layout16成功。IndexedDBモデルはquota transaction abortによるACK/文書保持、失敗したローカル編集のflush再試行、再構成、保存中の異なる設定項目のCloud+Local両方保持を確認（モデル試験であり実quota枯渇ではない）。
+検証2: 実HTTPの2端末/CAS/オフラインJSON再構成/履歴/ルール共有/大文書を両DB再成功。PHP・DB・Migrationは今回変更なし、直前の両DB全PHP/新規全7本往復証拠を継続使用。
+検証3: IAB fixture実IndexedDBで日本語12,000文字×300履歴とcheckpoint約21.6MB保存/再読込、invalid clone失敗でACK/データ不変、保存中編集/再読込、別タブ変更反映、旧favorite/local背景の移行、所有権対象のみ削除/再読込とローカルfavorite/背景保持を確認。通常UI8082でfavorite使用回数2→3を遷移後に確認、検索indexeddb-history-testをローカル先へ実行し遷移後履歴保持。warn/error0。画像.test-output/phase5-indexeddb.png。認証をバイパスしない独立storage fixture。
+
+添付Phase 5ゲート照合: settings/favorites/history同期（実HTTP+投影）、conflict detection/resolver（JS/PHP/実HTTP+独立UI）、offline queue foundation（ローカル変更+ACK baseの永続化/復帰）、device consistency（実HTTP2端末/複数タブ）を確認。同期機能ゲート検証済みとしてPhase 6へ進む。実Discord/OAuth・実認証済みブラウザはユーザー指定の前提に従い最終監査へ未確認を留保。Background Settingsメタは同期し、実ファイル/ライブラリUIはPhase 7で接続。Version 1.0未完成。

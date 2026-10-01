@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Legacy storage verification</title>
+<h1>Legacy storage migration</h1><p>Isolated local test origin only.</p>
+<button id="seed">Prepare legacy data</button><p id="result"></p>
+<a href="/store-preview.html">Open migrated storage</a>
+<script>
+document.getElementById('seed').onclick=()=>{
+    localStorage.setItem('search-startpage-v1',JSON.stringify({settings:{theme:'Legacy theme'},favorites:[{id:'legacy',name:'Legacy favorite'}],backgrounds:[{id:'local',localOnly:true}]}));
+    document.getElementById('result').textContent='Legacy favorite and local background prepared.';
+};
+</script></html>

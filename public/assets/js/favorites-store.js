@@ -1,4 +1,4 @@
-import {get, set, setting} from './store.js';
+import {get, set, setting,flush} from './store.js';
 import {safeUrl} from './search-core.js';
 import {normalizeFavorite, shortcutKey, favoriteShortcuts} from './favorites-core.js';
 export const favorites = () => {const rows = get('favorites', []); return (Array.isArray(rows) ? rows : []).filter(item => item && typeof item.name === 'string' && safeUrl(item.url));};
@@ -21,8 +21,9 @@ export function duplicateFavorite(id, suffix) {
     const original = favorites().find(item => item.id === id);
     if (original) saveFavorite({...original, name: (original.name + suffix).slice(0,100), shortcut:'',tags:original.tags.join(',')});
 }
-export function openFavorite(item) {
+export async function openFavorite(item) {
     if (setting('favoriteStats', true)) patchFavorite(item.id, {usageCount:(item.usageCount || 0)+1,lastAccess:Date.now()});
+    try {await flush();}catch {window.dispatchEvent(new CustomEvent('storage-unavailable'));}
     window.location.assign(item.url);
 }
 export function saveFolder(name, id) {

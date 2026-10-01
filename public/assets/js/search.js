@@ -1,5 +1,5 @@
 import {t, node} from './i18n.js';
-import {setting, setSetting} from './store.js';
+import {setting, setSetting,flush} from './store.js';
 import {providers, selected, remember, recordProvider} from './providers.js';
 import {defaultKeys,matchesShortcut,directUrl} from './search-preferences.js';
 import {prefixQuery, queryUrl, recommendAi, safeUrl} from './search-core.js';
@@ -63,7 +63,11 @@ function updateSuggestions() {
 }
 input.addEventListener('input', () => {clearTimeout(timer); cancelSuggestions(); renderSuggestions([]); timer = setTimeout(updateSuggestions, 180);});
 input.addEventListener('focus',()=>{if(setting('suggestOnFocus',false))updateSuggestions();});
-function navigate(url) {if (safeUrl(url)) window.location.assign(url);}
+async function navigate(url) {
+    if(!safeUrl(url))return;
+    try {await flush();}catch {status.textContent=t('storage_unavailable');}
+    window.location.assign(url);
+}
 let pendingAi;
 function execute(query, target, id, usePrefix = true) {
     query = query.trim(); if (!query) return;

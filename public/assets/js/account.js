@@ -1,12 +1,14 @@
 import {localUsage, removeSyncedData} from './account-data.js';
-const key = 'search-startpage-v1';
-let state = {};
-try { state = JSON.parse(localStorage.getItem(key) || '{}'); } catch {}
-if (!state || typeof state !== 'object' || Array.isArray(state)) state = {};
+import {snapshot,setMany} from './store.js';
+let state=snapshot();
 const logout = document.getElementById('logout-data');
 if (logout && state.settings?.clearSyncedOnLogout !== false) {
     try {
-        localStorage.setItem(key, JSON.stringify(removeSyncedData(state, logout.dataset.userId)));
+        await setMany(latest=>{
+            const clean=removeSyncedData(latest,logout.dataset.userId);
+            return {...Object.fromEntries(Object.keys(latest).map(name=>[name,null])),...clean};
+        });
+        state=snapshot();
         logout.hidden = true;
     } catch { logout.hidden = false; }
 }
@@ -25,11 +27,10 @@ if(syncStatus)syncStatus.textContent=state.settings?.syncEnabled===false ? syncS
 const clear = document.getElementById('clear-synced-on-logout');
 if (clear) {
     clear.checked = state.settings?.clearSyncedOnLogout !== false;
-    clear.addEventListener('change', () => {
+    clear.addEventListener('change', async() => {
         try {
-            const latest = JSON.parse(localStorage.getItem(key) || '{}');
-            latest.settings = {...latest.settings, clearSyncedOnLogout: clear.checked};
-            localStorage.setItem(key, JSON.stringify(latest));
+            const checked=clear.checked;
+            await setMany(latest=>({settings:{...latest.settings,clearSyncedOnLogout:checked}}));
         } catch { clear.checked = !clear.checked; }
     });
 }

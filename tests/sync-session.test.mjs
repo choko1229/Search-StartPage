@@ -35,4 +35,9 @@ assert.equal(await session.run(),false);assert.equal(state.answers,2);assert.equ
 let raced=false;const save=session.io.write;
 session.io.write=async(v,d)=>{if(!raced){raced=true;state.cloud={version:2,document:{settings:{theme:'dark',font:18}}};return{status:409,data:state.cloud};}return save(v,d);};
 await session.run();assert.deepEqual(state.local.settings,{theme:'light',font:18});assert.equal(state.base.version,3);
-console.log('32 sync session assertions passed.');
+({state,session}=setup());state.choice='local';const accepted=session.io.accept;
+session.io.accept=async()=>{await Promise.resolve();throw new Error('durable_write_failed');};
+await assert.rejects(session.run(),/durable_write_failed/);assert.equal(state.base,null);assert.equal(session.busy,false);
+session.io.accept=async(...args)=>{await Promise.resolve();accepted(...args);};
+await session.run();assert.ok(state.base);assert.equal(state.status,'synced');
+console.log('37 sync session assertions passed.');

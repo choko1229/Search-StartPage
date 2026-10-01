@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Storage verification</title>
+<h1>Isolated storage verification</h1><p>Local test data only. No account or cloud requests.</p>
+<button id="large">Save 300 long histories and checkpoint</button>
+<button id="failure">Check failed atomic save</button>
+<button id="edit">Check edit during save</button>
+<button id="owned">Prepare owned and local data</button><button id="logout">Clear synced data</button>
+<p id="result" role="status"></p><p id="loaded"></p>
+<script type="module">
+import {get,set,setMany,flush,snapshot} from '/assets/js/store.js';
+import {removeSyncedData} from '/assets/js/account-data.js';
+const result=document.getElementById('result');
+function loaded(){document.getElementById('loaded').textContent=`Loaded history: ${get('history',[]).length}; query length: ${get('history',[])[0]?.query.length || 0}; checkpoint: ${get('syncCheckpoint',{}).version || 0}; favorite: ${get('favorites',[])[0]?.name || ''}; local backgrounds: ${get('backgrounds',[]).length}`;}
+loaded();
+window.addEventListener('data-change',loaded);
+document.getElementById('large').onclick=async()=>{
+    try{
+        const history=Array.from({length:300},(_,i)=>({id:`large-${i}`,query:'あ'.repeat(12000),provider:'g',mode:'ai',at:Date.now()+i}));
+        const document={settings:{theme:'dark'},history:Object.fromEntries(history.map(row=>[row.id,row]))};
+        await setMany({history,syncCheckpoint:{userId:'storage-test',version:7,document},favorites:[{id:'f',name:'Original'}]});
+        await flush();loaded();result.textContent='Large history and checkpoint saved.';
+    }catch(error){result.textContent='FAIL '+error.name;}
+};
+document.getElementById('failure').onclick=async()=>{
+    const before=JSON.stringify(snapshot());
+    try {await setMany({favorites:[],syncCheckpoint:{version:999},invalid:()=>{}});result.textContent='FAIL invalid save accepted';}
+    catch {result.textContent=JSON.stringify(snapshot())===before?'Failed write retained checkpoint and data.':'FAIL data changed';}
+};
+document.getElementById('edit').onclick=async()=>{
+    const write=setMany({favorites:[{id:'f',name:'Cloud'}],syncCheckpoint:{...get('syncCheckpoint',{}),version:8}});
+    await Promise.resolve();set('favorites',[{id:'f',name:'Edited while saving'}]);
+    await write;await flush();loaded();result.textContent=get('favorites',[])[0]?.name==='Edited while saving'?'Concurrent edit retained and saved.':'FAIL edit lost';
+};
+document.getElementById('owned').onclick=async()=>{
+    await setMany({favorites:[{id:'owned',name:'Synced favorite'},{id:'private',name:'Local favorite'}],
+        backgrounds:[{id:'local',localOnly:true}],syncCheckpoint:{userId:'storage-test',version:9},
+        syncOwnership:{userId:'storage-test',settings:[],collections:{favorites:['owned'],history:get('history',[]).map(row=>row.id)}}});
+    loaded();result.textContent='Owned and local data prepared.';
+};
+document.getElementById('logout').onclick=async()=>{
+    await setMany(state=>({...Object.fromEntries(Object.keys(state).map(key=>[key,null])),...removeSyncedData(state,'storage-test')}));
+    loaded();result.textContent='Synced data cleared; local data retained.';
+};
+</script></html>

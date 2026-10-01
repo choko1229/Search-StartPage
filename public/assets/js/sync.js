@@ -1,20 +1,21 @@
-import {get,setMany,setting,snapshot} from './store.js';
+import {get,setMany,setting,snapshot,flush} from './store.js';
 import {presets,t,node} from './i18n.js';
 import {SyncSession,syncInterval} from './sync-session.js';
 import {syncDocument,syncValues,syncCollections} from './sync-data.js';
 import {syncDialog} from './sync-dialogs.js';
 import {request,syncUser as user,writeSync} from './sync-api.js';
+import {mergeSync,equal} from './sync-core.js';
 
 const panel=node('section',undefined,{'aria-label':t('sync_title'),class:'sync-panel'});
 const status=node('span',t('sync_ready'),{role:'status','aria-live':'polite'});
 const button=node('button',t('sync_now'),{type:'button',class:'secondary'});
 function control(key,label,fallback) {
     const input=node('input',undefined,{type:'checkbox'});input.checked=setting(key,fallback);
-    input.addEventListener('change',()=>{
+    input.addEventListener('change',async()=>{
         const checked=input.checked;
         const values={settings:{...get('settings',{}),[key]:checked}};
         if(key==='syncHistory')values.syncHistoryMergePending=checked;
-        try {setMany(values);}catch {input.checked=setting(key,fallback);return;}
+        try {await setMany(values);}catch {input.checked=setting(key,fallback);return;}
         session.paused=false;schedule(0);
     });
     const wrapper=node('label',t(label));wrapper.prepend(input);panel.append(wrapper);return input;
@@ -39,14 +40,20 @@ const session=new SyncSession({
         return result;
     },
     initial:()=>syncDialog('initial'),conflicts:items=>syncDialog('conflicts',items),
-    accept:(document,checkpoint)=>{
+    accept:async(document,checkpoint)=>{
+        const previousCheckpoint=get('syncCheckpoint',null);
+        const before=syncDocument(snapshot(),presets,cloudHistory,previousCheckpoint);
         applying=true;
-        try {setMany(syncValues(snapshot(),document,checkpoint,new Date().toISOString(),presets));}
+        try {await setMany(state=>{
+            const latest=mergeSync(before,syncDocument(state,presets,cloudHistory,previousCheckpoint),document).data;
+            return syncValues(state,latest,checkpoint,new Date().toISOString(),presets);
+        });}
         finally {applying=false;}
+        if(!equal(syncDocument(snapshot(),presets,cloudHistory,checkpoint),checkpoint.document))rerun=true;
     },
     status:value=>{
         status.textContent=t('sync_'+value);
-        if(get('syncOwnership',null))setMany({syncStatus:{...get('syncStatus',{}),state:value}});
+        if(get('syncOwnership',null))Promise.resolve(setMany({syncStatus:{...get('syncStatus',{}),state:value}})).catch(()=>{status.textContent=t('sync_failed');});
     },
 });
 function schedule(delay) {clearTimeout(timer);timer=setTimeout(run,delay);}
@@ -55,7 +62,7 @@ async function run() {
     if(session.paused) {status.textContent=t('sync_later');return;}
     if(!setting('syncEnabled',true)) {status.textContent=t('sync_disabled');return;}
     button.disabled=true;status.textContent=t('sync_working');
-    try {await session.run();}
+    try {await flush();await session.run();}
     catch {try {session.io.status('failed');} catch {status.textContent=t('sync_failed');}}
     finally {
         button.disabled=false;

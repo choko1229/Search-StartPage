@@ -63,7 +63,7 @@ export class SyncSession {
                 const latest = mergeSync(local, this.io.local(checkpoint), acknowledged.document);
                 if (latest.conflicts.length) throw new Error('unexpected_acknowledgement');
                 checkpoint = {userId:String(user.id),version:acknowledged.version,document:acknowledged.document,rules,preferences:this.io.preferences?.() || {}};
-                this.io.accept(latest.data, checkpoint);
+                await this.io.accept(latest.data, checkpoint);
                 this.io.status('synced');return true;
             }
             throw new Error('sync_retry_exhausted');
