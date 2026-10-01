@@ -29,6 +29,8 @@ try{
     [$status]=$request('PUT','/api/sync',['version'=>2,'document'=>$document]);$check($status===403,'write requires CSRF');
     [$status,$json]=$request('PUT','/api/sync',['version'=>2,'document'=>$document],$csrf);$check($status===200&&$json['data']['version']===3,'HTTP save advances version');
     [$status,$json]=$request('PUT','/api/sync',['version'=>2,'document'=>$document],$csrf);$check($status===409&&$json['data']['version']===3,'HTTP conflict returns current cloud');
+    [$status]=$request('PUT','/api/sync',['version'=>3,'document'=>(object)[],'user_id'=>(string)$other],$csrf);$check($status===403,'account switch hint cannot select another owner');
+    $check($repo->read($uid)['version']===3 && $repo->read($other)['version']===0,'account switch rejection preserves both owners');
     $cookies=[];[$status]=$request('GET','/api/sync');$check($status===401,'anonymous sync rejected');
 }finally{$pdo->prepare('DELETE FROM users WHERE id IN (?,?)')->execute([$uid,$other]);}
 echo "$count sync assertions passed.\n";

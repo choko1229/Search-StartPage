@@ -7,6 +7,7 @@ import {history, record, removeHistory, clearHistory} from './history.js';
 import {suggestions, cancelSuggestions} from './suggest.js';
 import {initializeSettings} from './search-settings.js';
 import './favorites.js';
+import './sync.js';
 import {favorites, openFavorite} from './favorites-store.js';
 const input = document.getElementById('query');
 const select = document.getElementById('provider');

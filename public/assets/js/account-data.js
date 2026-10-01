@@ -16,6 +16,7 @@ export function removeSyncedData(state, userId) {
     for (const key of Array.isArray(ownership.settings) ? ownership.settings : []) delete next.settings[key];
     delete next.syncOwnership;
     delete next.syncStatus;
+    delete next.syncCheckpoint;
     return next;
 }
 

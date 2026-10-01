@@ -1,10 +1,10 @@
 # 再開ポイント
 
-最終更新: 2026-10-01（Asia/Tokyo）
+最終更新: 2026-10-02（Asia/Tokyo）
 
 ## 現在の状態
 
-Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4は途中の実装を保持、実Discord往復未確認。Phase 5〜12未着手。過去のPhase 2/3完了表記より本記録とdocs/spec-audit.mdを優先する。
+Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先しPhase 5を実装中。Phase 6〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
 
 Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリック候補、履歴件数/期間/エリアを実装し3種類の検証を実施。ヘッダー履歴導線（§33）も実装・ブラウザ検証済み。Command Palette導線はPhase 8、履歴同期はPhase 5に接続する。
 
@@ -16,7 +16,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 - Docker: C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
 - 両DB検証: search-test-20260929221803。app-mysqlは8080、app-mariadbは8081。
-- UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。004_auth適用済み。
+- UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。005_sync適用済み。
 - 9/30に停止していた上記コンテナのみ再起動。旧環境のボリュームを保持。他の旧アプリは停止したまま。
 - UI configはコンテナ内/var/www/app/config/config.php。ホストとは共有しない。
 - Docker cpで反映する構成。直近public/lang/appは両DB検証環境へ反映済み。
@@ -32,10 +32,10 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 2/3補修済み。Phase 4の実Discord認証とログイン済みUI、API成功系の追加検証から再開する。
-2. Phase 3補修検証: レイアウト単体16と既存favorites成功、両DB構文59/単体39/SSRF8/検索API4成功、ブラウザ位置3種・幅75%・高さ180px・距離48px・1件/2列・展開保持ON/OFF・Autoの850px/390px切替成功。
-3. Phase 4の/api認証・端末ルート、ログインRate Limit、DB停止時のゲスト継続を補修済み。ユーザーはDiscordアプリを用意・設定可能と回答済み。設定済みか未確認。docs/discord-development.mdとbin/configure-discord.ps1を利用しSecretをチャットに求めない。
-4. 実OAuthとログイン済みUIを検証しPhase 4を判定。その後Phase 5〜12を順番に進める。
+1. Phase 5の§117 Settings/Favorites/Folders/History/Search Engines/AI ProvidersのCRUD APIと既存テーブルを同期文書へ整合させる。現在はsync_statesが同期APIの保存先で、既存テーブルへまだ投影していない。
+2. エンティティの詳細Validation、順序・削除・所有者・同時更新、履歴同期ON/OFFのAPI/UI統合を検証する。現在の認証/CSRF/版競合/初回選択/競合選択は保持する。
+3. 新規の専用Docker環境でInstaller/全Migration/全PHP回帰を両DB検証。8080/8081を使用中の現在のアプリだけ停止してから新規環境を起動し、ボリュームは削除しない。
+4. Phase 5の全条件を照合し最低3回の検証とコミットを行ってからPhase 6へ。Phase 4実OAuthは未確認として最終監査に留保し、認証バイパスは追加しない。
 
 ## 保存履歴
 
@@ -78,3 +78,17 @@ Phase 5着手: public/assets/js/sync-core.jsに3-way項目マージと競合選�
 両DB: 構文71、同期15、基盤39合格。JS: 同期23、検索23、account-data12合格。初回HTTPテストのGET Content-Type誤りを修正し再合格。UI環境へ005/APIをまだ反映していない。最新両DB検証環境へ反映済み。
 
 次は既存エンティティCRUD APIと同期文書の整合を実装し、初回選択/競合画面・ルール保存・即時/適応間隔・所有権記録を接続する。Phase 4実OAuthはユーザー指定で未確認を留保。Phase 5完了を判定する前に新規隔離環境でInstaller/全Migrationも再検証する。
+
+## Phase 5 フロント同期接続（2026-10-02）
+
+sync-session/data/api/dialogs/sync.jsを接続。初回Local/Cloud/Laterは両方にデータがある場合に選択、競合はPrevious/Local/Cloud表示・項目選択・ルール保存。変更後250msの同期と10秒/1分/5分の整合性チェック、通信中編集保持、最大3回の版競合再試行、変更なしのPUT省略を実装。Laterは現在の画面で保留し手動再開。履歴同期は端末設定の既定OFF、クラウド履歴を維持し端末履歴は送受信しない。背景は対象外でPhase 7へ。
+
+ACK後にcheckpoint/所有権/データをまとめて保存。容量超過時はcheckpointを進めない。プロバイダー順序をsortOrderで同期、クラウド文書に検索先キーがない場合は標準検索先を維持。複数タブのstorageイベントで再読込、同期メタ情報だけの変更でタブ間の同期ループを起こさない。ログアウト削除はcheckpointも除去。アカウントの最終同期は現在ユーザーの所有権と一致する場合だけ表示。
+
+同期中のアカウント切替を再確認し、PUTのuser_idは認証済み所有者との不一致を403で拒否する照合用。user_idで所有者を選択しない。既存認証・CSRFを保持。CSRF応答キーはcsrf_tokenを使用し通信契約の回帰を追加。
+
+検証1: JS構文、同期merge23/session32/data18/API通信12/store12、account-data12、検索23/設定18、お気に入り/レイアウト16合格。
+検証2: UI/両DBでPHP構文71・基盤39、両DBで同期API17合格。UIへ005も適用し再実行0件。最初に存在しないtests/unit.phpを指定して失敗、正しいtests/run.phpで再実行合格。
+検証3: 開発画面の同期欄と未ログイン状態を確認。独立UI fixtureで初回3択/Later、Previous/Local/Cloud表示、未選択の保存拒否、Cloud選択とルール保存を確認。390pxでdocument390/dialog358/content356、warn/error0。画像.test-output/phase5-conflict.png。fixtureは実ログイン・DBを利用せず、実OAuth成功の代替にはしない。
+
+ブラウザ検証で設定初期化により同期欄が消えるRegressionを発見、設定一覧と別の兄弟要素へ移し再確認。最終コードをUI/両DBへ反映。認証済み実ブラウザによる端末間往復、各CRUD API/既存DBとの整合、完全Validation、新規Installer/全Migrationは残る。Phase 5未完了、Version 1.0未完成。次は上記「次に実行すること」1から再開。

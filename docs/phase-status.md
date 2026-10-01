@@ -290,3 +290,16 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: JS同期マージ23、検索23、account-data12合格。
 - 初回テストではGETにJSON Content-Typeを付けたためINVALID_JSONになった。テストヘッダーを修正して両DBで再検証合格。失敗を成功として扱っていない。
 - Pending: 既存エンティティCRUD API・DBとの整合、初回Local/Cloud/Later、競合画面/ルール保存、同期スケジューラ、所有権記録、UI実動作、新規Installer/全Migration回帰。Phase 5未完了。
+
+### Phase 5 初回選択・競合UI・適応同期接続（2026-10-02）
+
+- Files: sync-session/data/api/dialogs/sync.js、store、account-data/account、search、account View、ja/en、検索CSS、JS検証5種と独立dialog-preview。
+- UI: 検索設定に同期ON/OFF・履歴同期・手動同期・状態表示。初回3択、項目ごとのPrevious/Local/Cloud、選択必須・ルール保存。Laterは画面内で保留して手動再開。
+- Sync: 250ms変更反映、10秒/1分/5分チェック、3回CAS再試行、変更なしPUT省略、通信中ローカル編集保持、ACK後の原子的ローカル保存/所有権記録。複数タブで状態更新しメタ変更の循環を抑制。プロバイダー順序を保持。
+- Privacy: 履歴は既定OFF、OFFの間は端末の履歴を送信/置換せずクラウド履歴を維持。端末設定と背景ファイルは同期文書から除外。背景同期はPhase 7。
+- API/Security: CSRFのcsrf_token契約、Cookie認証、保存前後のアカウント確認。PUT user_idは不一致拒否用ヒントで、サーバーの認証所有者を変更できない。アカウント切替の拒否後に両ユーザーの状態保持をテスト。
+- DB: 新規Migrationなし、UIへ既存005適用。既存DBテーブルとの投影/CRUDは次の作業。
+- 検証1: JS構文、merge23/session32/data18/通信12/store12、account-data12、検索23/設定18、お気に入り/レイアウト16成功。
+- 検証2: UI/両DB構文71/基盤39、両DB同期17成功。誤った単体検証ファイル名の失敗は修正して再実行成功。
+- 検証3: 未ログインUI、独立fixtureで3択/Later/競合値/未選択保存拒否/Cloud+ルールをブラウザ確認。390px document390/dialog358/content356、warn/error0。設定初期化が同期欄を消す不具合を修正して再確認。画像.test-output/phase5-conflict.png。
+- Remaining: §117 CRUD API、既存エンティティDBとの整合、詳細Validation、履歴ON/OFFの完全統合、認証済み実ブラウザの端末間往復、新規Installer/全Migration。OAuth未確認はユーザーの進行指定に基づき留保。Phase 5を完了扱いにしない、Phase 6未着手。

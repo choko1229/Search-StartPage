@@ -1,7 +1,7 @@
 const missing = Symbol('missing');
 const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
 const object = value => value !== missing && value !== null && typeof value === 'object' && !Array.isArray(value);
-function equal(a, b) {
+export function equal(a, b) {
     if (a === missing || b === missing) return a === b;
     if (Object.is(a, b)) return true;
     if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((v, i) => equal(v, b[i]));

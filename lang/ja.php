@@ -89,4 +89,12 @@ return [
     'favorite_limit'=>'表示件数（0: 自動・最大10件）', 'favorite_columns'=>'列数（0: 自動）', 'favorite_remember_expanded'=>'お気に入りの展開状態を記憶',
     'RATE_LIMITED'=>'ログイン試行回数が上限に達しました。少し待ってから再試行してください。',
     'RATE_LIMIT_UNAVAILABLE'=>'ログインを一時的に利用できません。時間をおいて再試行してください。',
+    'sync_title'=>'クラウド同期', 'sync_ready'=>'同期を確認します', 'sync_now'=>'今すぐ同期',
+    'sync_enabled'=>'クラウド同期を利用する', 'sync_history'=>'検索履歴も同期する',
+    'sync_disabled'=>'同期はOFFです', 'sync_signed_out'=>'同期にはログインが必要です',
+    'sync_working'=>'同期中…', 'sync_synced'=>'同期しました', 'sync_failed'=>'同期できませんでした。端末の変更は保持しています。',
+    'sync_initial_title'=>'最初の同期', 'sync_initial_help'=>'端末とクラウドの両方にデータがあります。利用するデータを選んでください。選んだデータでもう一方を置き換えます。あとで選ぶ場合は同期を保留します。',
+    'sync_local'=>'端末のデータ', 'sync_cloud'=>'クラウドのデータ', 'sync_later'=>'あとで',
+    'sync_conflicts'=>'変更が競合しています', 'sync_previous'=>'前回のデータ', 'sync_deleted'=>'削除済み',
+    'sync_choose'=>'使用する変更を選択', 'sync_remember'=>'この項目では今後も同じ選択を使う',
 ];

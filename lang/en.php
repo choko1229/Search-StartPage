@@ -89,4 +89,12 @@ return [
     'favorite_limit'=>'Visible entries (0: automatic, up to 10)', 'favorite_columns'=>'Columns (0: automatic)', 'favorite_remember_expanded'=>'Remember expanded favorites',
     'RATE_LIMITED'=>'Too many sign-in attempts. Please wait a minute and try again.',
     'RATE_LIMIT_UNAVAILABLE'=>'Sign-in is temporarily unavailable. Please try again later.',
+    'sync_title'=>'Cloud sync', 'sync_ready'=>'Checking sync', 'sync_now'=>'Sync now',
+    'sync_enabled'=>'Enable cloud sync', 'sync_history'=>'Sync search history',
+    'sync_disabled'=>'Sync is off', 'sync_signed_out'=>'Sign in to sync',
+    'sync_working'=>'Syncing…', 'sync_synced'=>'Synced', 'sync_failed'=>'Sync failed. Your changes remain on this device.',
+    'sync_initial_title'=>'First sync', 'sync_initial_help'=>'This device and the cloud both contain data. Choose which data to use. It will replace the data on the other side. Choose Later to postpone syncing.',
+    'sync_local'=>'Device data', 'sync_cloud'=>'Cloud data', 'sync_later'=>'Later',
+    'sync_conflicts'=>'Changes conflict', 'sync_previous'=>'Previous data', 'sync_deleted'=>'Deleted',
+    'sync_choose'=>'Choose the change to use', 'sync_remember'=>'Use this choice for this field in future conflicts',
 ];

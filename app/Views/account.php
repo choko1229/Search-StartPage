@@ -11,7 +11,7 @@
 <?php else: $user=$data['user']; ?>
     <h2><?= $e($user['discord_display_name'] ?: $user['discord_username']) ?></h2>
     <p>Discord: <?= $e($user['discord_username']) ?></p>
-    <p><?= $e($t->get('sync_not_enabled')) ?></p>
+    <p id="account-sync-status" data-user-id="<?= $e($user['id']) ?>" data-synced="<?= $e($t->get('sync_synced')) ?>" data-disabled="<?= $e($t->get('sync_disabled')) ?>" data-ready="<?= $e($t->get('sync_ready')) ?>" data-failed="<?= $e($t->get('sync_failed')) ?>"><?= $e($t->get('sync_ready')) ?></p>
     <dl>
         <dt><?= $e($t->get('local_storage_usage')) ?></dt><dd id="account-local-bytes">—</dd>
         <dt><?= $e($t->get('background_storage_usage')) ?></dt><dd id="account-background-bytes">—</dd>
