@@ -70,3 +70,11 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 Phase 5着手: public/assets/js/sync-core.jsに3-way項目マージと競合選択処理を追加。ID単位のコレクション、設定の異なる項目は自動マージ。同一項目、削除対編集はPrevious/Local/Cloudを保持。未解決競合の保存を拒否。選択ルール適用、危険なキー・重複ID拒否。単体23項目・JS構文・account-data12の既存回帰成功。
 
 次に実行すること: 両DB対応の同期版管理MigrationとRepository、認証/CSRF付き同期APIを実装し、同時更新の版不一致409を検証。その後既存CRUDのAPI、初回Local/Cloud/Later、競合UI/保存ルール、即時/適応間隔の同期、同期成功時所有権記録を接続する。今回のマージ関数だけでPhase 5を完了扱いにしない。
+
+## Phase 5最新の再開地点（2026-10-02）
+
+同期版管理の005_syncを両DBへ適用。GET/PUT /api/syncを実装、認証/所有者/CSRF/Validation/版競合409を確認。文書は同期用のIDマップ、空オブジェクトを保持する。SQLはSyncRepositoryへ配置。既存エンティティCRUD API・DB接続とフロント同期はまだ未完了。
+
+両DB: 構文71、同期15、基盤39合格。JS: 同期23、検索23、account-data12合格。初回HTTPテストのGET Content-Type誤りを修正し再合格。UI環境へ005/APIをまだ反映していない。最新両DB検証環境へ反映済み。
+
+次は既存エンティティCRUD APIと同期文書の整合を実装し、初回選択/競合画面・ルール保存・即時/適応間隔・所有権記録を接続する。Phase 4実OAuthはユーザー指定で未確認を留保。Phase 5完了を判定する前に新規隔離環境でInstaller/全Migrationも再検証する。

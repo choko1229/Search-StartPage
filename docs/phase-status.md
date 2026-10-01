@@ -278,3 +278,15 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証: マージ23項目成功、JS構文成功、既存account-data12回帰成功。DB/API/UIは今回まだ未実装・未検証。
 - Next: 同期の版管理と両DBMigration、認証付きAPI、既存CRUD接続、初回選択・競合UI・適応間隔・所有権記録。
 - Phase 5未完了、Version 1.0未完成。Phase 4実OAuthの未確認は最終DoD監査へ残す。
+
+### Phase 5 同期版管理とAPI（2026-10-02）
+
+- Files: 005_sync.php、SyncRepository、SyncDocument、SyncController、RequestのJSONオブジェクト保持、bootstrapルート、tests/sync.php、Docker検証一覧。
+- DB: sync_states（user_id PK/FK、version、document、updated_at）。両DBへ005適用、再実行0件を確認。
+- API: GET /api/sync、PUT /api/sync。既存のCookie認証・サーバー側所有者ID・CSRFを使用。保存はトランザクション内で版比較し、古い版なら409と現行文書を返す。
+- Validation: 同期対象のルート限定、マップ/ID整合、URL http/https、危険なキー、文書512KiB、深さ/ノード/文字列上限。空マップを維持するためRequestは元のJSONオブジェクトも保持。
+- 検証1: 両DBで構文71ファイル合格。
+- 検証2: 両DBで同期15項目（版比較、上書き防止、所有者分離、Validation、HTTP読書き、CSRF、409、匿名拒否）、基盤39合格。
+- 検証3: JS同期マージ23、検索23、account-data12合格。
+- 初回テストではGETにJSON Content-Typeを付けたためINVALID_JSONになった。テストヘッダーを修正して両DBで再検証合格。失敗を成功として扱っていない。
+- Pending: 既存エンティティCRUD API・DBとの整合、初回Local/Cloud/Later、競合画面/ルール保存、同期スケジューラ、所有権記録、UI実動作、新規Installer/全Migration回帰。Phase 5未完了。

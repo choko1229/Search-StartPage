@@ -11,6 +11,7 @@ final class Request
         public readonly array $query = [],
         public readonly array $body = [],
         public readonly array $server = [],
+        public readonly ?object $jsonObject = null,
     ) {
     }
 
@@ -18,6 +19,7 @@ final class Request
     {
         $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $body = $_POST;
+        $jsonObject = null;
         if (str_starts_with($_SERVER['CONTENT_TYPE'] ?? '', 'application/json')) {
             $raw = file_get_contents('php://input', false, null, 0, 1048577);
             if ($raw === false || strlen($raw) > 1048576) {
@@ -25,6 +27,7 @@ final class Request
             }
             try {
                 $body = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+                $jsonObject = json_decode($raw, false, 32, JSON_THROW_ON_ERROR);
             } catch (\JsonException) {
                 throw new HttpException(400, 'INVALID_JSON');
             }
@@ -32,7 +35,7 @@ final class Request
                 throw new HttpException(400, 'INVALID_JSON');
             }
         }
-        return new self(strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'), is_string($path) ? $path : '/', $_GET, $body, $_SERVER);
+        return new self(strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'), is_string($path) ? $path : '/', $_GET, $body, $_SERVER, $jsonObject);
     }
 
     public function isApi(): bool

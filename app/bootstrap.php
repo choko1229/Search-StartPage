@@ -55,6 +55,16 @@ if ($config->get('installed')) {
     $router->add('GET', '/api/user', $handler('currentUser'));
     $router->add('GET', '/api/user/devices', $handler('devices'));
     $router->add('DELETE', '/api/user/devices/{id}', $handler('revokeDevice'), [new Csrf()]);
+    $syncHandler = static function(string $method) use ($config): Closure {
+        return static function(Request $request) use ($config,$method): App\Http\Response {
+            try {$pdo=App\Database\Database::connect($config->get('database'));}
+            catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            $auth=new App\Auth\Auth($config,new App\Repositories\AuthRepository($pdo));$auth->restore();
+            return (new App\Controllers\SyncController($auth,new App\Repositories\SyncRepository($pdo)))->$method($request);
+        };
+    };
+    $router->add('GET','/api/sync',$syncHandler('read'));
+    $router->add('PUT','/api/sync',$syncHandler('write'),[new Csrf()]);
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
 $router->add('GET', '/', $core->home(...), [$optionalAuth]);
