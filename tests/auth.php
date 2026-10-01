@@ -62,6 +62,12 @@ try {
     $repository->authenticate($device,$hash,$now);
     $headers=['Cookie: search_remember='.$device.'.'.$token,'Accept-Language: en'];
     $context=stream_context_create(['http'=>['header'=>implode("\r\n",$headers),'ignore_errors'=>true]]);
+    foreach(['/', '/api/csrf', '/api/search/suggest?q='] as $localPath) {
+        $pdo->prepare('UPDATE login_tokens SET expires_at=? WHERE device_id=?')->execute([gmdate('Y-m-d H:i:s',time()+60),$device]);
+        $localPage=file_get_contents('http://127.0.0.1'.$localPath,false,$context);
+        $statement=$pdo->prepare('SELECT expires_at FROM login_tokens WHERE device_id=?');$statement->execute([$device]);
+        $check(str_contains($http_response_header[0],'200') && $statement->fetchColumn()>gmdate('Y-m-d H:i:s',time()+89*86400),"local route $localPath extends rolling login");
+    }
     $page=file_get_contents('http://127.0.0.1/account',false,$context);
     $check(str_contains($page,'Updated') && str_contains($page,'(this device)'),'long cookie restores account and current device');
     $check((bool)array_filter($http_response_header,static fn($line)=>str_contains(strtolower($line),'httponly') && str_contains(strtolower($line),'samesite=lax')),'authentication cookie security attributes');

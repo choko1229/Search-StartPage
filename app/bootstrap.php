@@ -56,11 +56,12 @@ if ($config->get('installed')) {
     $router->add('GET', '/api/user/devices', $handler('devices'));
     $router->add('DELETE', '/api/user/devices/{id}', $handler('revokeDevice'), [new Csrf()]);
 }
-$router->add('GET', '/', $core->home(...));
+$optionalAuth = new App\Middleware\OptionalAuthentication($config);
+$router->add('GET', '/', $core->home(...), [$optionalAuth]);
 $router->add('GET', '/api/health', $core->health(...));
-$router->add('GET', '/api/csrf', $core->csrf(...));
-$router->add('GET', '/api/search/suggest', (new App\Controllers\SearchController())->suggest(...));
-$router->add('GET', '/api/favorites/metadata', (new App\Controllers\FavoriteMetadataController())->metadata(...));
+$router->add('GET', '/api/csrf', $core->csrf(...), [$optionalAuth]);
+$router->add('GET', '/api/search/suggest', (new App\Controllers\SearchController())->suggest(...), [$optionalAuth]);
+$router->add('GET', '/api/favorites/metadata', (new App\Controllers\FavoriteMetadataController())->metadata(...), [$optionalAuth]);
 $router->add('POST', '/locale', $core->locale(...), [new Csrf()]);
 $router->add('GET', '/installer', $installer->handle(...));
 $router->add('POST', '/installer', $installer->handle(...), [new Csrf()]);

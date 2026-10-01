@@ -252,3 +252,13 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: Callback選択修正後、両DBで認証39、HTTP認証12、基盤単体39、OAuth応答11成功。
 - 開発UI /account のHTTP200とDiscord未設定表示を現時点で確認。実Discord往復・API Callback成功・ログイン後の実ブラウザ操作は未確認。自動テストは実Discord成功の代替としない。
 - 今回DB変更なし。Phase 4は未完了、Phase 5へ進まない。
+
+### Phase 4 通常アクセスの期限更新Regression修正（2026-10-01）
+
+- DB接続遅延化で、通常検索画面だけを使うログインユーザーのトークンが延長されない問題を修正。
+- OptionalAuthenticationは有効な形式のCookieがある場合だけDB認証を試行。トップ/CSRF/検索候補/metadataで長期期限を更新する。DB障害時はsessionの認証IDを外し、Cookieを保持して端末内機能を継続。権限必須APIは従来通り503で停止。
+- 検証1: 両DBでPHP構文66、認証42（通常ルート3つで期限延長をDB確認）、HTTP12、検索API4合格。
+- 検証2: 両DBを一時停止、Cookieあり/なしのトップ200・CSRF200・認証503・health503を各8項目確認。DB復旧healthy。内部例外露出なし。
+- 検証3: account-data12/検索23/既存favorites JS回帰合格。
+- Docker停止を確認して最新検証環境のみ起動、UIも復旧・反映。ボリューム削除なし。
+- 実Discord認証とログイン後の実ブラウザ操作は未確認。Phase 4のOAuth/Account UIゲート未達、Phase 5へ進まない。
