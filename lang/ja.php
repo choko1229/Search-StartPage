@@ -97,4 +97,6 @@ return [
     'sync_local'=>'端末のデータ', 'sync_cloud'=>'クラウドのデータ', 'sync_later'=>'あとで',
     'sync_conflicts'=>'変更が競合しています', 'sync_previous'=>'前回のデータ', 'sync_deleted'=>'削除済み',
     'sync_choose'=>'使用する変更を選択', 'sync_remember'=>'この項目では今後も同じ選択を使う',
+    'ENTITY_EXISTS'=>'同じIDの項目がすでに存在します。',
+    'SYNC_CONFLICT'=>'別の変更があります。最新のデータを確認してください。',
 ];

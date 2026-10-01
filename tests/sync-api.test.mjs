@@ -4,7 +4,7 @@ let writes=0;
 globalThis.fetch=async(url,options)=>{
     assert.equal(options.credentials,'same-origin');
     if(url==='/api/csrf')return new Response(JSON.stringify({success:true,data:{csrf_token:'test-csrf'}}));
-    assert.equal(url,'/api/sync');assert.equal(options.method,'PUT');assert.equal(options.headers['X-CSRF-Token'],'test-csrf');
+    assert.equal(url,'/api/sync');assert.equal(options.method,'POST');assert.equal(options.headers['X-CSRF-Token'],'test-csrf');
     assert.deepEqual(JSON.parse(options.body),{version:3,document:{settings:{theme:'dark'}},user_id:'1'});writes++;
     return new Response(JSON.stringify({success:false,data:{version:4,document:{settings:{theme:'other'}}}}),{status:409});
 };

@@ -315,3 +315,15 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: JS同期merge23/session32/data18/通信12/store12、account-data12、検索23/設定18、お気に入り/レイアウト16成功。
 - Issues resolved: トリガーのSUPER権限不足は一時CHECK制約を使った専用DB試験へ変更（権限拡大なし）。失敗時のユーザー削除の複合FK問題を007で修正し再実行成功。論理的なフォルダ削除ではfavorite.folderIdを先に解除するAPI実装が必要。
 - Remaining: §117 CRUDとPOST同期/競合解決API、新規Installer/全Migration往復、履歴同期のAPI/UI完全統合、実認証済み端末間ブラウザ。Phase 5未完了、Version 1.0未達。
+
+### Phase 5 CRUD・POST同期・競合解決API（2026-10-02）
+
+- Files: CloudDataController、CloudMutation、SyncInput、SyncMerge、SyncController/bootstrap、sync-api.js、ja/en、cloud-api/merge検証、Docker一覧、Installer試験の完了待機時間、docs/cloud-api.md。
+- API: §117 Settings/Favorites/open/Folders/History/Search Engines/AI Providers。POST /api/syncとPOST /api/sync/resolve-conflictを追加、PUT同期も保持。WebはPOSTへ変更。JSON versionとCSRF、認証所有者、404/422/409の共通契約。
+- Behavior: 項目の追加/部分更新/削除、UUIDと初期値、フォルダ削除時のfavorite保持、利用統計OFF、同じ正本/更新版/DB投影経路。競合解決は異なる項目を自動マージし、同一項目・削除対編集を選択。未解決では保存しない。rulesをクライアントへ返す。
+- DB: 新規Migrationなし。006/007を含む全7本の往復を新規両DBで検証。
+- 検証1: 既存両DB構文81/基盤39、PHP merge8、cloud API50、sync17、projection31成功。
+- 検証2: search-test-20261002020651で両DB新規Installer35と全PHP試験合格。構文80（初回config生成前）、検索4/SSRF8、OAuth11/認証42/HTTP12、同期17/投影31/merge8/API50、制限7/同時24（5許可19拒否）/実HTTP制限と検索継続。
+- 検証3: JS構文、同期23/32/18/通信12/store12/account-data12、検索23/設定18、favorites/layout16回帰成功。UI構文81・トップ200。
+- Issues: 最初の新規Installer試験は20秒のHTTPタイムアウト（サーバー側installed=yes/7Migration適用は確認）。Installer完了試験だけ120秒にし、別の新規隔離環境で全検証成功。初回の失敗は未合格としてログ保持。既存・失敗環境のボリュームを削除しない。
+- Remaining: 実HTTP2端末のフロントエンジン整合、履歴同期のON切替/物理期限削除、オフライン復帰、認証済み実ブラウザ/実OAuth留保、背景設定のPhase 7接続。Phase 5未完了、Phase 6未着手。

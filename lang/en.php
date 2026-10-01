@@ -97,4 +97,6 @@ return [
     'sync_local'=>'Device data', 'sync_cloud'=>'Cloud data', 'sync_later'=>'Later',
     'sync_conflicts'=>'Changes conflict', 'sync_previous'=>'Previous data', 'sync_deleted'=>'Deleted',
     'sync_choose'=>'Choose the change to use', 'sync_remember'=>'Use this choice for this field in future conflicts',
+    'ENTITY_EXISTS'=>'An item with this ID already exists.',
+    'SYNC_CONFLICT'=>'Other changes exist. Review the latest data.',
 ];

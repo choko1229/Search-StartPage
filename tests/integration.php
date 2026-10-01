@@ -49,7 +49,7 @@ $check(count($pdo->query('SHOW TABLES')->fetchAll()) === 1, 'empty schema rollba
 $pdo->exec('DROP TABLE migrations');
 
 $cookies = [];
-$request = static function (string $method, string $path, array|string $data = [], array $extraHeaders = []) use (&$cookies): array {
+$request = static function (string $method, string $path, array|string $data = [], array $extraHeaders = [], int $timeout = 20) use (&$cookies): array {
     $headers = ['Accept-Language: en'];
     if ($cookies !== []) {
         $headers[] = 'Cookie: ' . implode('; ', array_map(static fn ($key, $value) => "$key=$value", array_keys($cookies), $cookies));
@@ -60,7 +60,7 @@ $request = static function (string $method, string $path, array|string $data = [
     }
     $context = stream_context_create(['http' => [
         'method' => $method, 'header' => implode("\r\n", array_merge($headers, $extraHeaders)),
-        'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
+        'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => $timeout,
     ]]);
     $result = file_get_contents('http://127.0.0.1' . $path, false, $context);
     $responseHeaders = $http_response_header;
@@ -109,7 +109,8 @@ $check($status === 303, 'OAuth can remain unconfigured');
 $check($status === 303, 'initial admin reservation');
 [$status, $body] = $request('GET', '/installer');
 $check(!str_contains($body, '<script>') && !str_contains($body, $settings['password']), 'review escapes HTML and omits password');
-[$status] = $request('POST', '/installer', ['_csrf' => $csrf, '_step' => '6']);
+// Initial DDL can exceed ordinary request timeouts on Docker Desktop.
+[$status] = $request('POST', '/installer', ['_csrf' => $csrf, '_step' => '6'], [], 120);
 $check($status === 303, 'installation completes');
 [$status, $body] = $request('GET', '/installer');
 $check($status === 200 && str_contains($body, 'Core installation is complete'), 'completion screen');

@@ -11,5 +11,5 @@ export async function syncUser() {
 export async function writeSync(version, document, userId) {
     const csrf=await request('/api/csrf');
     if(csrf.status!==200 || typeof csrf.data?.csrf_token!=='string')throw new Error('sync_csrf_failed');
-    return request('/api/sync',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf.data.csrf_token},body:JSON.stringify({version,document,user_id:userId})});
+    return request('/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf.data.csrf_token},body:JSON.stringify({version,document,user_id:userId})});
 }

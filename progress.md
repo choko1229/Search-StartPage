@@ -15,7 +15,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 ## 環境
 
 - Docker: C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
-- 両DB検証: search-test-20260929221803。app-mysqlは8080、app-mariadbは8081。
+- 両DB検証: search-test-20261002020651。app-mysqlは8080、app-mariadbは8081。新規Installer/全Migration/全PHP検証済み。
 - UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。007_folder_owner_cascadeまで適用済み。
 - 9/30に停止していた上記コンテナのみ再起動。旧環境のボリュームを保持。他の旧アプリは停止したまま。
 - UI configはコンテナ内/var/www/app/config/config.php。ホストとは共有しない。
@@ -32,9 +32,9 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 5の§117 Settings/Favorites/Folders/History/Search Engines/AI ProvidersのCRUD APIを実装する。現在はsync_statesが正本、SyncProjectionRepositoryが既存テーブルとuser_settings/sync_versionsへ同一トランザクションで投影する。個別APIも同じ版比較を通し、別の保存経路を作らない。
-2. §117のPOST /api/sync、POST /api/sync/resolve-conflictを接続し、既存PUTも保持。フォルダ削除は文書のfavorite.folderIdを先に解除してお気に入りを保持。追加/更新/削除/利用回数、所有者/CSRF/422/409、履歴ON/OFFのAPI/UI統合を検証する。現在の認証/版競合/初回選択/競合選択を保持する。
-3. 新規の専用Docker環境でInstaller/全Migration/全PHP回帰を両DB検証。8080/8081を使用中の現在のアプリだけ停止してから新規環境を起動し、ボリュームは削除しない。
+1. Phase 5の実HTTPを使う2端末同期エンジン統合検証を追加する。テスト用CLIが通常のAuthRepositoryで作る隔離ユーザー/端末Cookieを使い、秘密値を表示せずGit除外の一時ファイルで受け渡す。実Discord成功や認証済みブラウザの証明とは区別する。現在の純粋関数検証を実APIの端末整合・CAS再試行・オフライン復帰へ広げる。
+2. 履歴同期OFFの送受信抑制を実HTTPで確認し、OFFからONへ切り替える際に端末履歴と既存クラウド履歴を不用意に削除しないことを検証・補修する。サーバーの履歴件数/期間の物理削除も同期版と整合させる。競合ルール保存とユーザー切替の永続状態を確認。
+3. §117のCRUD、POST同期/競合解決は実装済み。docs/cloud-api.md参照。新規Installer/7 Migration往復を両DBで検証済み。新しい変更に必要なチェックを追加し、Phase 5の添付仕様にあるoffline queue foundation/device consistencyの証拠を確認する。背景設定の実利用はPhase 7へ接続する。
 4. Phase 5の全条件を照合し最低3回の検証とコミットを行ってからPhase 6へ。Phase 4実OAuthは未確認として最終監査に留保し、認証バイパスは追加しない。
 
 ## 保存履歴
@@ -108,3 +108,17 @@ SyncProjectionRepositoryは初回に既存テーブルを読んで文書化し�
 初回投影試験はMySQLのトリガー作成権限で失敗し、後片付け中に外部キー問題も発見。権限を拡大せず、専用テストDBの一時CHECK制約で保存途中のSQL失敗を起こす検証へ変更。失敗後に同期文書/版・設定・関連行が元に戻ることを確認し、制約をfinallyで除去。007修正後に両DBの全ケースを再実行成功。成功扱いにしていない失敗履歴を保持。
 
 未完了: 個別CRUD/POST同期/競合解決API、新規Installer/全Migration往復、認証済み実ブラウザの端末間同期。Phase 5未完了、Phase 6未着手。次は冒頭「次に実行すること」1。
+
+## Phase 5 個別CRUD・競合解決API（2026-10-02）
+
+Settings、Favorites/open、Favorite Folders、Search History、Search Engines、AI Providersの§117 APIを追加。GETは所有者の項目と同期版、変更はJSON version/item（Settingsはsettings）とCSRFが必要。部分更新・id保持、生成UUID、初期値、404/422/重複id409、古い版409、所有者照合を実装。フォルダ削除はfavorite.folderIdを解除し、同じ同期トランザクションでDBへ反映。
+
+POST /api/syncを追加しWebをPOSTへ変更。PUTも互換維持。POST /api/sync/resolve-conflictはPrevious/Localと現在CloudをPHPで項目マージ、未解決はPrevious/Local/Cloudを409で返し未保存。choices/rulesで解決しCAS保存。PHPの欠損/null/配列/数値等はJSと同じ扱い。ルールは応答しクライアント保存。docs/cloud-api.mdにプロトコルを記録。
+
+検証1: 既存両DBで構文81/基盤39/マージ8/個別API50/同期17/投影31。API50は成功、CSRF、所有者、重複、版、部分更新、生成履歴、フォルダ保持、統計OFF、匿名拒否、同一項目/削除対編集の競合選択を含む。
+検証2: 新規隔離search-test-20261002020651で全PHP検証成功。各DB: Installer35（7Migrationの初回/再実行/down/Installer再適用）、構文80（config生成前）、基盤39、検索4/SSRF8、OAuth11/認証42/HTTP12、同期17/投影31/マージ8/API50、制限7/同時24（許可5拒否19）/HTTP429+検索200。ログ.test-output/phase5-fresh-retry.log。
+検証3: JS構文と同期23/32/18/通信12/store12/account-data12/検索23/設定18/お気に入り/レイアウト16成功。UIへ反映し構文81・トップ200。
+
+最初の新規試験search-test-20261002020315ではInstaller最終HTTPが20秒でタイムアウト。サーバー303、installed=yes・Migration7を確認。試験のInstaller完了リクエストだけ120秒へ修正し、新規環境で再検証合格。初回ログ.test-output/phase5-fresh-docker.logは保持し成功扱いにしない。失敗環境の4コンテナは停止・ボリューム保持。旧search-test-20260929221803のアプリ2つは停止・DB/ボリューム保持。現在8080/8081は成功した新規環境。
+
+Phase 5は未完了。次は冒頭の2端末エンジン+実HTTP統合、履歴同期ON/OFF/物理期限削除、オフライン復帰を確認する。実OAuth/認証済み実ブラウザの未確認は留保。Phase 6未着手。

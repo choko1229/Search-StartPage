@@ -64,7 +64,26 @@ if ($config->get('installed')) {
         };
     };
     $router->add('GET','/api/sync',$syncHandler('read'));
+    $router->add('POST','/api/sync',$syncHandler('write'),[new Csrf()]);
     $router->add('PUT','/api/sync',$syncHandler('write'),[new Csrf()]);
+    $router->add('POST','/api/sync/resolve-conflict',$syncHandler('resolve'),[new Csrf()]);
+    $cloudHandler=static function(string $collection,string $action) use($config): Closure {
+        return static function(Request $request,array $params) use($config,$collection,$action): App\Http\Response {
+            try {$pdo=App\Database\Database::connect($config->get('database'));}
+            catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            $auth=new App\Auth\Auth($config,new App\Repositories\AuthRepository($pdo));$auth->restore();
+            return (new App\Controllers\CloudDataController($auth,new App\Repositories\SyncRepository($pdo)))->handle($request,$params,$collection,$action);
+        };
+    };
+    $router->add('GET','/api/settings',$cloudHandler('settings','read'));
+    $router->add('PUT','/api/settings',$cloudHandler('settings','update'),[new Csrf()]);
+    foreach(['favorites'=>'favorites','favorite-folders'=>'favorite-folders','search/history'=>'history','search-engines'=>'providers-web','ai-providers'=>'providers-ai'] as $path=>$collection) {
+        $router->add('GET','/api/'.$path,$cloudHandler($collection,'read'));
+        $router->add('POST','/api/'.$path,$cloudHandler($collection,'create'),[new Csrf()]);
+        if($collection!=='history')$router->add('PUT','/api/'.$path.'/{id}',$cloudHandler($collection,'update'),[new Csrf()]);
+        $router->add('DELETE','/api/'.$path.'/{id}',$cloudHandler($collection,'delete'),[new Csrf()]);
+    }
+    $router->add('POST','/api/favorites/{id}/open',$cloudHandler('favorites','open'),[new Csrf()]);
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
 $router->add('GET', '/', $core->home(...), [$optionalAuth]);
