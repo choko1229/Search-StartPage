@@ -54,3 +54,11 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 ## 10/1の再開・修正
 
 通常トップ/CSRF/検索候補へのアクセスで長期ログインが延長されないRegressionを修正。OptionalAuthenticationでCookieを検証し期限更新、DB障害時は未認証としてローカル機能を継続。両DBで構文66・認証42・HTTP12・検索API4合格。実DB停止試験はCookieあり/なしで各8合格。JS account-data12/検索23/既存favorites回帰合格。検証開始時はコンテナ停止を確認し、最新検証環境とUIだけ再起動した。旧環境・ボリューム保持。次は実Discord認証とログイン後ブラウザ操作。設定状況の質問は未回答で、Phase 4未完了。
+
+## 現在の阻害条件（2026-10-01再確認）
+
+開発UI /accountを再確認しHTTP200・Discord未設定表示を確認。9/30の成功系検証終了時、10/1の期限更新修正終了時、今回の再確認の3回で同じ設定不足が継続。Phase 4で独立して修正可能だったAPI/制限/期限更新/障害対応は検証済み。残る実OAuth往復とログイン後ブラウザ操作は開発用アプリ設定が必要。Phase順のゲートに従いPhase 5へ進めない。
+
+再開条件: docs/discord-development.mdの2つのRedirectをDiscord Developer Portalへ登録し、bin/configure-discord.ps1を実行して非表示入力する。設定済みとユーザーから連絡後、/accountのログインボタンを確認し実認証・端末操作・ログアウト・再ログインを検証する。秘密値をチャットに求めない。
+
+設定スクリプトもWeb/APIの両Redirectを案内するよう修正、PowerShell構文確認済み。スクリプトの実値入力は未実行。Goalは外部設定待ちのblockedへ変更する。Version 1.0未完成。

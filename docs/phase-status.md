@@ -262,3 +262,10 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証3: account-data12/検索23/既存favorites JS回帰合格。
 - Docker停止を確認して最新検証環境のみ起動、UIも復旧・反映。ボリューム削除なし。
 - 実Discord認証とログイン後の実ブラウザ操作は未確認。Phase 4のOAuth/Account UIゲート未達、Phase 5へ進まない。
+
+### Phase 4 外部設定待ちの判定（2026-10-01）
+
+- /accountを再確認: HTTP200、Discord未設定。9/30成功系終了・10/1期限更新修正終了・今回の3回で同じ阻害条件を確認。
+- 独立したAPI/Rate Limit/期限延長/DB障害対応は確認済み。残るOAuth/Account UIゲートは実Discord設定と認証が必要。
+- bin/configure-discord.ps1にAPI用Redirectの案内も追加。PowerShell構文成功。実値入力は未実行。
+- Goalはblocked。解除に必要な作業はdocs/discord-development.mdのRedirect登録と設定スクリプトでの秘密値非表示入力。設定後に実OAuth・ログイン済みUI・端末管理・再ログインを検証しPhase 4を判定する。Phase 5〜12未着手、Version 1.0未達。

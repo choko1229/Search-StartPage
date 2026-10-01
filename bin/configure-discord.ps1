@@ -7,6 +7,7 @@ $dockerCommand = Get-Command docker -ErrorAction SilentlyContinue
 $dockerExe = if ($dockerCommand) { $dockerCommand.Source } else { "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe" }
 if (-not (Test-Path -LiteralPath $dockerExe)) { throw 'Docker CLI was not found.' }
 Write-Host "Register this exact Discord OAuth redirect URL: $($SiteUrl.TrimEnd('/'))/auth/discord/callback"
+Write-Host "Register this API OAuth redirect URL as well: $($SiteUrl.TrimEnd('/'))/api/auth/discord/callback"
 $clientId = Read-Host 'Discord application Client ID'
 if ($clientId -notmatch '^\d{17,20}$') { throw 'Invalid Client ID.' }
 $secret = Read-Host 'Discord Client Secret (hidden)' -AsSecureString
