@@ -99,4 +99,12 @@ return [
     'sync_choose'=>'Choose the change to use', 'sync_remember'=>'Use this choice for this field in future conflicts',
     'ENTITY_EXISTS'=>'An item with this ID already exists.',
     'SYNC_CONFLICT'=>'Other changes exist. Review the latest data.',
+    'settings_title'=>'Settings','settings_categories'=>'Settings categories',
+    'category_general'=>'General','category_search'=>'Search','category_ai'=>'AI','category_favorites'=>'Favorites',
+    'category_background'=>'Background','category_appearance'=>'Appearance','category_sync'=>'Sync','category_shortcuts'=>'Shortcuts','category_privacy'=>'Privacy',
+    'settings_undo'=>'Undo','settings_redo'=>'Redo','settings_history'=>'Recent setting changes (this device)',
+    'settings_reset_category'=>'Reset this category','settings_reset_confirm'=>'Reset settings in this category? Your favorites, history and other data will be kept.',
+    'settings_discard_confirm'=>'Discard the unfinished provider changes and close settings?',
+    'settings_saved'=>'Settings saved','settings_default'=>'Default',
+    'settings_confirm_title'=>'Confirm setting change','settings_confirm'=>'Confirm','settings_cancel'=>'Cancel',
 ];

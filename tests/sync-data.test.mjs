@@ -28,4 +28,5 @@ assert.equal(syncValues({...state,settings:{syncHistory:true},syncHistoryMergePe
 assert.deepEqual(Object.keys(syncDocument({...state,settings:{syncHistory:true},syncHistoryMergePending:true},presets,cloudHistory,null).history),['secret']);
 const offAfterSync=syncValues({...state,history:[{id:'owned'},{id:'private'}],syncOwnership:{userId:'1',collections:{history:['owned','removed']}}},document,checkpoint,'now',presets);
 assert.deepEqual(offAfterSync.syncOwnership.collections.history,['owned']);
-console.log('23 sync data assertions passed.');
+assert.equal(syncDocument({...state,settingsHistory:{entries:[{label:'theme'}],cursor:1}},presets,cloudHistory).settingsHistory,undefined);
+console.log('24 sync data assertions passed.');

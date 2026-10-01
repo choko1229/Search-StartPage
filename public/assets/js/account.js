@@ -1,5 +1,5 @@
 import {localUsage, removeSyncedData} from './account-data.js';
-import {snapshot,setMany} from './store.js';
+import {snapshot,setMany,saveSettings} from './store.js';
 let state=snapshot();
 const logout = document.getElementById('logout-data');
 if (logout && state.settings?.clearSyncedOnLogout !== false) {
@@ -30,7 +30,7 @@ if (clear) {
     clear.addEventListener('change', async() => {
         try {
             const checked=clear.checked;
-            await setMany(latest=>({settings:{...latest.settings,clearSyncedOnLogout:checked}}));
+            await saveSettings({clearSyncedOnLogout:checked},'clearSyncedOnLogout');
         } catch { clear.checked = !clear.checked; }
     });
 }

@@ -11,7 +11,7 @@ export function initializeSettings(refresh) {
     const kind = document.getElementById('provider-kind');
     const error = document.getElementById('provider-error');
     function preference(key, title, options, fallback) {
-        const label = node('label', title, {class: 'preference'});
+        const label = node('label', title, {class: 'preference','data-setting':key});
         const select = node('select', undefined, {'aria-label': title});
         for (const [value, name] of options) select.append(node('option', name, {value}));
         select.value = setting(key, fallback);
@@ -19,13 +19,14 @@ export function initializeSettings(refresh) {
         label.append(select); return label;
     }
     function render() {
+        dialog.querySelectorAll('[data-setting]').forEach(element=>element.remove());
         const preferences = document.getElementById('search-preferences');
         preferences.replaceChildren(preference('initialMode', t('initial_mode'), [['web', t('web_mode')], ['ai', t('ai_mode')], ['last', t('last_mode')]], 'web'));
         for (const mode of ['web', 'ai']) preferences.append(preference(`${mode}Default`, t(`${mode}_default`), [...providers(mode).map(item => [item.id, item.name]), ['last', t('last_mode')]], mode === 'web' ? 'google' : 'chatgpt'));
         preferences.append(preference('aiOrder',t('ai_order'),[['fixed',t('manual')],['usage',t('usage')],['recent',t('recent')]],'fixed'));
         preferences.append(preference('urlPolicy',t('url_policy'),[['suggest',t('url_suggest_only')],['auto',t('url_auto')],['full',t('url_full')]],'suggest'));
         for (const [key,title,fallback,max] of [['historyLimit','history_limit',300,10000],['historyDays','history_days',90,3650]]) {
-            const label=node('label',t(title),{class:'preference'});
+            const label=node('label',t(title),{class:'preference','data-setting':key});
             const number=node('input',undefined,{type:'number',min:'1',max:String(max),value:String(setting(key,fallback))});
             number.addEventListener('input',()=>{
                 const value=Number(number.value);
@@ -35,7 +36,7 @@ export function initializeSettings(refresh) {
             label.append(number);preferences.append(label);
         }
         for(const [key,fallback] of Object.entries(defaultKeys)) {
-            const label=node('label',t(key),{class:'preference'});
+            const label=node('label',t(key),{class:'preference','data-setting':key});
             const input=node('input',undefined,{value:setting(key,fallback),maxlength:'60'});
             input.addEventListener('input',()=>{
                 const value=input.value.trim();
@@ -53,7 +54,7 @@ export function initializeSettings(refresh) {
             label.append(input);preferences.append(label);
         }
         for (const [key, title, fallback] of [['saveHistory', 'save_history',true], ['externalSuggest', 'external_suggest_setting',true],['suggestOnFocus','suggest_on_focus',false],['historyArea','history_area',false]]) {
-            const label = node('label', t(title), {class: 'preference'});
+            const label = node('label', t(title), {class: 'preference','data-setting':key});
             const checkbox = node('input', undefined, {type: 'checkbox'});
             checkbox.checked = setting(key, fallback);
             checkbox.addEventListener('change', () => {setSetting(key, checkbox.checked);refresh();});
@@ -83,6 +84,7 @@ export function initializeSettings(refresh) {
             });
             row.append(edit, up, remove); list.append(row);
         });
+        dialog.dispatchEvent(new CustomEvent('settings-render'));
     }
     form.addEventListener('submit', event => {
         event.preventDefault();
@@ -96,5 +98,6 @@ export function initializeSettings(refresh) {
     });
     form.addEventListener('reset', () => {form.elements.id.value = ''; error.textContent = '';});
     kind.addEventListener('change', () => {form.reset(); render();});
-    document.getElementById('search-settings-open').addEventListener('click', () => {render(); dialog.showModal();});
+    document.getElementById('search-settings-open').addEventListener('click', () => {render();dialog.style.removeProperty('width');dialog.style.removeProperty('height'); dialog.showModal();});
+    dialog.addEventListener('refresh-settings',render);
 }

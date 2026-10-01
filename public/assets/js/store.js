@@ -1,4 +1,5 @@
 import {openStateDatabase} from './store-database.js';
+import {recordSettings} from './settings-history.js';
 const key = 'search-startpage-v1';
 let state = {};
 try { state = JSON.parse(localStorage.getItem(key) || '{}'); } catch { /* Local storage may be disabled. */ }
@@ -47,8 +48,15 @@ export function set(name, value) {
     window.dispatchEvent(new CustomEvent('data-change', {detail: name}));
 }
 export function setting(name, fallback) { return get('settings', {})[name] ?? fallback; }
-export function setSetting(name, value) { set('settings', {...get('settings', {}), [name]: value}); }
+export function setSetting(name, value) {
+    const settings=get('settings',{});
+    if(!['lastMode','webLast','aiLast','favoritesExpanded'].includes(name))set('settingsHistory',recordSettings(get('settingsHistory',null),settings,{[name]:value},name));
+    set('settings',{...settings,[name]:value});
+}
 export function snapshot() { return structuredClone(state); }
+export function saveSettings(patch,label,extra={}) {
+    return setMany(state=>({settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,label),settings:{...state.settings,...patch},...extra}));
+}
 export function setMany(values) {
     if(initialError)throw initialError;
     if(database)return enqueue(async()=>{

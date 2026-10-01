@@ -1,4 +1,4 @@
-import {get,setMany,setting,snapshot,flush} from './store.js';
+import {get,setMany,setting,snapshot,flush,saveSettings} from './store.js';
 import {presets,t,node} from './i18n.js';
 import {SyncSession,syncInterval} from './sync-session.js';
 import {syncDocument,syncValues,syncCollections} from './sync-data.js';
@@ -13,9 +13,8 @@ function control(key,label,fallback) {
     const input=node('input',undefined,{type:'checkbox'});input.checked=setting(key,fallback);
     input.addEventListener('change',async()=>{
         const checked=input.checked;
-        const values={settings:{...get('settings',{}),[key]:checked}};
-        if(key==='syncHistory')values.syncHistoryMergePending=checked;
-        try {await setMany(values);}catch {input.checked=setting(key,fallback);return;}
+        const extra=key==='syncHistory'?{syncHistoryMergePending:checked}:{};
+        try {await saveSettings({[key]:checked},key,extra);}catch {input.checked=setting(key,fallback);return;}
         session.paused=false;schedule(0);
     });
     const wrapper=node('label',t(label));wrapper.prepend(input);panel.append(wrapper);return input;

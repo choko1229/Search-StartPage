@@ -20,6 +20,7 @@ function initializeLayoutSettings() {
     const position = node('select');
     for (const value of ['below', 'above', 'bottom']) position.append(node('option', t(`favorite_position_${value}`), {value}));
     position.value = setting('favoritePosition', 'below');
+    position.dataset.preference='favoritePosition';position.dataset.fallback='below';
     position.addEventListener('change', () => {setSetting('favoritePosition', position.value); render();});
     positionLabel.append(position); container.append(positionLabel);
     for (const [key, title, fallback, min, max] of [
@@ -31,6 +32,7 @@ function initializeLayoutSettings() {
     ]) {
         const label = node('label', t(title));
         const input = node('input', undefined, {type:'number', min:String(min), max:String(max), value:String(setting(key, fallback))});
+        input.dataset.preference=key;input.dataset.fallback=String(fallback);
         input.addEventListener('input', () => {
             if (!input.value || !input.validity.valid) return;
             setSetting(key, layoutNumber(input.value, fallback, min, max)); render();
@@ -44,6 +46,7 @@ function initializeLayoutSettings() {
     const rememberLabel = node('label', t('favorite_remember_expanded'));
     const remember = node('input', undefined, {type:'checkbox'});
     remember.checked = setting('rememberFavoritesExpanded', true);
+    remember.dataset.preference='rememberFavoritesExpanded';remember.dataset.fallback='true';
     remember.addEventListener('change', () => {
         setSetting('rememberFavoritesExpanded', remember.checked);
         setSetting('favoritesExpanded', remember.checked && expanded);
@@ -202,7 +205,19 @@ folderForm.addEventListener('submit',event=>{event.preventDefault();try{saveFold
 document.getElementById('folder-sort').value=setting('folderSort','manual');
 document.getElementById('folder-sort').addEventListener('change',event=>{setSetting('folderSort',event.target.value);render();renderFolderEditor();});
 document.getElementById('folder-manage').addEventListener('click',()=>{renderFolderEditor();document.getElementById('folder-editor').showModal();});
-window.addEventListener('data-change',event=>{if(['favorites','favorite-folders'].includes(event.detail)){render();renderFolderEditor();}});
+window.addEventListener('data-change',event=>{
+    if(event.detail==='settings') {
+        for(const input of document.querySelectorAll('[data-preference]')) {
+            const value=setting(input.dataset.preference,input.type==='checkbox'?input.dataset.fallback==='true':input.dataset.fallback);
+            if(input.type==='checkbox')input.checked=value;else input.value=value;
+        }
+        order.value=setting('favoriteSort','manual');display.value=setting('favoriteDisplay','icon-name');
+        for(const [id,key] of [['favorite-context-setting','favoriteContextMenu'],['favorite-stats-setting','favoriteStats']])document.getElementById(id).checked=setting(key,true);
+        searchSetting.value=setting('favoriteSearch','both');
+        document.getElementById('folder-sort').value=setting('folderSort','manual');
+    }
+    if(['favorites','favorite-folders','settings'].includes(event.detail)){render();renderFolderEditor();}
+});
 document.addEventListener('keydown',event=>{
     if(event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true]')||document.querySelector('dialog[open]'))return;
     const key=shortcutKey([event.ctrlKey?'Control':'',event.altKey?'Alt':'',event.shiftKey?'Shift':'',event.key].filter(Boolean).join('+'));

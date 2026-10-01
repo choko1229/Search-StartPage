@@ -6,6 +6,7 @@ import {prefixQuery, queryUrl, recommendAi, safeUrl} from './search-core.js';
 import {history, record, removeHistory, clearHistory} from './history.js';
 import {suggestions, cancelSuggestions} from './suggest.js';
 import {initializeSettings} from './search-settings.js';
+import {initializeSettingsModal} from './settings-modal.js';
 import './favorites.js';
 import './sync.js';
 import {favorites, openFavorite} from './favorites-store.js';
@@ -151,5 +152,7 @@ window.addEventListener('data-change',event=>{if(event.detail==='history')render
 document.getElementById('history-clear').addEventListener('click', () => {if (confirm(t('confirm_clear_history'))) {clearHistory(); renderHistory();}});
 window.addEventListener('storage-unavailable', () => {status.textContent = t('storage_unavailable');});
 initializeSettings(refresh);
+initializeSettingsModal();
+window.addEventListener('data-change',event=>{if(event.detail==='settings')refresh();});
 refresh();
 openLinkedHistory();

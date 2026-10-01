@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {recordSettings,resetSettings,travelSettings} from '../public/assets/js/settings-history.js';
+import {categoryKeys,categoryOf} from '../public/assets/js/settings-schema.js';
+let settings={theme:'light',unrelated:123},history=null;
+history=recordSettings(history,settings,{theme:'dark'},'theme','2026-10-02T00:00:00Z');settings.theme='dark';
+let result=travelSettings(history,settings,'undo');assert.equal(result.settings.theme,'light');assert.equal(result.settings.unrelated,123);
+result=travelSettings(result.history,result.settings,'redo');assert.equal(result.settings.theme,'dark');
+const absent=recordSettings(null,{}, {newKey:null},'newKey');
+assert.equal(Object.hasOwn(travelSettings(absent,{newKey:null},'undo').settings,'newKey'),false);
+assert.equal(travelSettings({...absent,cursor:0},{},'redo').settings.newKey,null);
+const reset=resetSettings(history,settings,categoryKeys.appearance,'appearance');assert.equal(Object.hasOwn(reset.settings,'theme'),false);assert.equal(reset.settings.unrelated,123);
+assert.equal(travelSettings(reset.history,reset.settings,'undo').settings.theme,'dark');
+for(let i=0;i<25;i++){history=recordSettings(history,settings,{fontSize:i},'fontSize');settings.fontSize=i;}
+assert.equal(history.entries.length,20);assert.equal(history.cursor,20);
+result=travelSettings(history,settings,'undo');
+const branch=recordSettings(result.history,result.settings,{theme:'blue'},'theme');assert.equal(branch.entries.length,20);assert.equal(branch.cursor,20);
+assert.equal(branch.entries.at(-1).label,'theme');assert.equal(recordSettings(branch,{theme:'blue'},{theme:'blue'},'theme'),branch);
+assert.deepEqual(resetSettings(null,{historyLimit:300,favorites:[1]},categoryKeys.search,'search').settings,{favorites:[1]});
+assert.equal(categoryOf('externalSuggest'),'privacy');assert.equal(categoryOf('aiOrder'),'ai');
+assert.equal(Object.values(categoryKeys).flat().includes('favorites'),false);
+const value={colors:{accent:'#ffffff'}};const copy=recordSettings(null,{},value,'colors');value.colors.accent='#000000';assert.equal(copy.entries[0].changes[0].next.value.accent,'#ffffff');
+console.log('19 settings history and reset assertions passed.');

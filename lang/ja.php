@@ -99,4 +99,12 @@ return [
     'sync_choose'=>'使用する変更を選択', 'sync_remember'=>'この項目では今後も同じ選択を使う',
     'ENTITY_EXISTS'=>'同じIDの項目がすでに存在します。',
     'SYNC_CONFLICT'=>'別の変更があります。最新のデータを確認してください。',
+    'settings_title'=>'設定','settings_categories'=>'設定カテゴリ',
+    'category_general'=>'一般','category_search'=>'検索','category_ai'=>'AI','category_favorites'=>'お気に入り',
+    'category_background'=>'背景','category_appearance'=>'外観','category_sync'=>'同期','category_shortcuts'=>'ショートカット','category_privacy'=>'プライバシー',
+    'settings_undo'=>'元に戻す','settings_redo'=>'やり直す','settings_history'=>'最近の設定変更（この端末）',
+    'settings_reset_category'=>'このカテゴリを初期化','settings_reset_confirm'=>'このカテゴリの設定を初期化しますか？お気に入り・履歴などのデータは保持します。',
+    'settings_discard_confirm'=>'入力途中の検索先設定を破棄して閉じますか？',
+    'settings_saved'=>'設定を保存しました','settings_default'=>'初期値',
+    'settings_confirm_title'=>'設定変更の確認','settings_confirm'=>'確認','settings_cancel'=>'キャンセル',
 ];

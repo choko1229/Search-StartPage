@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先。Phase 5の同期機能ゲートは検証済み（実OAuthを留保）。次はPhase 6。Phase 6〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
+Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先。Phase 5の同期機能ゲートは検証済み（実OAuthを留保）。Phase 6実装中、Phase 7〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
 
 Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリック候補、履歴件数/期間/エリアを実装し3種類の検証を実施。ヘッダー履歴導線（§33）も実装・ブラウザ検証済み。Command Palette導線はPhase 8、履歴同期はPhase 5に接続する。
 
@@ -32,8 +32,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 6の仕様をspec.md §37/53–56/68–82と添付Phase 6から照合。既存settings/storeを拡張し、設定メニュー、検索・お気に入り・パネルの共通配置、Undo最大20、設定初期化とユーザーデータ初期化の分離を実装する。
-2. Theme（Light/Dark/OS/Custom/Presets、複数保存、地域の日の出/日の入り、0.5〜1秒transition）、Font（system/preset/Google/custom、size/weight/line height/spacing）、Animation None/Low/Standard/Richを実装。検索box/glassと時計/日付/挨拶の既定OFF、オンボーディング可変7〜8stepsへ接続する。
+1. Phase 6設定モーダル/Undo/カテゴリresetの実装から継続。まずアプリ内確認ダイアログでカテゴリreset→Undo、未確定検索先のClose取消/破棄、Mobile全画面/PCリサイズ再表示時初期サイズ、consoleを再検証する。旧検証タブ7の標準confirmでCDP操作が停止し、同じoriginの新タブ8は描画できるがJSイベントが動かない状態。終端と断定せず次ターンの実状態を確認。ブラウザ検証用suggestOnFocusはOFFになったのでUndoで元のONへ戻す。
+2. Theme（Light/Dark/OS/Custom/Presets、複数保存、地域の日の出/日の入り、0.5〜1秒transition）、Font（system/preset/Google/custom、size/weight/line height/spacing）、Animation None/Low/Standard/Richを実装。検索box/glassと時計/日付の既定OFF・挨拶の既定ON、オンボーディング可変7〜8stepsへ接続する。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
 ## 保存履歴
@@ -162,3 +162,14 @@ store-database.jsでtop-levelキーごとのIndexedDB保存。モジュール初
 検証3: IAB fixture実IndexedDBで日本語12,000文字×300履歴とcheckpoint約21.6MB保存/再読込、invalid clone失敗でACK/データ不変、保存中編集/再読込、別タブ変更反映、旧favorite/local背景の移行、所有権対象のみ削除/再読込とローカルfavorite/背景保持を確認。通常UI8082でfavorite使用回数2→3を遷移後に確認、検索indexeddb-history-testをローカル先へ実行し遷移後履歴保持。warn/error0。画像.test-output/phase5-indexeddb.png。認証をバイパスしない独立storage fixture。
 
 添付Phase 5ゲート照合: settings/favorites/history同期（実HTTP+投影）、conflict detection/resolver（JS/PHP/実HTTP+独立UI）、offline queue foundation（ローカル変更+ACK baseの永続化/復帰）、device consistency（実HTTP2端末/複数タブ）を確認。同期機能ゲート検証済みとしてPhase 6へ進む。実Discord/OAuth・実認証済みブラウザはユーザー指定の前提に従い最終監査へ未確認を留保。Background Settingsメタは同期し、実ファイル/ライブラリUIはPhase 7で接続。Version 1.0未完成。
+## Phase 6 設定基盤（2026-10-02）
+
+§71–76を実装開始。カテゴリ9種のsidebar modal、検索/AI/Privacy/Shortcutsに既存設定を分類、favorite設定とsyncを同じmodalへ移動、ヘッダー導線/#settings、desktop resize/mobile full screenのCSS、再表示時width/height解除。重要な未確定provider設定を閉じる際の確認、カテゴリ別fixed reset lists（ユーザーデータを含めない）。Appearance/Background/Generalの新機能はまだ未実装、空カテゴリを完了扱いにしない。
+
+settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持、Undo/Redo、Undo後の新変更でRedoを破棄、カテゴリresetのUndo。settingsHistoryはtop-level端末専用でsyncDocumentに含めない。通常setSetting、同期toggle、account設定を接続し、最後に使った検索先等の操作記録は除外。reset/UndoはIDB原子的setMany。検索画面/favorite toolbarにも設定変更を反映。
+
+検証1: settings-history19、store12/IndexedDB21/session37/data24/API12/account12/search23/preferences18/favorites/layout16と全JS構文成功。sync-dataで履歴メタが送信されないことを追加確認。
+検証2: 両DBPHP構文84/基盤39/sync17成功。Viewと翻訳の最終構文84も再成功。DB/Migration/APIルート変更なし。app/public/langはUIと両DBへ反映。
+検証3: IABでカテゴリ表示、チェック変更→Undo→Redo、再読込して日時/Previous/Newと20件履歴のcursor保持を確認。カテゴリresetの標準confirmで操作が停止（Input.dispatchMouseEvent/Emulation focusタイムアウト）、getJsDialog/closeも同じ状態。新タブ8は描画できるがイベント無反応。reset成功とはしない。確認をアプリ内dialogへ変更、構文/単体は成功、変更後のブラウザ検証は未確認。Mobile/resize/Close重要設定も未確認。今回は検証画像未作成。
+
+残件: 上記未確認UIとtheme/sunrise/glass/custom fonts/animation/greeting/clock/date/header/onboarding。挨拶はspec§69で既定ON（以前の進捗の既定OFF記述は誤り、時計/日付だけOFF）。Phase 6未完了、Phase 7へ進まない。

@@ -34,9 +34,10 @@
     <div id="history-list"></div>
 </dialog>
 <dialog id="search-settings" aria-labelledby="search-settings-title">
-    <h2 id="search-settings-title"><?= $e($t->get('search_settings')) ?></h2>
-    <button type="button" data-close><?= $e($t->get('close')) ?></button>
+    <h2 id="search-settings-title"><?= $e($t->get('settings_title')) ?></h2>
+    <button type="button" data-close aria-label="<?= $e($t->get('close')) ?>">×</button>
     <div id="search-preferences"></div>
+    <section id="provider-settings">
     <h3><?= $e($t->get('manage_providers')) ?></h3>
     <label for="provider-kind"><?= $e($t->get('search_mode')) ?></label>
     <select id="provider-kind"><option value="web"><?= $e($t->get('web_mode')) ?></option><option value="ai"><?= $e($t->get('ai_mode')) ?></option></select>
@@ -51,6 +52,7 @@
         <button type="reset" class="secondary"><?= $e($t->get('new_provider')) ?></button>
         <p id="provider-error" role="alert"></p>
     </form>
+    </section>
 </dialog>
 <dialog id="ai-copy-dialog" aria-labelledby="ai-copy-title">
     <h2 id="ai-copy-title"><?= $e($t->get('copy_query')) ?></h2>

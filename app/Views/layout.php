@@ -17,6 +17,7 @@ use App\Auth\Session;
     <a class="skip-link" href="#main"><?= $e($t->get('skip_content')) ?></a>
     <header class="site-header">
         <a class="brand" href="/"><?= $e($t->get('app_name')) ?></a>
+        <a href="/#settings"><?= $e($t->get('settings_title')) ?></a>
         <a href="/#history" aria-label="<?= $e($t->get('history')) ?>" title="<?= $e($t->get('history')) ?>">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg>
         </a>
