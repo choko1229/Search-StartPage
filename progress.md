@@ -62,3 +62,11 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 再開条件: docs/discord-development.mdの2つのRedirectをDiscord Developer Portalへ登録し、bin/configure-discord.ps1を実行して非表示入力する。設定済みとユーザーから連絡後、/accountのログインボタンを確認し実認証・端末操作・ログアウト・再ログインを検証する。秘密値をチャットに求めない。
 
 設定スクリプトもWeb/APIの両Redirectを案内するよう修正、PowerShell構文確認済み。スクリプトの実値入力は未実行。Goalは外部設定待ちのblockedへ変更する。Version 1.0未完成。
+
+## 最新指示による再開（2026-10-01）
+
+ユーザー指示「ログインできたていですすめて」を優先し、実Discord成功を仮定した開発前提でPhase 5へ進む。Phase 4の実OAuth・ログイン後ブラウザ操作は成功扱いにせず未確認として最終監査へ持ち越す。これまでの「設定待ちのためPhase 5へ進めない」はこの指示により解除。実Secretや認証バイパスを追加しない。
+
+Phase 5着手: public/assets/js/sync-core.jsに3-way項目マージと競合選択処理を追加。ID単位のコレクション、設定の異なる項目は自動マージ。同一項目、削除対編集はPrevious/Local/Cloudを保持。未解決競合の保存を拒否。選択ルール適用、危険なキー・重複ID拒否。単体23項目・JS構文・account-data12の既存回帰成功。
+
+次に実行すること: 両DB対応の同期版管理MigrationとRepository、認証/CSRF付き同期APIを実装し、同時更新の版不一致409を検証。その後既存CRUDのAPI、初回Local/Cloud/Later、競合UI/保存ルール、即時/適応間隔の同期、同期成功時所有権記録を接続する。今回のマージ関数だけでPhase 5を完了扱いにしない。

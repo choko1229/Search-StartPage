@@ -269,3 +269,12 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 独立したAPI/Rate Limit/期限延長/DB障害対応は確認済み。残るOAuth/Account UIゲートは実Discord設定と認証が必要。
 - bin/configure-discord.ps1にAPI用Redirectの案内も追加。PowerShell構文成功。実値入力は未実行。
 - Goalはblocked。解除に必要な作業はdocs/discord-development.mdのRedirect登録と設定スクリプトでの秘密値非表示入力。設定後に実OAuth・ログイン済みUI・端末管理・再ログインを検証しPhase 4を判定する。Phase 5〜12未着手、Version 1.0未達。
+
+## Phase 5 着手（2026-10-01、ユーザー指示による進行）
+
+- 最新指示: 実ログインができる前提で先へ進む。Phase 4実OAuth未確認を留保し、Phase 5実装を開始。認証・権限の実装はそのまま使用する。
+- Files: sync-core.js、sync-core.test.mjs。
+- 同期マージ: 異なる項目は自動、同一項目はPrevious/Local/Cloudの競合へ。削除対編集、配列フィールドの競合、項目選択、ルール適用を実装。危険なキー/重複ID拒否。元データを変更しない。
+- 検証: マージ23項目成功、JS構文成功、既存account-data12回帰成功。DB/API/UIは今回まだ未実装・未検証。
+- Next: 同期の版管理と両DBMigration、認証付きAPI、既存CRUD接続、初回選択・競合UI・適応間隔・所有権記録。
+- Phase 5未完了、Version 1.0未完成。Phase 4実OAuthの未確認は最終DoD監査へ残す。
