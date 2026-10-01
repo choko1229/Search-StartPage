@@ -303,3 +303,15 @@ spec.md最優先で全体を再確認し、Phase 2/3の細部の不足が判明�
 - 検証2: UI/両DB構文71/基盤39、両DB同期17成功。誤った単体検証ファイル名の失敗は修正して再実行成功。
 - 検証3: 未ログインUI、独立fixtureで3択/Later/競合値/未選択保存拒否/Cloud+ルールをブラウザ確認。390px document390/dialog358/content356、warn/error0。設定初期化が同期欄を消す不具合を修正して再確認。画像.test-output/phase5-conflict.png。
 - Remaining: §117 CRUD API、既存エンティティDBとの整合、詳細Validation、履歴ON/OFFの完全統合、認証済み実ブラウザの端末間往復、新規Installer/全Migration。OAuth未確認はユーザーの進行指定に基づき留保。Phase 5を完了扱いにしない、Phase 6未着手。
+
+### Phase 5 エンティティDB整合と詳細Validation（2026-10-02）
+
+- Files: SyncProjectionRepository、SyncRepository、SyncDocument、006_sync_entities、007_folder_owner_cascade、sync-projection.php、Docker検証一覧。
+- DB: client_id/payload（既存5テーブル）、BIGINT sort_order、user_settings、sync_versions。既存client IDを保持し内部IDを所有者ごとに分離。タグ/フォルダの所有者FKを保持。ユーザー削除を妨げていたフォルダFKのRESTRICTを007でCASCADEへ修正。
+- Sync: 初回は既存DBから文書を再構成。保存は正本のCASと全投影/設定/項目版を同じトランザクションで更新。削除後の版を保持。個別CRUDもこの経路へ接続する（未実装）。
+- Validation: 型/名称/長さ/URL資格情報拒否/時刻/色/タグ/フォルダ参照/重複prefix/名称/ショートカット/危険キー/端末専用設定を検証。全エンティティ検証をRepository保存時にも実行。
+- 検証1: 両DB構文75、基盤39、同期17、投影31成功。投影の完全性/所有者/既存読込/削除/時刻/AI copy/保存途中の失敗時ロールバックを含む。
+- 検証2: 両DBMigration再実行0、認証42、HTTP12、検索4、SSRF8成功。UIへ006/007を反映し再実行0・トップ/CSRF200。
+- 検証3: JS同期merge23/session32/data18/通信12/store12、account-data12、検索23/設定18、お気に入り/レイアウト16成功。
+- Issues resolved: トリガーのSUPER権限不足は一時CHECK制約を使った専用DB試験へ変更（権限拡大なし）。失敗時のユーザー削除の複合FK問題を007で修正し再実行成功。論理的なフォルダ削除ではfavorite.folderIdを先に解除するAPI実装が必要。
+- Remaining: §117 CRUDとPOST同期/競合解決API、新規Installer/全Migration往復、履歴同期のAPI/UI完全統合、実認証済み端末間ブラウザ。Phase 5未完了、Version 1.0未達。

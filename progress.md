@@ -16,7 +16,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 - Docker: C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
 - 両DB検証: search-test-20260929221803。app-mysqlは8080、app-mariadbは8081。
-- UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。005_sync適用済み。
+- UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。007_folder_owner_cascadeまで適用済み。
 - 9/30に停止していた上記コンテナのみ再起動。旧環境のボリュームを保持。他の旧アプリは停止したまま。
 - UI configはコンテナ内/var/www/app/config/config.php。ホストとは共有しない。
 - Docker cpで反映する構成。直近public/lang/appは両DB検証環境へ反映済み。
@@ -32,8 +32,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 5の§117 Settings/Favorites/Folders/History/Search Engines/AI ProvidersのCRUD APIと既存テーブルを同期文書へ整合させる。現在はsync_statesが同期APIの保存先で、既存テーブルへまだ投影していない。
-2. エンティティの詳細Validation、順序・削除・所有者・同時更新、履歴同期ON/OFFのAPI/UI統合を検証する。現在の認証/CSRF/版競合/初回選択/競合選択は保持する。
+1. Phase 5の§117 Settings/Favorites/Folders/History/Search Engines/AI ProvidersのCRUD APIを実装する。現在はsync_statesが正本、SyncProjectionRepositoryが既存テーブルとuser_settings/sync_versionsへ同一トランザクションで投影する。個別APIも同じ版比較を通し、別の保存経路を作らない。
+2. §117のPOST /api/sync、POST /api/sync/resolve-conflictを接続し、既存PUTも保持。フォルダ削除は文書のfavorite.folderIdを先に解除してお気に入りを保持。追加/更新/削除/利用回数、所有者/CSRF/422/409、履歴ON/OFFのAPI/UI統合を検証する。現在の認証/版競合/初回選択/競合選択を保持する。
 3. 新規の専用Docker環境でInstaller/全Migration/全PHP回帰を両DB検証。8080/8081を使用中の現在のアプリだけ停止してから新規環境を起動し、ボリュームは削除しない。
 4. Phase 5の全条件を照合し最低3回の検証とコミットを行ってからPhase 6へ。Phase 4実OAuthは未確認として最終監査に留保し、認証バイパスは追加しない。
 
@@ -92,3 +92,19 @@ ACK後にcheckpoint/所有権/データをまとめて保存。容量超過時�
 検証3: 開発画面の同期欄と未ログイン状態を確認。独立UI fixtureで初回3択/Later、Previous/Local/Cloud表示、未選択の保存拒否、Cloud選択とルール保存を確認。390pxでdocument390/dialog358/content356、warn/error0。画像.test-output/phase5-conflict.png。fixtureは実ログイン・DBを利用せず、実OAuth成功の代替にはしない。
 
 ブラウザ検証で設定初期化により同期欄が消えるRegressionを発見、設定一覧と別の兄弟要素へ移し再確認。最終コードをUI/両DBへ反映。認証済み実ブラウザによる端末間往復、各CRUD API/既存DBとの整合、完全Validation、新規Installer/全Migrationは残る。Phase 5未完了、Version 1.0未完成。次は上記「次に実行すること」1から再開。
+
+## Phase 5 同期文書とエンティティDBの整合（2026-10-02）
+
+006_sync_entities: 既存5テーブルにclient_id/payloadを追加、既存IDをclient_idへ保持。内部IDは所有者/種類/client_idから導出し、同じプリセット・項目IDを異なるユーザーが持てる。sort_orderはBIGINTへ拡張（お気に入りの既存値はミリ秒）。設定はuser_settingsのキーごとに保存、sync_versionsには項目ごとの版と削除の版を保持。
+
+SyncProjectionRepositoryは初回に既存テーブルを読んで文書化し、sync_states保存と同じトランザクションで既存テーブル・タグ関連・設定・版を反映する。正本はsync_statesで、payloadは追加フィールドを含む再構成用。フォルダcreated_atを保持。Validationに名称/型/長さ/URL認証情報拒否/時刻/タグ/重複prefix/フォルダ名/ショートカット/所有フォルダ参照を追加。端末専用設定は同期文書で拒否。
+
+007_folder_owner_cascade: 元の複合FKがユーザー一括削除時にもRESTRICTを起こすことを実DB検証で発見し修正。フォルダを論理的に削除するAPIでは先にお気に入りのfolderIdを解除する（APIは次に実装）。所有者を含む複合FKは維持。006 downは追加列/テーブルを除去し、データ切捨てを避けるため拡張sort_orderと名称collationは縮小しない。
+
+検証1: 両DB構文75・基盤39・同期API17・新規投影31成功。既存データの初回保存、他ユーザーの同一client_id、並び順/タグ/設定/履歴/AI追加フィールド、古い版の拒否、削除と版、所有者分離、Validation失敗を確認。
+検証2: 両DBでMigration再実行0、認証42/HTTP12/検索API4/SSRF8成功。UIも006/007適用・再実行0、トップ/CSRF HTTP200。
+検証3: JS同期23/32/18/12、store12、account-data12、検索23/設定18、お気に入り/レイアウト16回帰成功。
+
+初回投影試験はMySQLのトリガー作成権限で失敗し、後片付け中に外部キー問題も発見。権限を拡大せず、専用テストDBの一時CHECK制約で保存途中のSQL失敗を起こす検証へ変更。失敗後に同期文書/版・設定・関連行が元に戻ることを確認し、制約をfinallyで除去。007修正後に両DBの全ケースを再実行成功。成功扱いにしていない失敗履歴を保持。
+
+未完了: 個別CRUD/POST同期/競合解決API、新規Installer/全Migration往復、認証済み実ブラウザの端末間同期。Phase 5未完了、Phase 6未着手。次は冒頭「次に実行すること」1。

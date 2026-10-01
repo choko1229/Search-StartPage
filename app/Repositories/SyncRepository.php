@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Repositories;
 use PDO;
+use App\Services\SyncDocument;
 
 final class SyncRepository
 {
@@ -11,17 +12,21 @@ final class SyncRepository
         $statement=$this->pdo->prepare('SELECT version,document,updated_at FROM sync_states WHERE user_id=?');
         $statement->execute([$userId]);$row=$statement->fetch(PDO::FETCH_ASSOC);
         return $row ? ['version'=>(int)$row['version'],'document'=>json_decode($row['document'],false,32,JSON_THROW_ON_ERROR),'updated_at'=>$row['updated_at']]
-            : ['version'=>0,'document'=>(object)[],'updated_at'=>null];
+            : ['version'=>0,'document'=>(new SyncProjectionRepository($this->pdo))->read($userId),'updated_at'=>null];
     }
     public function write(int $userId,int $expected,object $document): ?array
     {
+        SyncDocument::validate($document);
         $this->pdo->beginTransaction();
         try {
             // Serialize the first write as well as later compare-and-swap updates.
             $this->pdo->prepare("INSERT IGNORE INTO sync_states (user_id,version,document,updated_at) VALUES (?,0,'{}',UTC_TIMESTAMP())")->execute([$userId]);
+            $query=$this->pdo->prepare('SELECT version,document FROM sync_states WHERE user_id=? FOR UPDATE');$query->execute([$userId]);$before=$query->fetch(PDO::FETCH_ASSOC);
+            $previous=(int)$before['version']===0 ? (new SyncProjectionRepository($this->pdo))->read($userId) : json_decode($before['document'],false,32,JSON_THROW_ON_ERROR);
             $statement=$this->pdo->prepare('UPDATE sync_states SET version=version+1,document=?,updated_at=UTC_TIMESTAMP() WHERE user_id=? AND version=?');
             $statement->execute([json_encode($document,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),$userId,$expected]);
             if ($statement->rowCount()!==1) {$this->pdo->rollBack();return null;}
+            (new SyncProjectionRepository($this->pdo))->replace($userId,$previous,$document,$expected+1);
             $result=$this->read($userId);$this->pdo->commit();return $result;
         } catch(\Throwable $error) {if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }
