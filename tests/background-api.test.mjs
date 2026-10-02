@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {readBackgrounds,createBackground,updateBackground,downloadBackground} from '../public/assets/js/background-api.js';
+let calls=[];
+const response=(data,status=200)=>new Response(JSON.stringify({success:true,data}),{status});
+globalThis.fetch=async(url,options)=>{
+    calls.push({url,options});assert.equal(options.credentials,'same-origin');assert.equal(options.cache,'no-store');assert.equal(options.redirect,'error');assert.ok(options.signal instanceof AbortSignal);
+    if(url==='/api/csrf')return response({csrf_token:'test'});
+    return response({items:[],item:{id:'a',version:2}},options.method==='POST'?201:200);
+};
+assert.equal((await readBackgrounds()).status,200);
+assert.equal((await createBackground({id:'a',type:'solid'},'1')).status,201);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body),{user_id:'1',item:{id:'a',type:'solid'}});
+assert.equal(calls.at(-1).url,'/api/backgrounds/url');
+const bytes=new Uint8Array([137,80,78,71]),blob=new Blob([bytes],{type:'image/png'});
+assert.equal((await createBackground({id:'a',type:'image'},'1',blob)).status,201);
+const upload=calls.at(-1);assert.equal(upload.url,'/api/backgrounds/upload');assert.equal(upload.options.headers['Content-Type'],undefined);
+assert.equal(upload.options.headers['X-CSRF-Token'],'test');assert.equal(upload.options.body.get('file').name,'background.png');assert.equal(upload.options.body.get('file').size,4);assert.equal(upload.options.body.get('user_id'),'1');
+await updateBackground({id:'a',cloudSync:false},2,'1');assert.equal(calls.at(-1).options.method,'PUT');assert.equal(JSON.parse(calls.at(-1).options.body).version,2);
+const count=calls.length;await assert.rejects(createBackground({id:'../a'},'1'),/INVALID_BACKGROUND/);await assert.rejects(createBackground({id:'a'},'0'),/OWNER_INVALID/);await assert.rejects(updateBackground({id:'a'},-1,'1'),/VERSION_INVALID/);assert.equal(calls.length,count);
+globalThis.fetch=async()=>response({csrf_token:null});await assert.rejects(createBackground({id:'a'},'1'),/CSRF_FAILED/);
+globalThis.fetch=async()=>new Response('not JSON');await assert.rejects(readBackgrounds(),/RESPONSE_INVALID/);
+const item={id:'a',type:'image',sourceType:'upload',fileSize:4,url:'https://untrusted.example/file'};
+globalThis.fetch=async(url)=>{assert.equal(url,'/api/backgrounds/a/file');return new Response(bytes,{headers:{'Content-Type':'image/png','Content-Length':'4'}});};
+const downloaded=await downloadBackground(item);assert.equal(downloaded.size,4);assert.equal(downloaded.type,'image/png');assert.deepEqual(new Uint8Array(await downloaded.arrayBuffer()),bytes);
+for(const [headers,error] of [[{'Content-Type':'text/html'},'INVALID_UPLOAD'],[{'Content-Type':'image/png','Content-Length':'5'},'SIZE_INVALID']]){
+    globalThis.fetch=async()=>new Response(bytes,{headers});await assert.rejects(downloadBackground(item),new RegExp(error));
+}
+globalThis.fetch=async()=>new Response(bytes,{headers:{'Content-Type':'image/png'}});await assert.rejects(downloadBackground({...item,fileSize:3}),/SIZE_INVALID/);await assert.rejects(downloadBackground({...item,fileSize:5}),/SIZE_INVALID/);
+globalThis.fetch=async()=>new Response('',{status:401});await assert.rejects(downloadBackground(item),/FILE_UNAVAILABLE/);
+globalThis.fetch=async()=>new Response(JSON.stringify({success:false,error:{code:'SYNC_CONFLICT'},data:{item:{version:3}}}),{status:409});
+assert.equal((await readBackgrounds()).error.code,'SYNC_CONFLICT');
+let cancelled=false;
+globalThis.fetch=async()=>new Response(new ReadableStream({pull(controller){controller.enqueue(new Uint8Array(8));},cancel(){cancelled=true;}}),{headers:{'Content-Type':'image/png'}});
+await assert.rejects(downloadBackground(item),/SIZE_INVALID/);assert.equal(cancelled,true);
+cancelled=false;
+globalThis.fetch=async()=>new Response(new ReadableStream({cancel(){cancelled=true;}}),{headers:{'Content-Type':'text/html'}});
+await assert.rejects(downloadBackground(item),/INVALID_UPLOAD/);assert.equal(cancelled,true);
+console.log('Background transport: metadata, CSRF, owner hint, multipart, conflict and bounded private download passed.');
