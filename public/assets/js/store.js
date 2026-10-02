@@ -64,19 +64,25 @@ export async function backgroundFile(id) {
 }
 export function setMany(values,files=[]) {
     if(initialError)throw initialError;
-    if(files.length&&!database)throw new Error('background_files_require_indexeddb');
+    if((typeof files==='function'||files.length)&&!database)throw new Error('background_files_require_indexeddb');
     if(database)return enqueue(async()=>{
         let patch,before;
         for(let attempt=0;;attempt++) {
-            patch=typeof values==='function'?values(snapshot()):values;
+            const inputs=new Map(revisions);
+            const current=snapshot();
+            patch=typeof values==='function'?values(current):values;
+            const operations=typeof files==='function'?files(current):files;
             before=new Map(Object.keys(patch).map(name=>[name,revisions.get(name)||0]));
-            await database.write(structuredClone(patch),files);lastError=null;
-            if(typeof values!=='function' || [...before].every(([name,revision])=>(revisions.get(name)||0)===revision))break;
+            await database.write(structuredClone(patch),operations);lastError=null;
+            const dynamic=typeof values==='function'||typeof files==='function';
+            if(!dynamic || (revisions.size===inputs.size&&[...inputs].every(([name,revision])=>revisions.get(name)===revision)))break;
             if(attempt>=7)throw new Error('storage_changed_during_commit');
         }
+        const changed=[];
         for(const [name,value] of Object.entries(patch))if((revisions.get(name)||0)===before.get(name)){
-            state={...state,[name]:value};revisions.set(name,before.get(name)+1);notify(name);
+            state={...state,[name]:value};revisions.set(name,before.get(name)+1);changed.push(name);
         }
+        for(const name of changed)notify(name);
     });
     if(typeof values==='function')values=values(snapshot());
     const next = {...state,...values};

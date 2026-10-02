@@ -299,3 +299,13 @@ background-sync-core.jsへ背景メタの同期投影と3-way merge/選択解決
 検証1: 専用単体で設定別マージ、同項目競合/未解決拒否/選択、保管対編集、未送信ファイル版とACK済み版、アカウント/同期OFF保護・重複拒否成功。検証2: 全JS単体19ファイルと追加構文成功。検証3: 種類とURLの一体選択、5設定の独立変更マージ、既存sync-core23/IndexedDB30を再成功。PHP/DB/UI変更なし、直前の両DB背景40/quota6/基盤39/lintの証拠維持。今回実HTTP/新規UI操作は実施していない。
 
 判定コアはまだ製品から呼び出していない。次はbackground sync session（部分成功のACK保存、版409再読込、受信ファイルとメタ/checkpoint同一transaction、保存中編集保持）、Cloud Sync編集UI・初回選択・既存競合dialog/ルール・offline復帰へ接続。UI保存時は既存cloudOwner/fileRevision/syncedFileVersionを保持し、ファイル置換時だけlocal fileVersionを進める必要がある。所有権削除時Blob清掃/容量表示/条件全種/天気・地域/手動再生も残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## Phase 7 同期ACKとファイルの原子的保存（2026-10-03）
+
+background-sync-ack.jsに最新stateからACK保存計画を作る処理を追加。受信Blob・背景メタ・backgroundCheckpoint・backgroundOwnershipを一体で保存。通信中の名前/設定/保管/OFF変更を保持し、通信中に置換された新しいローカルBlobを旧ACKで上書きしない。URLへの切替時に旧Blobを同じtransactionで除去。別所有者/端末専用ID衝突/実bytes不一致/必要なBlob欠落を拒否。保管中の送信元Blobは受信不能でも保持し、圧縮後サイズと異なるキャッシュは復元後に再取得する必要がある。
+
+store.setManyのfiles引数は最新stateから操作配列を生成できるよう拡張。メタとfilesへ同じsnapshotを渡す。保存中の入力state変更があれば両方再計算。全stateのrevisionを監視し、保存対象以外の設定から計算する場合も再計算。通知は全state更新後に出す（backgrounds通知時にcheckpointも更新済み）。
+
+検証1: ACK単体で受信/既存cache/編集中名前/新fileVersion/保管/OFF/削除/所有者拒否/URL切替成功。検証2: 全JS単体20ファイル成功、追加JS構文成功。検証3: IndexedDBモデル41項目でfactory再計算・通知時の整合・ファイルとcheckpointのquota rollback・再試行成功を確認、既存store12/session37/merge23も成功。初回factory試験はfontSize22のままで失敗、書込みキーだけのrevision監視を全入力stateへ拡張して再成功。実ブラウザquota枯渇ではなくモデル試験。PHP/DB/UI変更なし、直前両DB証拠維持。
+
+コードはまだ同期スケジューラ/UIから呼んでいない。次はbackground sync sessionの部分成功/初回選択/CAS409再読込/同一owner再確認を接続、ACK plannerをsetManyのvalues/files factoryから利用する。Cloud Sync編集UI・競合dialog/ルール・offline復帰・実HTTP2端末/実IDB・ログアウト所有権Blob清掃/容量表示が残る。UI編集では既存cloudOwner/fileRevision/syncedFileVersionを保持する。Phase 7未完了、8〜12未着手、Version 1.0未完成。
