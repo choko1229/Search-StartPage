@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mergeSync} from '../public/assets/js/sync-core.js';
 import {backgroundAcknowledgement} from '../public/assets/js/background-sync-ack.js';
 import {backgroundRecord} from '../public/assets/js/background-sync-core.js';
+import {syncedDataRemoval} from '../public/assets/js/account-data.js';
 globalThis.window=new EventTarget();
 const records=new Map();let abortNext=false;
 const legacy={favorites:[{id:'legacy',name:'Migrated'}],settings:{theme:'legacy'}};
@@ -81,4 +82,8 @@ const ackOptions={userId:'1',before:backgroundRecord(localMedia),target:backgrou
 const commitAck=()=>store.setMany(state=>backgroundAcknowledgement(state,ackOptions).values,state=>backgroundAcknowledgement(state,ackOptions).files);
 abortNext=true;await assert.rejects(commitAck(),/quota/);assert.equal(store.get('backgroundCheckpoint').version,2);assert.equal(await (await store.backgroundFile('transfer')).text(),'old');
 await commitAck();assert.equal(store.get('backgroundCheckpoint').document.transfer.source[0].revision,reply.fileRevision);assert.equal(await (await store.backgroundFile('transfer')).text(),'ack');assert.deepEqual(store.get('backgroundOwnership').ids,['transfer']);
-console.log('41 IndexedDB storage assertions passed.');
+await store.setMany({backgrounds:[{id:'remove',fileId:'remove',cloudSync:true,cloudOwner:'1'},{id:'retain',fileId:'retain',cloudSync:false}],backgroundOwnership:{userId:'1',ids:['remove','retain']},backgroundCheckpoint:{userId:'1',document:{}}},[{id:'remove',blob:new Blob(['owned'])},{id:'retain',blob:new Blob(['local'])}]);
+const removeOwned=()=>store.setMany(state=>syncedDataRemoval(state,'1').values,state=>syncedDataRemoval(state,'1').files);
+abortNext=true;await assert.rejects(removeOwned(),/quota/);assert.equal(await (await store.backgroundFile('remove')).text(),'owned');assert.equal(store.get('backgrounds').length,2);
+await removeOwned();assert.equal(await store.backgroundFile('remove'),null);assert.equal(await (await store.backgroundFile('retain')).text(),'local');assert.deepEqual(store.get('backgrounds').map(row=>row.id),['retain']);assert.equal(store.get('backgroundOwnership',null),null);
+console.log('47 IndexedDB storage assertions passed.');

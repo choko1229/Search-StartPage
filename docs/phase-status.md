@@ -518,3 +518,15 @@ OFFはファイルやローカル編集を送らず、旧ACK所有項目へのOF
 public/langはUI8082と最新両DBへ反映、8082backendも最新へ反映。検証背景は同期OFFへ復帰し保持。実OAuthは成功前提のユーザー指示を維持、検証成功とはしない。
 
 次はJS session/transportの実HTTP2端末と実IndexedDB確認、競合dialog・offline通信/ACK失敗後再開、ログアウト所有権Blob清掃と容量表示、ルール共有を完成させる。server成功後ACK永続化に失敗した場合の再送抑止/再起動後の扱いは専用試験と補修が必要。API読込の所有者hint追加/アカウント切替途中の応答も監査する。条件全種編集/天気・地域/手動動画再生、巨大動画実通信・圧縮+DB容量・耐久的孤立清掃/Admin警告も残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## Phase 7 実HTTP2端末とログアウトBlob清掃（2026-10-03）
+
+background-sync-http.mjsで製品BackgroundSyncSession/background-api/ACK plannerを実APIへ接続。専用fixtureの通常remember Cookie（AuthRepositoryの端末発行、OAuth成功の証拠ではない）を使い、MySQL8083/MariaDB8084で2端末の画像本体一致・URL/設定マージ・実HTTP同時更新409と競合選択・通信停止→復帰・OFF時の新ファイル非送信・別所有者file拒否を成功。client state/Blob保存はモデルでありブラウザ実IndexedDBではない。生成PNG68bytes、外部ユーザーファイルなし。fixture認証情報はGit除外へ一時保存しfinally除去、専用ユーザー/既知uploadも終了時除去。fixturePHPはCLI+SEARCH_TEST_MODE+create/cleanup限定、秘密値を進捗/Git/チャットに出さない。
+
+account-dataのbackgroundOwnershipを一般syncOwnershipから独立して処理。同じアカウントのACK所有背景だけ削除し、OFF/端末専用/他所有者/未所有背景を保持。削除するBlobとメタ/manifest/checkpointはstore同一transaction、失敗時は全て保持。ローカル容量はfileIdが参照するfileSizeを加算し、JSONメタとBlobの合計を表示。旧size記録にも互換対応。IndexedDB不在でBlob操作がない削除は従来LocalStorage fallbackを維持。
+
+検証1: 両DB実HTTPの製品JS2端末成功（上記3グループ）。検証2: 全JS単体21ファイル、account21/IndexedDB47/store14の追加再検証成功。IDBモデルで清掃quota失敗時Blob/メタ保持と再試行時ownedだけ除去を確認。検証3: 最新3環境PHP構文成功（MySQL99/MariaDB98/UI97、専用public/_test有無による差）、追加JS構文成功。Migration変更なし、既存両DB全8Migration往復証拠維持。今回新規ブラウザ操作・認証済みUI検証はなし。
+
+account-data/accountは3環境に反映。store fallback補修は次回反映が必要。新規fixtureはtestsのみ、通常View/ルートから参照しない。
+
+次は実IndexedDBで同期/清掃の保存・再読込、認証済みUIは実OAuth留保を区別、ACK永続化失敗後の再送抑止/再起動・読込所有者hint/途中アカウント切替を補修検証。競合ルール共有、条件全種編集/天気・地域/手動再生、巨大動画/実圧縮+DB容量、耐久的孤立清掃/Admin警告が残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。

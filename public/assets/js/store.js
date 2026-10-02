@@ -64,7 +64,7 @@ export async function backgroundFile(id) {
 }
 export function setMany(values,files=[]) {
     if(initialError)throw initialError;
-    if((typeof files==='function'||files.length)&&!database)throw new Error('background_files_require_indexeddb');
+    if(!database&&(typeof files==='function'?files(snapshot()):files).length)throw new Error('background_files_require_indexeddb');
     if(database)return enqueue(async()=>{
         let patch,before;
         for(let attempt=0;;attempt++) {

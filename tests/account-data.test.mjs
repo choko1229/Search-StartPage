@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {removeSyncedData,localUsage} from '../public/assets/js/account-data.js';
+import {removeSyncedData,localUsage,syncedDataRemoval} from '../public/assets/js/account-data.js';
 const state={favorites:[{id:'cloud'},{id:'local'}],backgrounds:[{id:'cloud',size:50},{id:'local',localOnly:true,size:100}],settings:{theme:'dark',local:true},syncOwnership:{userId:1,collections:{favorites:['cloud'],backgrounds:['cloud','local']},settings:['theme']},syncStatus:{lastSync:'2026-09-29T00:00:00Z'}};
 const result=removeSyncedData(state,'1');
 assert.deepEqual(result.favorites,[{id:'local'}]);
@@ -14,4 +14,8 @@ assert.equal(localUsage(state).backgroundBytes,150);
 assert.equal(localUsage(state).lastSync,'2026-09-29T00:00:00Z');
 assert.ok(localUsage({name:'日本語'}).bytes>JSON.stringify({name:'日本語'}).length);
 assert.deepEqual(removeSyncedData({'providers-web':[{id:'cloud'}],syncOwnership:{userId:1,collections:{'providers-web':['cloud']}}},1)['providers-web'],[]);
-console.log('12 account data assertions passed.');
+const media={backgrounds:[{id:'owned',fileId:'owned',cloudOwner:'1',cloudSync:true,fileSize:15},{id:'off',fileId:'off',cloudSync:false,fileSize:20},{id:'other',fileId:'other',cloudOwner:'2',cloudSync:true,fileSize:30},{id:'unowned',fileId:'unowned',fileSize:40}],backgroundOwnership:{userId:'1',ids:['owned','off','other']},backgroundCheckpoint:{userId:'1',document:{}},syncOwnership:{userId:'2',settings:['theme']},settings:{theme:'dark'}};
+const removal=syncedDataRemoval(media,'1');assert.deepEqual(removal.values.backgrounds.map(row=>row.id),['off','other','unowned']);assert.deepEqual(removal.files,[{id:'owned',blob:null}]);assert.equal(removal.values.backgroundOwnership,null);assert.equal(removal.values.backgroundCheckpoint,null);assert.equal(removal.values.syncOwnership.userId,'2');assert.equal(removal.values.settings.theme,'dark');
+assert.equal(localUsage(media).backgroundBytes,105);assert.equal(localUsage(media).bytes,localUsage(media).metadataBytes+105);
+assert.deepEqual(syncedDataRemoval(media,'3').files,[]);
+console.log('21 account data assertions passed.');

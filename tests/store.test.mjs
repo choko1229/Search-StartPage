@@ -16,4 +16,6 @@ const event=new Event('storage');event.key='search-startpage-v1';window.dispatch
 assert.equal(store.setting('syncHistory'),true);assert.equal(store.get('favorites')[0].id,'other-tab');assert.equal(store.get('syncCheckpoint').version,4);
 assert.ok(changes.includes('favorites'));assert.ok(changes.includes('settings'));
 const copy=store.snapshot();copy.favorites.length=0;assert.equal(store.get('favorites').length,1);
-console.log('12 store assertions passed.');
+store.setMany(state=>({settings:{...state.settings,testCleanup:true}}),()=>[]);assert.equal(store.setting('testCleanup'),true);
+assert.throws(()=>store.setMany({},()=>[{id:'file',blob:new Blob(['file'])}]),/require_indexeddb/);
+console.log('14 store assertions passed.');

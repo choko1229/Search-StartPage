@@ -1,13 +1,10 @@
-import {localUsage, removeSyncedData} from './account-data.js';
+import {localUsage, syncedDataRemoval} from './account-data.js';
 import {snapshot,setMany,saveSettings} from './store.js';
 let state=snapshot();
 const logout = document.getElementById('logout-data');
 if (logout && state.settings?.clearSyncedOnLogout !== false) {
     try {
-        await setMany(latest=>{
-            const clean=removeSyncedData(latest,logout.dataset.userId);
-            return {...Object.fromEntries(Object.keys(latest).map(name=>[name,null])),...clean};
-        });
+        await setMany(latest=>syncedDataRemoval(latest,logout.dataset.userId).values,latest=>syncedDataRemoval(latest,logout.dataset.userId).files);
         state=snapshot();
         logout.hidden = true;
     } catch { logout.hidden = false; }
