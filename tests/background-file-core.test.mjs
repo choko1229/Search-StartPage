@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {inspectBackgroundFile} from '../public/assets/js/background-file-core.js';
+import {normalizeBackground} from '../public/assets/js/background-core.js';
+const png=new Uint8Array([137,80,78,71,13,10,26,10,...Array(16).fill(0)]);
+const file=(bytes,name,type='text/html')=>new File([bytes],name,{type});
+assert.deepEqual(await inspectBackgroundFile(file(png,'画像.PNG')),{type:'image',mime:'image/png',fileSize:24});
+for(const name of ['../image.png','folder\\image.png','image.php.png','image.svg','image\n.png'])await assert.rejects(inspectBackgroundFile(file(png,name)),/INVALID_UPLOAD_NAME/);
+await assert.rejects(inspectBackgroundFile(file(png,'image.txt')),/UNSUPPORTED_BACKGROUND_FORMAT/);
+await assert.rejects(inspectBackgroundFile(file(png,'image.jpg')),/BACKGROUND_MIME_MISMATCH/);
+await assert.rejects(inspectBackgroundFile(file('<?php echo "bad";','image.png')),/BACKGROUND_MIME_MISMATCH/);
+await assert.rejects(inspectBackgroundFile(file('','image.png')),/INVALID_UPLOAD/);
+const oversized=file(png,'image.png');Object.defineProperty(oversized,'size',{value:25*1024*1024+1});
+await assert.rejects(inspectBackgroundFile(oversized),/BACKGROUND_TOO_LARGE/);
+assert.equal(normalizeBackground({id:'local',name:'Local',type:'image',sourceType:'upload',fileId:'local',url:''}).fileId,'local');
+assert.equal(normalizeBackground({id:'local',name:'Local',type:'image',sourceType:'upload',fileId:'other',url:''}),null);
+assert.equal(normalizeBackground({id:'local',name:'Local',type:'image',sourceType:'url',fileId:'local',url:''}),null);
+console.log('14 local background file assertions passed.');

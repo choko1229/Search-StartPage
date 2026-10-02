@@ -4,8 +4,11 @@ export async function openStateDatabase(legacy) {
     let db,channel;
     try {
         db=await new Promise((resolve,reject)=>{
-            const request=indexedDB.open('search-startpage',1);
-            request.onupgradeneeded=()=>request.result.createObjectStore('state');
+            const request=indexedDB.open('search-startpage',2);
+            request.onupgradeneeded=()=>{
+                if(!request.result.objectStoreNames.contains('state'))request.result.createObjectStore('state');
+                if(!request.result.objectStoreNames.contains('background-files'))request.result.createObjectStore('background-files');
+            };
             request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
             request.onblocked=()=>reject(new Error('storage_blocked'));
         });
@@ -16,11 +19,16 @@ export async function openStateDatabase(legacy) {
             tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
         });
         channel=globalThis.BroadcastChannel?new BroadcastChannel('search-startpage-data'):null;
-        const write=values=>new Promise((resolve,reject)=>{
-            const tx=db.transaction('state','readwrite');
+        const write=(values,files=[])=>new Promise((resolve,reject)=>{
+            const tx=db.transaction(files.length?['state','background-files']:'state','readwrite');
             tx.oncomplete=()=>{channel?.postMessage(true);resolve();};
             tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error || new Error('storage_aborted'));
             for(const [key,value] of Object.entries(values))tx.objectStore('state').put(value,key);
+            for(const {id,blob} of files){const store=tx.objectStore('background-files');if(blob===null)store.delete(id);else store.put(blob,id);}
+        });
+        const file=id=>new Promise((resolve,reject)=>{
+            const tx=db.transaction('background-files','readonly'),request=tx.objectStore('background-files').get(id);
+            tx.oncomplete=()=>resolve(request.result??null);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
         });
         // Check and migrate under the same write transaction so two first-open
         // tabs cannot replace each other's already migrated state.
@@ -33,6 +41,6 @@ export async function openStateDatabase(legacy) {
         const initial=await read();
         // Initialized databases never re-import an obsolete legacy copy.
         db.onversionchange=()=>{db.close();window.dispatchEvent(new CustomEvent('storage-unavailable'));};
-        return {initial,read,write,listen:listener=>{if(channel)channel.onmessage=listener;}};
+        return {initial,read,write,file,listen:listener=>{if(channel)channel.onmessage=listener;}};
     }catch(error) {db?.close();channel?.close();throw error;}
 }

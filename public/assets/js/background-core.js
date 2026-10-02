@@ -7,7 +7,8 @@ export function mediaUrl(value) {
 export function normalizeBackground(value) {
     if(!value || typeof value!=='object' || !['solid','gradient','image','video'].includes(value.type) || typeof value.id!=='string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(value.id))return null;
     if(typeof value.name!=='string'||!value.name.trim()||value.name.length>100)return null;
-    if(['image','video'].includes(value.type)&&!mediaUrl(value.url))return null;
+    const localFile=value.sourceType==='upload'&&value.fileId===value.id;
+    if(['image','video'].includes(value.type)&&!localFile&&!mediaUrl(value.url))return null;
     return {...value,name:value.name.trim(),url:mediaUrl(value.url),color:color(value.color,'#101723'),colorEnd:color(value.colorEnd,'#304fc3'),angle:bounded(value.angle,135,0,360),blur:bounded(value.blur,0,0,40),brightness:bounded(value.brightness,1,0,2),overlay:bounded(value.overlay,0,0,1),overlayColor:color(value.overlayColor,'#000000'),position:['center','top','bottom','left','right'].includes(value.position)?value.position:'center',scale:bounded(value.scale,1,1,2),fit:['cover','contain','fill'].includes(value.fit)?value.fit:'cover',fixed:value.fixed!==false,autoplay:value.autoplay!==false,loop:value.loop!==false,mute:value.mute!==false,speed:bounded(value.speed,1,.25,4),paused:value.paused===true,fallback:mediaUrl(value.fallback),localOnly:value.localOnly!==false};
 }
 const dateKey=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;

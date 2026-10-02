@@ -1,6 +1,6 @@
 # 再開ポイント
 
-最終更新: 2026-10-02（Asia/Tokyo）
+最終更新: 2026-10-03（Asia/Tokyo）
 
 ## 現在の状態
 
@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は末尾の背景DB/API記録から再開。008_backgrounds・認証/CSRF API・実upload→圧縮→DB・私有stream/Rangeを両DB検証済み。次はLocal Upload UI/IndexedDB blob、背景ごとのCloud Sync・競合/オフライン復帰、全条件編集/天気・地域/動画の手動再生。背景APIは項目version、既存同期文書にはライブラリをまだ含めない。
+1. Phase 7は末尾の端末内ファイル保存記録から再開。IndexedDB blobとメタデータの原子的保存、再読込/編集/保管/復元を検証済み。次は背景ごとのCloud Sync・ファイル/メタ同期・競合/オフライン復帰、全条件編集/天気・地域/動画の手動再生。背景APIは項目version、既存同期文書にはライブラリをまだ含めない。OSファイル選択と巨大ファイルの実操作は未確認。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -257,3 +257,15 @@ GET backgrounds、POST upload/url、PUT/DELETE背景ID、GET/HEAD file。Auth/�
 PHP multipart502M/file500M/input600s/execution180s。JSON一般1MiB/同期32MiBは維持。500MiB実HTTP、実圧縮+DB容量の組合せ、全条件UI、永久清掃、Admin警告は未確認/未実装。秘密値は記録せず、隔離DBの生成値だけ使用。
 
 次はLocal Upload UI/IndexedDB blob、背景ごとのCloud Sync ON/OFF・ファイル/メタ同期・競合/オフライン、全条件編集/天気・地域/手動動画再生。最新両DBは8083/8084、UI8082も008済み。Phase 7未完了、8〜12未着手。途中コミットして続ける。
+
+## Phase 7 端末内ファイル保存（2026-10-03）
+
+IndexedDB schema 2へ非破壊upgradeし、background-files object storeにBlobを保存。背景メタ/設定とファイルの追加・置換・除去を同一transactionへ接続。保存失敗時はメタもBlobも変更しない。ファイル本体をJSON/同期文書へ入れない。選択した画像/動画の拡張子・実ヘッダー・25MiB/500MiBを検査、描画は一時blob URL、切替時にrevoke、古い非同期読込による上書きを拒否。編集時ファイル未選択なら保持、保管/復元でも保持。ローカル圧縮/Cloud Syncはまだ未接続。
+
+検証1: 全JS単体17ファイル成功（IndexedDB30/ローカルファイル14/背景41等）、全JS構文成功。
+検証2: 最新隔離MySQL/MariaDBで基盤39とPHP構文確認成功。SQL Migration変更なし、008の直前両DB往復証拠を維持。
+検証3: 隔離8083のテスト専用画面で生成PNGを製品保存処理へ入力、通常トップへの再読込でblob画像naturalWidth1を確認。ファイル未選択の名前編集、保管/復元後も表示保持。390pxでdocument幅/scroll375、form幅/scroll341、console warn/error0。証拠画像.test-output/phase7-local-file.png（Git除外）。ブラウザ通常表示に戻した。IABタブ11を保持、8083には検証用ローカル背景1件を残す。
+
+OSファイルchooser自動操作はinput.filesへ反映されず未確認。最初のiframe検証画面はX-Frame-Options DENYで拒否、削除済み。8082はSEARCH_TEST_MODEなしで専用PHP画面404、拒否維持。テスト専用PHP/mjsは隔離8083のpublic/_testにだけ配置、通常View参照なし/認証バイパスなし。新しい同一ページfixtureで保存・描画を確認したが、OS chooser成功とは扱わない。最初の検証ボタンが暗黙submitで二重操作になったためtype=buttonへ修正。実500MiB/ローカル圧縮/動画ファイル実操作は未確認。
+
+次は背景ごとのCloud Sync ON/OFF、ファイル/メタと競合/オフライン、全条件編集/天気・地域/手動動画再生。Phase 7未完了、8〜12未着手。実OAuth留保は継続、Version 1.0未完成。

@@ -57,14 +57,20 @@ export function snapshot() { return structuredClone(state); }
 export function saveSettings(patch,label,extra={}) {
     return setMany(state=>({settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,label),settings:{...state.settings,...patch},...extra}));
 }
-export function setMany(values) {
+export async function backgroundFile(id) {
     if(initialError)throw initialError;
+    if(!database)return null;
+    return database.file(id);
+}
+export function setMany(values,files=[]) {
+    if(initialError)throw initialError;
+    if(files.length&&!database)throw new Error('background_files_require_indexeddb');
     if(database)return enqueue(async()=>{
         let patch,before;
         for(let attempt=0;;attempt++) {
             patch=typeof values==='function'?values(snapshot()):values;
             before=new Map(Object.keys(patch).map(name=>[name,revisions.get(name)||0]));
-            await database.write(structuredClone(patch));lastError=null;
+            await database.write(structuredClone(patch),files);lastError=null;
             if(typeof values!=='function' || [...before].every(([name,revision])=>(revisions.get(name)||0)===revision))break;
             if(attempt>=7)throw new Error('storage_changed_during_commit');
         }

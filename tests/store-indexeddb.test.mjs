@@ -5,19 +5,21 @@ const records=new Map();let abortNext=false;
 const legacy={favorites:[{id:'legacy',name:'Migrated'}],settings:{theme:'legacy'}};
 globalThis.localStorage={getItem:()=>JSON.stringify(legacy),setItem:()=>{throw new Error('LocalStorage should not be written after migration');}};
 globalThis.BroadcastChannel=class {postMessage(){}close(){}};
-const db={createObjectStore(){},close(){},transaction(name,mode){
+const fileRecords=new Map(),stores=new Map([['state',records]]);
+const db={objectStoreNames:{contains:name=>stores.has(name)},createObjectStore(name){stores.set(name,name==='background-files'?fileRecords:new Map());},close(){},transaction(names,mode){
     const staged=new Map(),aborted=mode==='readwrite'&&abortNext;if(mode==='readwrite')abortNext=false;
-    const tx={error:aborted?new Error('quota'):null,objectStore:()=>({
-        put:(value,key)=>staged.set(key,structuredClone(value)),
-        get:key=>{const request={};queueMicrotask(()=>{request.result=records.get(key);request.onsuccess();});return request;},
+    const tx={error:aborted?new Error('quota'):null,objectStore:name=>({
+        put:(value,key)=>{if(!staged.has(name))staged.set(name,new Map());staged.get(name).set(key,{value:structuredClone(value)});},
+        delete:key=>{if(!staged.has(name))staged.set(name,new Map());staged.get(name).set(key,{deleted:true});},
+        get:key=>{const request={};queueMicrotask(()=>{request.result=stores.get(name).get(key);request.onsuccess?.();});return request;},
         openCursor:()=>{
-            const request={},entries=[...records],step=i=>queueMicrotask(()=>{
+            const request={},entries=[...stores.get(name)],step=i=>queueMicrotask(()=>{
                 request.result=i<entries.length?{key:entries[i][0],value:structuredClone(entries[i][1]),continue:()=>step(i+1)}:null;
                 request.onsuccess();
             });step(0);return request;
         },
     })};
-    setTimeout(()=>{if(aborted)tx.onabort();else{for(const [k,v] of staged)records.set(k,v);tx.oncomplete();}},0);
+    setTimeout(()=>{if(aborted)tx.onabort();else{for(const [name,changes] of staged)for(const [key,change] of changes){if(change.deleted)stores.get(name).delete(key);else stores.get(name).set(key,change.value);}tx.oncomplete();}},0);
     return tx;
 }};
 globalThis.indexedDB={open:()=>{const request={};queueMicrotask(()=>{request.result=db;request.onupgradeneeded();request.onsuccess();});return request;}};
@@ -46,4 +48,18 @@ await Promise.resolve();store.set('settings',{...previous,fontSize:22});
 await merging;await store.flush();
 assert.equal(store.setting('theme'),'Cloud theme');assert.equal(store.setting('fontSize'),22);
 assert.deepEqual(records.get('settings'),{theme:'Cloud theme',fontSize:22});
-console.log('21 IndexedDB storage assertions passed.');
+const blob=new Blob(['local background'],{type:'image/png'});
+await store.setMany({backgrounds:[{id:'media',fileId:'media'}]},[{id:'media',blob}]);
+assert.equal(await (await store.backgroundFile('media')).text(),'local background');
+assert.equal(records.get('backgrounds')[0].fileId,'media');
+abortNext=true;
+await assert.rejects(store.setMany({backgrounds:[{id:'failed'}]},[{id:'media',blob:new Blob(['replacement'])}]),/quota/);
+assert.equal(store.get('backgrounds')[0].id,'media');
+assert.equal(await (await store.backgroundFile('media')).text(),'local background');
+const mediaReloaded=await import('../public/assets/js/store.js?background-file-reload');
+assert.equal(await (await mediaReloaded.backgroundFile('media')).text(),'local background');
+assert.equal(await mediaReloaded.backgroundFile('missing'),null);
+await store.setMany({backgrounds:[]},[{id:'media',blob:null}]);
+assert.equal(await store.backgroundFile('media'),null);
+assert.deepEqual(records.get('backgrounds'),[]);
+console.log('30 IndexedDB storage assertions passed.');
