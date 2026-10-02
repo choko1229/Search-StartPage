@@ -12,6 +12,7 @@ final class Request
         public readonly array $body = [],
         public readonly array $server = [],
         public readonly ?object $jsonObject = null,
+        public readonly array $files = [],
     ) {
     }
 
@@ -39,7 +40,10 @@ final class Request
             // a second complete copy of every history entry in memory.
             $body = (array) $jsonObject;
         }
-        return new self(strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'), is_string($path) ? $path : '/', $_GET, $body, $_SERVER, $jsonObject);
+        if ($path === '/api/backgrounds/upload' && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 526385152) {
+            throw new HttpException(413, 'BACKGROUND_TOO_LARGE');
+        }
+        return new self(strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'), is_string($path) ? $path : '/', $_GET, $body, $_SERVER, $jsonObject, $_FILES);
     }
 
     public function isApi(): bool

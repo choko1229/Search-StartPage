@@ -32,3 +32,20 @@ FFmpegはshellを介さない引数配列、検査済み形式のdemuxer固定�
 `docker/compression.Dockerfile`は省略可能な圧縮試験用。BASE_IMAGEは既定php:8.2-apache-bookworm、検証時は既存の隔離アプリイメージを指定した。GD/EXIF/Imagick3.8.1/FFmpegを含む。アプリ全体で必須にはしない。圧縮試験はSEARCH_TEST_MODE=1でtests/background-compression.phpを実行。実画像decoderやFFmpegで未対応の場合の警告を成功した圧縮と扱わない。
 
 次は専用メタ情報Migration/Repository、所有権・CSRF付きAPI、容量制限の原子的適用と失敗時ファイル清掃、アップロードUI/背景ごとのCloud Syncへ接続する。500MiB multipartを許可するPHP/Webサーバー設定も未反映（現Docker post_max_size=32M）。条件編集全種・天気/地域・手動動画再生導線も未完了。
+
+## 背景DB/APIの接続（最新・2026-10-02）
+
+前記の「Upload API未接続」は今回の変更で解消。008_backgroundsのbackgrounds/background_rulesを追加、所有者row lockによる圧縮後容量と項目versionのCAS。config backgrounds.max_bytes=0は合計制限なし、個別上限は保持。永久削除/孤立再清掃は未実装。
+
+| Method | Path | 入出力 |
+|---|---|---|
+| GET | /api/backgrounds | 所有者のitems/storage/compression |
+| POST | /api/backgrounds/url | JSON item、201 |
+| POST | /api/backgrounds/upload | multipart fileとJSON文字列item、201 |
+| PUT | /api/backgrounds/{id} | JSON versionと部分item、409競合 |
+| DELETE | /api/backgrounds/{id} | JSON version。復元可能な保管で容量保持 |
+| GET/HEAD | /api/backgrounds/{id}/file | Auth所有者限定、64KiB stream/single Range/206/416 |
+
+PUT deleted:falseで復元。変更系CSRF header必須。絶対パス/保存名をAPIへ返さない。新規両DBでAPI27、実並列quota6、Installer35/全8Migration往復、既存回帰/構文96成功。PHP post_max_size502M/upload_max_filesize500M/input600/execution180。JSON一般1MiB/同期32MiBのアプリ上限は維持。別PHP/Web環境も500MiB+overheadのmultipart設定が必要。実500MiB upload/実圧縮とDB容量の組合せは未検証。
+
+次はLocal Upload UI/IndexedDB blob、背景ごとのCloud Syncと競合/offline、条件全種編集/天気・地域/手動動画再生。cloud_syncはDB項目で端末間同期は未接続。Phase 7未完了。

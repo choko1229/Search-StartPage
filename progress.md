@@ -15,8 +15,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 ## 環境
 
 - Docker: C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
-- 両DB検証: search-test-20261002020651。app-mysqlは8080、app-mariadbは8081。新規Installer/全Migration/全PHP検証済み。
-- UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。007_folder_owner_cascadeまで適用済み。
+- 最新両DB検証: search-phase7-20261002。MySQL8083/MariaDB8084、新規Installerと全8Migration往復を検証済み。旧8080/8081も保持。
+- UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。008_backgroundsまで適用済み。
 - 9/30に停止していた上記コンテナのみ再起動。旧環境のボリュームを保持。他の旧アプリは停止したまま。
 - UI configはコンテナ内/var/www/app/config/config.php。ホストとは共有しない。
 - Docker cpで反映する構成。直近public/lang/appは両DB検証環境へ反映済み。
@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は最新の圧縮記録から再開。ライブラリee76732、アップロード検査dfbcf26へ保存済み。Imagick→GD/FFmpegの環境判定・実圧縮・最終サイズ計測サービスを実装/検証済み。次はdatabase/migrationsのメタ情報Migration、Repository、Auth/CSRF付きAPIと容量競合/失敗時清掃を接続する。公開API/UI/Cloud Syncは未接続。条件編集全種・天気/地域・動画の手動再生も残る。既存ファイルを作り直さない。
+1. Phase 7は末尾の背景DB/API記録から再開。008_backgrounds・認証/CSRF API・実upload→圧縮→DB・私有stream/Rangeを両DB検証済み。次はLocal Upload UI/IndexedDB blob、背景ごとのCloud Sync・競合/オフライン復帰、全条件編集/天気・地域/動画の手動再生。背景APIは項目version、既存同期文書にはライブラリをまだ含めない。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -243,3 +243,17 @@ BackgroundCompressionを追加。Imagick優先→GD、FFmpegをPATH/SEARCH_FFMPE
 専用DockerfileはBASE_IMAGE引数（既定php:8.2-apache-bookworm）、GD/EXIF/Imagick3.8.1/FFmpegを任意検証用に追加。本アプリDockerfileは変更していない。専用コンテナは待機状態で次回試験に再利用可能、DBなし。既存2DB/UIは保持。全形式/巨大動画/120秒期限の実発動/ICCの実写真は未検証。
 
 次はdatabase/migrationsの背景メタDBとRepository、認証/CSRF API、圧縮後bytesを使う容量制限の原子的適用、失敗時清掃、その後Upload UI/Cloud Sync。Requestはまだ$_FILESを持たず、PHP multipart上限32Mのため500MiB受付設定も必要。Phase 7未完了、8〜12未着手。
+
+## Phase 7 背景DB・実アプリAPI（2026-10-02）
+
+008_backgrounds: backgrounds/background_rulesを所有者+IDの複合キー/FKで追加。BackgroundInputはURL/数値/色/boolean/11条件・AND OR/実暦日・深さ12/100nodes/32KiBを検査。BackgroundRepositoryは所有者row lock/項目version CAS/圧縮後bytes。config backgrounds.max_bytes既定0=合計制限なし、各ファイルの仕様上限は常時有効。ControllerにSQLなし。
+
+GET backgrounds、POST upload/url、PUT/DELETE背景ID、GET/HEAD file。Auth/所有者・CSRF、実multipart→私有保存→圧縮→DB、DB拒否時候補除去。64KiB stream/single Range/206/416。DELETEは復元可能な保管、容量保持。永久削除/孤立再清掃は未実装。cloud_syncはDB項目で端末間同期フローは未接続。ファイル名/絶対パスはAPIへ返さない。
+
+検証1: 旧両DB API25、並列quota6を3回ずつ成功。初回stale試験は422で失敗、partial updateのruleをarrayにしてしまう問題をobject保持へ補修し再成功。
+検証2: 新規search-phase7-20261002（MySQL8083/MariaDB8084）でInstaller35/全8Migration往復、背景25/quota6/基盤39/sync17/projection34/Cloud52/auth HTTP12、検査22/独立HTTP14/圧縮不足8、構文96成功。
+検証3: 不正sync flag null/別認証所有者のfile404追加後、新規両DB API27/構文96成功。UI8082に008/app/lang/tests/php.ini反映しトップ200/PHP diagnosticsなし。UI HTTP初回はPowerShell予約変数誤用の試験側エラー、名称修正後成功。今回新規ブラウザ操作なし。通常Cookieの実HTTP認証で、実Discord往復は未確認を留保。
+
+PHP multipart502M/file500M/input600s/execution180s。JSON一般1MiB/同期32MiBは維持。500MiB実HTTP、実圧縮+DB容量の組合せ、全条件UI、永久清掃、Admin警告は未確認/未実装。秘密値は記録せず、隔離DBの生成値だけ使用。
+
+次はLocal Upload UI/IndexedDB blob、背景ごとのCloud Sync ON/OFF・ファイル/メタ同期・競合/オフライン、全条件編集/天気・地域/手動動画再生。最新両DBは8083/8084、UI8082も008済み。Phase 7未完了、8〜12未着手。途中コミットして続ける。

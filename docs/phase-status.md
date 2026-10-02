@@ -445,3 +445,12 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 - 検証1: 両DB機能不足8/基盤39/auth HTTP12/sync17/構文89成功。検証2: 専用www-data Imagick/GD/FFmpeg17、GDのみ16、proc_open禁止12成功。検証3: 補修後各経路再成功、写真向き/GIF/動画/失敗保持/一時出力除去を確認。
 - Failure: 最初はImagickの誤メソッド呼出でfallback、優先順試験が失敗。autoOrientと互換回転へ補修し再成功。
 - DB/API/UI: 新規変更なし。圧縮後容量のDB適用/Upload API・画面/Cloud Syncは未実装。巨大動画/期限発動/全形式/ICC実写真未確認。Admin警告表示はPhase 9へ。Phase 7未完了。
+
+### Phase 7 背景DB・認証付きAPI
+
+- Files: 008_backgrounds、BackgroundInput/Repository/Controller/FileResponse、Request/Response/bootstrap、BackgroundUpload、config example、PHP上限、ja/en、API/quota試験、Docker検証一覧。
+- DB/API: 背景/条件の所有者複合キー/FK、項目version、owner row lock+圧縮後bytes容量。GET backgrounds、POST upload/url、PUT/DELETE ID、GET/HEAD file。変更はCSRF、読込もAuth/所有者。64KiB stream/単一Range、DB拒否時upload候補清掃。
+- 検証1: 旧両DB API25、実並列quota6を3回ずつ成功。検証2: 新規両DB Installer35/全8Migration往復、基盤39/sync17/projection34/Cloud52/auth HTTP12/検査22/独立HTTP14/圧縮不足8/構文96成功。検証3: security追加後API27/構文96、UI008反映/トップ200 diagnosticsなし。
+- Failures: partial update ruleのarray化で422→object保持で再成功。UI HTTP試験の予約変数誤用→名称修正後成功。
+- Security: 別所有者file404/guest401/CSRF403、不正URL/日付/flag422、版409、重複upload候補除去、quota拒否でmetadata不変。通常長期Cookieの実HTTP、実Discord往復は未確認留保。
+- Remaining: Local Upload UI/IDB blob、背景ごとの同期・競合/offline、条件全種編集/天気・地域/手動再生。DELETEは保管/容量保持で永久清掃未実装。500MiB実HTTP/実圧縮+DB容量結合/Admin警告未確認・未実装。Phase 7未完了。

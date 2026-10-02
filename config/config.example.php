@@ -7,6 +7,7 @@ return [
     'database' => ['host' => '127.0.0.1', 'port' => 3306, 'name' => '', 'user' => '', 'password' => ''],
     'discord' => ['client_id' => '', 'client_secret' => ''],
     'login_rate_limit' => ['attempts' => 20, 'window_seconds' => 60],
+    'backgrounds' => ['max_bytes' => 0], // 0 = no account-wide cap; per-file limits still apply.
     'initial_admin_discord_id' => '',
     'encryption_key' => '',
     'session' => ['name' => 'search_session', 'secure' => true, 'same_site' => 'Lax'],

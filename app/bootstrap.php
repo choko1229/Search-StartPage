@@ -84,6 +84,21 @@ if ($config->get('installed')) {
         $router->add('DELETE','/api/'.$path.'/{id}',$cloudHandler($collection,'delete'),[new Csrf()]);
     }
     $router->add('POST','/api/favorites/{id}/open',$cloudHandler('favorites','open'),[new Csrf()]);
+    $backgroundHandler=static function(string $method)use($config,$root):Closure {
+        return static function(Request $request,array $params=[])use($config,$root,$method):App\Http\Response {
+            try{$pdo=App\Database\Database::connect($config->get('database'));}
+            catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            $auth=new App\Auth\Auth($config,new App\Repositories\AuthRepository($pdo));$auth->restore();
+            $controller=new App\Controllers\BackgroundController($auth,new App\Repositories\BackgroundRepository($pdo,max(0,(int)$config->get('backgrounds.max_bytes',0))),new App\Services\BackgroundUpload($root));
+            return $controller->$method($request,$params);
+        };
+    };
+    $router->add('GET','/api/backgrounds',$backgroundHandler('index'));
+    $router->add('POST','/api/backgrounds/url',$backgroundHandler('url'),[new Csrf()]);
+    $router->add('POST','/api/backgrounds/upload',$backgroundHandler('upload'),[new Csrf()]);
+    $router->add('PUT','/api/backgrounds/{id}',$backgroundHandler('update'),[new Csrf()]);
+    $router->add('DELETE','/api/backgrounds/{id}',$backgroundHandler('delete'),[new Csrf()]);
+    $router->add('GET','/api/backgrounds/{id}/file',$backgroundHandler('file'));
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
 $router->add('GET', '/', $core->home(...), [$optionalAuth]);

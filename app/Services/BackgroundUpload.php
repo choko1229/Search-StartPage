@@ -90,4 +90,12 @@ final class BackgroundUpload
         }
         return $directory;
     }
+
+    public function existingPath(int $userId,string $filename): string
+    {
+        if($userId<1||!preg_match('/^[a-f0-9]{48}\.(jpg|png|gif|webp|avif|mp4|webm)$/D',$filename))throw new HttpException(404,'NOT_FOUND');
+        $path=$this->ownerDirectory($userId).'/'.$filename;
+        if(!is_file($path)||is_link($path))throw new HttpException(404,'NOT_FOUND');
+        return $path;
+    }
 }

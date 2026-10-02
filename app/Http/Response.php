@@ -5,7 +5,7 @@ namespace App\Http;
 
 final class Response
 {
-    public function __construct(public readonly string $body = '', public readonly int $status = 200, public readonly array $headers = [])
+    public function __construct(public readonly string $body = '', public readonly int $status = 200, public readonly array $headers = [], private readonly ?\Closure $stream = null)
     {
     }
 
@@ -42,7 +42,7 @@ final class Response
             header($name . ': ' . $value);
         }
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'HEAD') {
-            echo $this->body;
+            if ($this->stream !== null) { ($this->stream)(); } else { echo $this->body; }
         }
     }
 }
