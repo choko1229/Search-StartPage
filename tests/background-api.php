@@ -46,8 +46,18 @@ try {
         return '--'.$boundary."\r\nContent-Disposition: form-data; name=\"item\"\r\n\r\n".json_encode(['id'=>$id,'name'=>'Uploaded'])
             ."\r\n--".$boundary."\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$name\"\r\nContent-Type: text/html\r\n\r\n".$bytes."\r\n--".$boundary."--\r\n";
     };
-    [$status,$json]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary);
+    $nonce=bin2hex(random_bytes(32));$receiptHeader=['X-Background-Request: '.$nonce];
+    [$status,$json]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary,$receiptHeader);
     $check($status===201&&$json['data']['item']['sourceType']==='upload'&&$json['data']['item']['fileSize']===strlen($png),'real app multipart upload saved with measured size');
+    $initialRevision=$json['data']['item']['fileRevision'];
+    [$status,$replay]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary,$receiptHeader);
+    $check($status===201&&$replay['data']['replayed']&&$replay['data']['item']['fileRevision']===$initialRevision&&$repository->find($user,'file-id')['version']==1,'upload replay retains original file and version');
+    [$status]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('different-id',$png),$boundary,$receiptHeader);
+    $check($status===409&&$repository->find($user,'different-id')===null,'request ID cannot be reused for different metadata');
+    [$status]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png."\0"),$boundary,$receiptHeader);
+    $check($status===409&&(int)$repository->find($user,'file-id')['version']===1,'request ID cannot be reused with different file bytes');
+    [$status]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('bad-request',$png),$boundary,['X-Background-Request: invalid']);
+    $check($status===422,'malformed request ID rejected');
     $check(!isset($json['data']['item']['file_path'])&&!str_contains(json_encode($json),'/var/www/'),'private filenames and server paths not exposed');
     [$status,,$bytes,$headers]=$request('GET','/api/backgrounds/file-id/file');$check($status===200&&$bytes===$png,'authenticated media streaming');
     [$status]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['X-Background-Owner: '.$other]);$check($status===403,'file read owner hint mismatch denied');
@@ -75,9 +85,13 @@ try {
     [$status]=$request('POST','/api/backgrounds/foreign-only/upload',null,$csrf,$replace('1','foreign-only'),$boundary);$check($status===404,'foreign replacement denied');
     [$status]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('2'),$boundary);$check($status===409&&is_file($oldPath),'stale replacement preserves prior file');
     [$status]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('3x'),$boundary);$check($status===422&&is_file($oldPath),'malformed multipart version rejected');
-    [$status,$json]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('3'),$boundary);
+    $replaceHeader=['X-Background-Request: '.bin2hex(random_bytes(32))];
+    [$status,$json]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('3'),$boundary,$replaceHeader);
     clearstatcache(true,$oldPath);
     $check($status===200&&$json['data']['item']['version']===4&&$json['data']['item']['fileRevision']!==$revision&&!is_file($oldPath),'replacement commits new revision then removes old file');
+    $newRevision=$json['data']['item']['fileRevision'];
+    [$status,$replay]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('3'),$boundary,$replaceHeader);
+    $check($status===200&&$replay['data']['replayed']&&$replay['data']['item']['fileRevision']===$newRevision&&(int)$repository->find($user,'file-id')['version']===4,'replacement replay accepts original version without repeating replacement');
     [$status,,$bytes]=$request('GET','/api/backgrounds/file-id/file');$check($status===200&&$bytes===$png&&$repository->usage($user)['used_bytes']===strlen($png),'replacement bytes and quota are correct');
     [$status]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['If-Match: "'.$revision.'"']);$check($status===412,'old revision is invalid after replacement');
     $currentPath=$root.'/storage/uploads/backgrounds/'.$user.'/'.$repository->find($user,'file-id')['file_path'];
@@ -85,6 +99,9 @@ try {
     [$status]=$request('PUT','/api/backgrounds/file-id',['version'=>4,'item'=>['sourceType'=>'url','url'=>'javascript:alert(1)']],$csrf);$check($status===422&&is_file($currentPath),'invalid URL conversion preserves upload');
     [$status,$json]=$request('PUT','/api/backgrounds/file-id',['version'=>4,'item'=>['sourceType'=>'url','url'=>'https://example.test/replaced.png']],$csrf);clearstatcache(true,$currentPath);
     $check($status===200&&$json['data']['item']['sourceType']==='url'&&$json['data']['item']['fileSize']===0&&$json['data']['item']['fileRevision']===null&&!is_file($currentPath)&&$repository->usage($user)['used_bytes']===0,'conversion to URL commits before file cleanup and releases quota');
+    [$status,$replay]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary,$receiptHeader);
+    $check($status===201&&$replay['data']['item']['version']===1&&(int)$repository->find($user,'file-id')['version']===5&&$repository->usage($user)['used_bytes']===0,'historical receipt cannot overwrite subsequent edits or restore deleted media');
+    $check(count(glob($root.'/storage/uploads/backgrounds/'.$user.'/*'))===0,'replayed and rejected upload candidates cleaned');
     [$status]=$request('PUT','/api/backgrounds/file-id',['version'=>5,'item'=>['sourceType'=>'upload']],$csrf);$check($status===422,'upload source cannot be declared without actual file');
     $statement=$pdo->prepare('SELECT COUNT(*) FROM background_rules WHERE user_id=?');$statement->execute([$user]);$check((int)$statement->fetchColumn()===1,'conditions stored in separate owned table');
     echo "$passed background API assertions passed.\n";

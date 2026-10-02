@@ -42,20 +42,31 @@ final class BackgroundController
         try{$input=json_decode($raw,false,24,JSON_THROW_ON_ERROR);}catch(\JsonException){throw new HttpException(422,'INVALID_BACKGROUND');}
         if(!is_object($input))throw new HttpException(422,'INVALID_BACKGROUND');
         $before=null;$expected=null;
+        $requestId=$request->server['HTTP_X_BACKGROUND_REQUEST']??null;
+        if($requestId!==null&&(!is_string($requestId)||!preg_match('/^[a-f0-9]{64}$/D',$requestId)))throw new HttpException(422,'INVALID_INPUT');
         if(isset($params['id'])) {
             $before=$this->repository->find($user,$params['id']);if(!$before)throw new HttpException(404,'NOT_FOUND');
             if(isset($input->id)&&$input->id!==$params['id'])throw new HttpException(422,'INVALID_BACKGROUND');
             $version=$request->input('version');
             if(!preg_match('/^(?:0|[1-9][0-9]{0,15})$/D',$version)||(float)$version>9007199254740990)throw new HttpException(422,'INVALID_INPUT');
-            $expected=(int)$version;if((int)$before['version']!==$expected)throw new HttpException(409,'BACKGROUND_CONFLICT');
+            $expected=(int)$version;
+            if($requestId===null&&(int)$before['version']!==$expected)throw new HttpException(409,'BACKGROUND_CONFLICT');
             $input=(object)array_replace(self::present($before),(array)$input);
         }
-        $item=BackgroundInput::validate($input,true);$staged=null;$compressed=null;$committed=false;
+        $staged=null;$compressed=null;$committed=false;
         try {
             $staged=$this->storage->receive($user,$request->files['file']??[]);
+            $receipt=$requestId===null?null:['id'=>$requestId,'fingerprint'=>hash('sha256',json_encode([$params['id']??null,$expected,$raw,hash_file('sha256',$staged['path'])],JSON_THROW_ON_ERROR))];
+            if($receipt!==null) {
+                $replayed=$this->repository->uploadReceipt($user,$receipt['id'],$receipt['fingerprint']);
+                if($replayed!==null)return Response::json(['item'=>self::present($replayed),'storage'=>$this->repository->usage($user),'warning'=>$replayed['_upload_warning']??null,'replayed'=>true],$before===null?201:200);
+            }
+            $item=BackgroundInput::validate($input,true);
             $compressed=(new BackgroundCompression())->compress($staged['path']);
             $item['type']=$compressed['type'];
-            $saved=$this->repository->save($user,$item,$expected,$compressed);$committed=true;
+            $saved=$this->repository->save($user,$item,$expected,$compressed,false,$receipt);
+            if(isset($saved['_upload_replayed']))return Response::json(['item'=>self::present($saved),'storage'=>$this->repository->usage($user),'warning'=>$saved['_upload_warning']??null,'replayed'=>true],$expected===null?201:200);
+            $committed=true;
             if($before!==null&&$before['file_path']!==null) {
                 try{@unlink($this->storage->existingPath($user,$before['file_path']));}catch(HttpException){}
             }

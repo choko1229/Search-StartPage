@@ -20,17 +20,18 @@ function identity(userId) {
     return String(userId);
 }
 export function readBackgrounds(userId){return json(endpoint,{headers:userId===undefined?{}:{'X-Background-Owner':identity(userId)}});}
-export async function createBackground(item,userId,file=null,version=null) {
+export async function createBackground(item,userId,file=null,version=null,requestId=null) {
     itemPath(item?.id);const owner=identity(userId);
     if(version!==null&&(!Number.isSafeInteger(version)||version<0||file===null))throw new Error('SYNC_VERSION_INVALID');
     if(file!==null&&(!(file instanceof Blob)||!['image','video'].includes(item.type)||file.size<=0||file.size>limits[item.type]))throw new Error('INVALID_UPLOAD');
+    if(requestId!==null&&(file===null||typeof requestId!=='string'||!/^[a-f0-9]{64}$/.test(requestId)))throw new Error('INVALID_INPUT');
     const token=await csrf();
     if(file===null)return json(endpoint+'/url',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({user_id:owner,item})});
     const extensions={'image/jpeg':'jpg','image/png':'png','image/gif':'gif','image/webp':'webp','image/avif':'avif','video/mp4':'mp4','video/webm':'webm'};
     const extension=extensions[file.type];if(!extension)throw new Error('INVALID_UPLOAD');
     const form=new FormData();form.set('user_id',owner);form.set('item',JSON.stringify(item));form.set('file',file,'background.'+extension);
     if(version!==null)form.set('version',String(version));
-    return json((version===null?endpoint:itemPath(item.id))+'/upload',{method:'POST',headers:{'X-CSRF-Token':token},body:form,signal:AbortSignal.timeout(660000)});
+    return json((version===null?endpoint:itemPath(item.id))+'/upload',{method:'POST',headers:{'X-CSRF-Token':token,...requestId===null?{}:{'X-Background-Request':requestId}},body:form,signal:AbortSignal.timeout(660000)});
 }
 export async function updateBackground(item,version,userId) {
     const path=itemPath(item?.id),owner=identity(userId);

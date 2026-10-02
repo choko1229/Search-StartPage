@@ -345,3 +345,13 @@ store-databaseに独立namespaceを指定できる引数を追加（既定search
 public/tests/Controllerは3環境へ反映（前回store fallbackも反映済み）。専用画面PHP/mjsはSEARCH_TEST_MODEあり8083のpublic/_testのみへ配置。専用DBと端末専用検証画像1件を残す。通常8083ライブラリの既存背景は保持。
 
 次はserver成功後ACK永続化失敗・再起動での再送抑止を補修、背景競合ルール共有、全条件編集/天気・地域/動画手動再生。認証済みUIはユーザー指定の実OAuth留保を区別。巨大動画実HTTP/圧縮+DB容量、耐久的孤立清掃/Admin警告も残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## Phase 7 アップロード再送のサーバー側重複防止（2026-10-03）
+
+009_background_upload_receiptsを追加。任意のX-Background-Request（64桁の小文字hex）と認証ownerごとに、経路/期待version/送信itemの原文/検査済み原本ファイルSHA256を照合。背景保存と応答記録を同じtransactionに保存し、owner row lock取得後にも再確認する。同じ送信の再試行は以前のACKを返し、新しいファイル・version・容量を作らない。同じ番号で異なるitem/bytesを送ると409。古いACKの再取得はその後の背景編集を変更しない。再送時の一時候補は除去、元の圧縮警告も保持。応答にreplayed:true、私有パス/保存名は引き続き非公開。SQLはRepositoryに集約。
+
+検証1: 隔離MySQL8/MariaDB10.11で背景実HTTP各50項目成功（新規/置換再送、異なるメタ/bytes、番号形式、後続URL変更保護、候補清掃を追加）。検証2: 両DBで009 up/up/down/down/upとMigrator再実行0件、既存基盤39成功。rollback試験はSEARCH_TEST_MODE付き専用DBの空receiptテーブルのみ、通常UIでは未実行。検証3: JS単体21ファイル成功、送信番号header/不正番号の通信前拒否のtransport単体成功、3環境PHP構文成功、git diff --check成功。今回UI変更/ブラウザ操作なし。全9Migrationの新規Installer・全down/up一括検証は未実行、前回全8Migration証拠と区別する。
+
+app/009/JS transportは3環境へ反映、通常開発UI8082も009を適用済み。専用API試験ユーザー/既知uploadは終了時除去。receiptはユーザー削除時cascade、現状自動期限削除なし。Phase7途中の保存で完了コミットではない。
+
+次に実行すること: BackgroundSyncSession/Web adapterへ送信前の耐久的intent（同じ番号・元のpayload/version・原本Blob）を原子的保存し、ACK/intent除去も一体にする。ACK保存失敗/通信応答喪失/再読み込み後は同じ送信を回復し、編集中の新しいBlobを旧intentで上書きしない。今回の番号引数は製品sessionからまだ渡していないため、端末の再起動後の再送抑止全体は未完成。競合409のintent扱い、account切替/ログアウト清掃、同時再送専用試験も追加する。その後ルール共有・全条件編集/天気/地域/手動再生、巨大動画/実圧縮+DB容量・耐久的孤立清掃へ続く。Phase7未完了、8〜12未着手、Version1.0未完成、実OAuth留保は継続。

@@ -22,13 +22,25 @@ final class BackgroundRepository
         $statement=$this->pdo->prepare('SELECT COALESCE(SUM(file_size),0) FROM backgrounds WHERE user_id=?');$statement->execute([$user]);
         return ['used_bytes'=>(int)$statement->fetchColumn(),'limit_bytes'=>$this->limitBytes>0?$this->limitBytes:null];
     }
-    public function save(int $user,array $item,?int $expected=null,?array $file=null,bool $clearFile=false): array
+    public function uploadReceipt(int $user,string $requestId,string $fingerprint): ?array
+    {
+        $statement=$this->pdo->prepare('SELECT fingerprint,response_json FROM background_upload_receipts WHERE user_id=? AND request_id=?');
+        $statement->execute([$user,$requestId]);$row=$statement->fetch(PDO::FETCH_ASSOC);
+        if(!$row)return null;
+        if(!hash_equals($row['fingerprint'],$fingerprint))throw new HttpException(409,'BACKGROUND_CONFLICT');
+        return json_decode($row['response_json'],true,32,JSON_THROW_ON_ERROR)+['_upload_replayed'=>true];
+    }
+    public function save(int $user,array $item,?int $expected=null,?array $file=null,bool $clearFile=false,?array $receipt=null): array
     {
         $this->pdo->beginTransaction();
         try {
             // The owner row serializes file quota and metadata writes, including the first upload.
             $lock=$this->pdo->prepare('SELECT id FROM users WHERE id=? FOR UPDATE');$lock->execute([$user]);
             if(!$lock->fetchColumn())throw new HttpException(401,'AUTH_REQUIRED');
+            if($receipt!==null) {
+                $replayed=$this->uploadReceipt($user,$receipt['id'],$receipt['fingerprint']);
+                if($replayed!==null){$this->pdo->commit();return $replayed;}
+            }
             $before=$this->find($user,$item['id']);
             if($expected===null && $before)throw new HttpException(409,'BACKGROUND_CONFLICT');
             if($expected!==null && !$before)throw new HttpException(404,'NOT_FOUND');
@@ -55,7 +67,10 @@ final class BackgroundRepository
             $this->pdo->prepare('DELETE FROM background_rules WHERE user_id=? AND background_id=?')->execute([$user,$item['id']]);
             if(isset($item['settings']['rule']))$this->pdo->prepare('INSERT INTO background_rules (id,user_id,background_id,conditions_json,created_at) VALUES (?,?,?,?,UTC_TIMESTAMP())')
                 ->execute([$item['id'],$user,$item['id'],json_encode($item['settings']['rule'],JSON_THROW_ON_ERROR)]);
-            $saved=$this->find($user,$item['id']);$this->pdo->commit();return $saved;
+            $saved=$this->find($user,$item['id']);
+            if($receipt!==null)$this->pdo->prepare('INSERT INTO background_upload_receipts (user_id,request_id,fingerprint,response_json,created_at) VALUES (?,?,?,?,UTC_TIMESTAMP())')
+                ->execute([$user,$receipt['id'],$receipt['fingerprint'],json_encode($saved+['_upload_warning'=>$file['warning']??null],JSON_THROW_ON_ERROR)]);
+            $this->pdo->commit();return $saved;
         } catch(\Throwable $error) {if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }
 }

@@ -61,3 +61,9 @@ APIメタにfileRevision（非公開乱数保存名のSHA256、保存名/パス�
 最新両DBへapp/tests反映、8082は今回backend未反映。旧ファイルunlink失敗やプロセス強制終了時の耐久的孤立清掃は未実装。fileRevisionは内容hashではなく保存ファイルの版識別。巨大動画実通信/実圧縮+DB容量/置換同時競合の専用実HTTP試験は未確認（Repository CASと既存並列quotaを検証）。
 
 次はCloud Sync ON/OFFの編集UIとbackground checkpoint/所有権・3-way競合・初回選択・offline復帰を接続。受信Blobとメタ/checkpointはIDB同一transaction、保存中のローカル編集を保持し、ローカル専用背景は送らない。既存同期文書へ背景ライブラリを不用意に追加しない。条件全種/天気/地域/手動再生、容量表示と所有権削除時Blob清掃も残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## アップロードの再送識別（2026-10-03）
+
+POST uploadおよびPOST {id}/uploadは任意のX-Background-Request（64桁小文字hex）を受け付ける。認証owner・送信番号を009_background_upload_receiptsに記録し、経路/期待version/item原文/原本bytesが同じなら元のitem/version/warningとreplayed:trueを返す。その後の現在の背景は変更しない。番号の別内容への流用は409、形式不正は422。owner hint/CSRF/アップロード検査は維持。応答記録と背景保存は同一transaction、並列要求はowner lock後に再照合。一時候補は再送時も清掃。番号なしの既存呼出は通常CASのまま。
+
+JS createBackgroundの第5引数requestIdで指定可能。製品sessionでの送信前intent永続化・再読み込み後回復は次の作業であり、まだ番号を製品sessionから送っていない。記録の自動期限削除なし、ユーザー削除時cascade。全9Migrationの新規Installer全体確認は未実行。今回の両DB実HTTP50/009往復/基盤39/全JS21ファイル・PHP構文は成功。
