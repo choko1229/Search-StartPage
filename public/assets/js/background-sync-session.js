@@ -12,7 +12,7 @@ export class BackgroundSyncSession {
             const user=await this.io.user();if(!user){this.io.status('signed_out');return false;}
             const owner=String(user.id),current=()=>this.io.current(owner);
             if(!await current())return false;
-            let cloudRows=await this.io.read(),checkpoint=this.io.checkpoint(owner),conflicts=0;
+            let cloudRows=await this.io.read(owner),checkpoint=this.io.checkpoint(owner),conflicts=0;
             if(!checkpoint) {
                 const documents=backgroundDocuments(this.io.local(),cloudRows,null,owner);
                 let choice=Object.keys(documents.local).length&&Object.keys(documents.cloud).length?await this.io.initial():Object.keys(documents.cloud).length?'cloud':'local';
@@ -62,17 +62,17 @@ export class BackgroundSyncSession {
                             const file=await this.io.file(id);if(!(file instanceof Blob))throw new Error('BACKGROUND_FILE_MISSING');
                             if(!desired.source[0].revision?.startsWith('local:'))desired={...desired,source:[{...desired.source[0],revision:'local:'+id+':'+localRow.fileVersion}]};
                             const response=await this.io.create(backgroundPayload(desired),owner,file,remote?.version??null);
-                            if(response.status===409){cloudRows=await this.io.read();if(++conflicts>=3)throw new Error('sync_retry_exhausted');progressed=true;break;}
+                            if(response.status===409){cloudRows=await this.io.read(owner);if(++conflicts>=3)throw new Error('sync_retry_exhausted');progressed=true;break;}
                             if(![200,201].includes(response.status))throw new Error('background_sync_failed');
                             acknowledged=response.data.item;retainSentOriginal=true;
                         }else {
                             const response=remote?await this.io.update(backgroundPayload(desired),remote.version,owner):await this.io.create(backgroundPayload(desired),owner);
-                            if(response.status===409){cloudRows=await this.io.read();if(++conflicts>=3)throw new Error('sync_retry_exhausted');progressed=true;break;}
+                            if(response.status===409){cloudRows=await this.io.read(owner);if(++conflicts>=3)throw new Error('sync_retry_exhausted');progressed=true;break;}
                             if(![200,201].includes(response.status))throw new Error('background_sync_failed');acknowledged=response.data.item;
                         }
                     }
                     if(!acknowledged)throw new Error('BACKGROUND_RESPONSE_INVALID');
-                    if(upload&&!desired.deleted&&!retainSentOriginal&&!keepLocal&&!cached)blob=await this.io.download(acknowledged);
+                    if(upload&&!desired.deleted&&!retainSentOriginal&&!keepLocal&&!cached)blob=await this.io.download(acknowledged,owner);
                     if(!await current())return false;
                     await this.io.accept({userId:owner,before,target:desired,acknowledged,blob,rules:selectedRules,retainSentOriginal,keepLocal});
                     cloudRows=[...cloudRows.filter(row=>row.id!==id),acknowledged];conflicts=0;progressed=true;break;

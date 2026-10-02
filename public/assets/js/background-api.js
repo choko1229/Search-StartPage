@@ -19,7 +19,7 @@ function identity(userId) {
     if(!/^[1-9]\d*$/.test(String(userId)))throw new Error('BACKGROUND_OWNER_INVALID');
     return String(userId);
 }
-export function readBackgrounds(){return json(endpoint);}
+export function readBackgrounds(userId){return json(endpoint,{headers:userId===undefined?{}:{'X-Background-Owner':identity(userId)}});}
 export async function createBackground(item,userId,file=null,version=null) {
     itemPath(item?.id);const owner=identity(userId);
     if(version!==null&&(!Number.isSafeInteger(version)||version<0||file===null))throw new Error('SYNC_VERSION_INVALID');
@@ -37,12 +37,13 @@ export async function updateBackground(item,version,userId) {
     if(!Number.isSafeInteger(version)||version<0)throw new Error('SYNC_VERSION_INVALID');
     return json(path,{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':await csrf()},body:JSON.stringify({user_id:owner,version,item})});
 }
-export async function downloadBackground(item) {
+export async function downloadBackground(item,userId) {
     const path=itemPath(item?.id);
     if(!['image','video'].includes(item.type)||item.sourceType!=='upload'||!Number.isSafeInteger(item.fileSize)||item.fileSize<=0||item.fileSize>limits[item.type])throw new Error('INVALID_BACKGROUND');
     if(item.fileRevision!==undefined&&!/^[a-f0-9]{64}$/.test(item.fileRevision))throw new Error('INVALID_BACKGROUND');
     // Always derive the private endpoint; never fetch a URL supplied in metadata.
-    const response=await fetch(path+'/file',{credentials:'same-origin',cache:'no-store',redirect:'error',headers:item.fileRevision?{'If-Match':'"'+item.fileRevision+'"'}:{},signal:AbortSignal.timeout(660000)});
+    const headers={...userId===undefined?{}:{'X-Background-Owner':identity(userId)},...item.fileRevision?{'If-Match':'"'+item.fileRevision+'"'}:{}};
+    const response=await fetch(path+'/file',{credentials:'same-origin',cache:'no-store',redirect:'error',headers,signal:AbortSignal.timeout(660000)});
     async function reject(code){await response.body?.cancel().catch(()=>{});throw new Error(code);}
     if(response.status!==200)return reject('BACKGROUND_FILE_UNAVAILABLE');
     if(item.fileRevision&&response.headers.get('ETag')!=='"'+item.fileRevision+'"')return reject('BACKGROUND_FILE_REVISION_INVALID');

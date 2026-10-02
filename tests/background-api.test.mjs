@@ -8,6 +8,7 @@ globalThis.fetch=async(url,options)=>{
     return response({items:[],item:{id:'a',version:2}},options.method==='POST'?201:200);
 };
 assert.equal((await readBackgrounds()).status,200);
+await readBackgrounds('1');assert.equal(calls.at(-1).options.headers['X-Background-Owner'],'1');
 assert.equal((await createBackground({id:'a',type:'solid'},'1')).status,201);
 assert.deepEqual(JSON.parse(calls.at(-1).options.body),{user_id:'1',item:{id:'a',type:'solid'}});
 assert.equal(calls.at(-1).url,'/api/backgrounds/url');

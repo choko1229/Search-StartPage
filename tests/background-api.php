@@ -25,6 +25,8 @@ $request=static function(string $method,string $path,?array $body=null,?string $
 try {
     $authenticated=$cookies;$cookies=[];[$status]=$request('GET','/api/backgrounds');$check($status===401,'guest metadata denied');$cookies=$authenticated;
     [, $json]=$request('GET','/api/csrf');$csrf=$json['data']['csrf_token'];
+    [$status]=$request('GET','/api/backgrounds',null,null,null,null,['X-Background-Owner: '.$user]);$check($status===200,'matching read owner hint accepted');
+    [$status]=$request('GET','/api/backgrounds',null,null,null,null,['X-Background-Owner: '.$other]);$check($status===403,'read owner hint mismatch denied');
     [$status]=$request('POST','/api/backgrounds/url',['item'=>['name'=>'Bad','url'=>'https://example.test/image.png']]);$check($status===403,'CSRF required');
     [$status]=$request('POST','/api/backgrounds/url',['user_id'=>$other,'item'=>['name'=>'Bad','url'=>'https://example.test/image.png']],$csrf);$check($status===403,'owner hint cannot select another account');
     [$status]=$request('POST','/api/backgrounds/url',['item'=>['name'=>'Bad','url'=>'javascript:alert(1)']],$csrf);$check($status===422,'unsafe URL denied');
@@ -48,6 +50,7 @@ try {
     $check($status===201&&$json['data']['item']['sourceType']==='upload'&&$json['data']['item']['fileSize']===strlen($png),'real app multipart upload saved with measured size');
     $check(!isset($json['data']['item']['file_path'])&&!str_contains(json_encode($json),'/var/www/'),'private filenames and server paths not exposed');
     [$status,,$bytes,$headers]=$request('GET','/api/backgrounds/file-id/file');$check($status===200&&$bytes===$png,'authenticated media streaming');
+    [$status]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['X-Background-Owner: '.$other]);$check($status===403,'file read owner hint mismatch denied');
     [$status,,$bytes,$headers]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['Range: bytes=0-7']);$check($status===206&&$bytes===substr($png,0,8),'media byte range');
     [$status,,$bytes]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['Range: bytes=-4']);$check($status===206&&$bytes===substr($png,-4),'suffix range');
     [$status]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['Range: bytes=999999-']);$check($status===416,'out-of-bounds range refused');

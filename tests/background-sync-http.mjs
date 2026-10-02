@@ -19,14 +19,14 @@ function device(cookies,rows=[]){
     const value={cookies:{...cookies},state:{backgrounds:rows},files:new Map(),uploads:0,retries:0,conflicts:0,offline:false};
     const io={user:syncUser,current:async owner=>String((await syncUser())?.id)===owner,
         local:()=>value.state.backgrounds,checkpoint:owner=>String(value.state.backgroundCheckpoint?.userId)===owner?value.state.backgroundCheckpoint:null,
-        read:async()=>{const response=await readBackgrounds();assert.equal(response.status,200);return response.data.items;},
+        read:async owner=>{const response=await readBackgrounds(owner);if(response.status!==200)throw new Error('background_read_owner_denied');return response.data.items;},
         initial:async()=> 'cloud',conflicts:async rows=>{value.conflicts+=rows.length;return {choices:Object.fromEntries(rows.map(row=>[row.id,'cloud'])),rules:{}};},
         begin:async(owner,choice)=>{value.state.backgroundCheckpoint={userId:owner,pendingInitial:choice,document:{}};},
         finish:async()=>{delete value.state.backgroundCheckpoint.pendingInitial;},drop:async id=>{value.state.backgrounds=value.state.backgrounds.filter(row=>row.id!==id);},
         file:async id=>value.files.get(id)||null,download:downloadBackground,create:createBackground,
         update:async(...args)=>{const hook=value.beforeWrite;value.beforeWrite=null;if(hook)await hook();return updateBackground(...args);},
         accept:async options=>{const plan=backgroundAcknowledgement(value.state,options);value.state={...value.state,...plan.values};for(const file of plan.files){if(file.blob===null)value.files.delete(file.id);else value.files.set(file.id,file.blob);}},status:status=>{value.status=status;}};
-    value.session=new BackgroundSyncSession(io);value.run=()=>context.run(value,()=>value.session.run());return value;
+    value.io=io;value.session=new BackgroundSyncSession(io);value.run=()=>context.run(value,()=>value.session.run());return value;
 }
 const png=new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aNC8AAAAASUVORK5CYII=','base64'));
 const a=device(fixture[0].devices[0],[{id:'http-url',name:'URL',type:'image',sourceType:'url',url:'https://example.test/image.png',cloudSync:true},{id:'http-file',name:'File',type:'image',sourceType:'upload',fileId:'http-file',fileVersion:1,fileSize:png.length,cloudSync:true}]);
@@ -41,6 +41,10 @@ b.offline=true;b.state.backgrounds.find(row=>row.id==='http-url').brightness=.5;
 const row=b.state.backgrounds.find(row=>row.id==='http-file');row.fileVersion++;row.fileSize=png.length;row.cloudSync=false;const uploads=b.uploads;assert.equal(await b.run(),true);assert.equal(b.uploads,uploads);assert.ok(b.files.has('http-file'));
 const foreign=device(fixture[1].devices[0]);const otherList=await context.run(foreign,readBackgrounds);assert.equal(otherList.data.items.length,0);
 const privateItem=a.state.backgrounds.find(row=>row.id==='http-file');await assert.rejects(context.run(foreign,()=>downloadBackground(privateItem)),/FILE_UNAVAILABLE/);
+const switched=device(fixture[0].devices[0]);const originalRead=switched.io.read;
+switched.io.read=async owner=>{switched.cookies={...fixture[1].devices[1]};return originalRead(owner);};
+await assert.rejects(switched.run(),/background_read_owner_denied/);assert.equal(switched.state.backgroundCheckpoint,undefined);assert.deepEqual(switched.state.backgrounds,[]);
 console.log('PASS: real background session transport, two devices, multipart and private file bytes');
 console.log('PASS: field merge, live HTTP 409 and conflict resolution, offline recovery');
 console.log('PASS: file opt-out without upload and foreign-owner download denial');
+console.log('PASS: account switch during read rejected before checkpoint or data persistence');

@@ -333,3 +333,15 @@ account-dataのbackgroundOwnershipを一般syncOwnershipから独立して処理
 account-data/accountは3環境に反映。store fallback補修は次回反映が必要。新規fixtureはtestsのみ、通常View/ルートから参照しない。
 
 次は実IndexedDBで同期/清掃の保存・再読込、認証済みUIは実OAuth留保を区別、ACK永続化失敗後の再送抑止/再起動・読込所有者hint/途中アカウント切替を補修検証。競合ルール共有、条件全種編集/天気・地域/手動再生、巨大動画/実圧縮+DB容量、耐久的孤立清掃/Admin警告が残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## Phase 7 アカウント切替防御と実IndexedDB検証（2026-10-03）
+
+背景一覧/ファイル読込へX-Background-Ownerを追加。JS sessionは認証開始時のownerを読込・409再取得・ファイル取得へ渡し、Controllerは現在の認証ownerと一致しない読込を403で拒否。owner hintは所有者を選択する権限にはしない。body user_id=nullも黙って無視せず拒否。同期中にCookieが別アカウントへ変わる実HTTP試験で、checkpoint/背景保存より前に拒否した。
+
+store-databaseに独立namespaceを指定できる引数を追加（既定search-startpageは維持、BroadcastChannelも分離）。背景用検証画面はbackground-storage-verificationという専用DBを使い、通常ユーザーstate/認証を変更しない。不正putが同期DataCloneErrorになる際、Promiseの拒否だけで前のputをcommitしてしまわないよう明示transaction.abortを追加。モデルで補修対象を再現し、実ブラウザで状態不変を確認。
+
+検証1: 両DB背景API43（owner read/file hint追加）、製品JS実HTTP2端末4グループ成功。4番目はread中アカウント切替の拒否。隔離fixture認証情報/ユーザー/既知uploadはfinally除去。検証2: 全JS単体21ファイル、IndexedDB49/追加構文成功。3環境PHP構文MySQL101/MariaDB99/UI99成功（public/_testによる差）。検証3: 実ブラウザの専用DBで背景2件/owned68bytes/local68bytes/ACKを保存→reload保持、不正put時全state/Blob不変、清掃→reload後owned0/local68/背景1/ACKなし、console warn/error0を確認。画像.test-output/phase7-background-storage-cleanup.png（Git除外）、タブ12保持。独立保存画面であり認証済み製品UI/実OAuthの証拠にはしない。
+
+public/tests/Controllerは3環境へ反映（前回store fallbackも反映済み）。専用画面PHP/mjsはSEARCH_TEST_MODEあり8083のpublic/_testのみへ配置。専用DBと端末専用検証画像1件を残す。通常8083ライブラリの既存背景は保持。
+
+次はserver成功後ACK永続化失敗・再起動での再送抑止を補修、背景競合ルール共有、全条件編集/天気・地域/動画手動再生。認証済みUIはユーザー指定の実OAuth留保を区別。巨大動画実HTTP/圧縮+DB容量、耐久的孤立清掃/Admin警告も残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。

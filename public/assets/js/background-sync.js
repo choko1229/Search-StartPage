@@ -15,7 +15,7 @@ export function initializeBackgroundSync(panel) {
     const session=new BackgroundSyncSession({
         user:syncUser,current:async owner=>setting('syncEnabled',true)&&String((await syncUser())?.id)===String(owner),
         local:()=>get('backgrounds',[]),checkpoint,
-        read:async()=>{const result=await readBackgrounds();if(result.status!==200||!Array.isArray(result.data?.items))throw new Error('background_sync_failed');return result.data.items;},
+        read:async owner=>{const result=await readBackgrounds(owner);if(result.status!==200||!Array.isArray(result.data?.items))throw new Error('background_sync_failed');return result.data.items;},
         initial:()=>syncDialog('initial',[],t('background_cloud_sync')),conflicts:items=>syncDialog('conflicts',items,t('background_cloud_sync')),
         begin:async(owner,choice)=>setMany({backgroundCheckpoint:{userId:owner,document:{},pendingInitial:choice}}),
         drop:async(id,before)=>setMany(state=>{

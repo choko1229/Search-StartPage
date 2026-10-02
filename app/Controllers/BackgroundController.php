@@ -12,7 +12,8 @@ final class BackgroundController
     private function owner(Request $request): int
     {
         $user=(int)$this->auth->requireUser()['id'];
-        if(isset($request->body['user_id'])&&(!is_scalar($request->body['user_id'])||(string)$request->body['user_id']!==(string)$user))throw new HttpException(403,'SYNC_OWNER_MISMATCH');
+        if(array_key_exists('user_id',$request->body)&&(!is_scalar($request->body['user_id'])||(string)$request->body['user_id']!==(string)$user))throw new HttpException(403,'SYNC_OWNER_MISMATCH');
+        if(array_key_exists('HTTP_X_BACKGROUND_OWNER',$request->server)&&$request->server['HTTP_X_BACKGROUND_OWNER']!==(string)$user)throw new HttpException(403,'SYNC_OWNER_MISMATCH');
         return $user;
     }
     public static function present(array $row): array

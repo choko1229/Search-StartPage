@@ -10,7 +10,7 @@ globalThis.localStorage={getItem:()=>JSON.stringify(legacy),setItem:()=>{throw n
 globalThis.BroadcastChannel=class {postMessage(){}close(){}};
 const fileRecords=new Map(),stores=new Map([['state',records]]);
 const db={objectStoreNames:{contains:name=>stores.has(name)},createObjectStore(name){stores.set(name,name==='background-files'?fileRecords:new Map());},close(){},transaction(names,mode){
-    const staged=new Map(),aborted=mode==='readwrite'&&abortNext;if(mode==='readwrite')abortNext=false;
+    const staged=new Map();let aborted=mode==='readwrite'&&abortNext;if(mode==='readwrite')abortNext=false;
     const tx={error:aborted?new Error('quota'):null,objectStore:name=>({
         put:(value,key)=>{if(!staged.has(name))staged.set(name,new Map());staged.get(name).set(key,{value:structuredClone(value)});},
         delete:key=>{if(!staged.has(name))staged.set(name,new Map());staged.get(name).set(key,{deleted:true});},
@@ -21,7 +21,7 @@ const db={objectStoreNames:{contains:name=>stores.has(name)},createObjectStore(n
                 request.onsuccess();
             });step(0);return request;
         },
-    })};
+    }),abort:()=>{aborted=true;tx.error??=new Error('aborted');}};
     setTimeout(()=>{if(aborted)tx.onabort();else{for(const [name,changes] of staged)for(const [key,change] of changes){if(change.deleted)stores.get(name).delete(key);else stores.get(name).set(key,change.value);}tx.oncomplete();}},0);
     return tx;
 }};
@@ -86,4 +86,6 @@ await store.setMany({backgrounds:[{id:'remove',fileId:'remove',cloudSync:true,cl
 const removeOwned=()=>store.setMany(state=>syncedDataRemoval(state,'1').values,state=>syncedDataRemoval(state,'1').files);
 abortNext=true;await assert.rejects(removeOwned(),/quota/);assert.equal(await (await store.backgroundFile('remove')).text(),'owned');assert.equal(store.get('backgrounds').length,2);
 await removeOwned();assert.equal(await store.backgroundFile('remove'),null);assert.equal(await (await store.backgroundFile('retain')).text(),'local');assert.deepEqual(store.get('backgrounds').map(row=>row.id),['retain']);assert.equal(store.get('backgroundOwnership',null),null);
-console.log('47 IndexedDB storage assertions passed.');
+await assert.rejects(store.setMany({backgrounds:[],backgroundCheckpoint:{version:99}},[{id:'retain',blob:()=>{}}]),/clone/i);
+await new Promise(resolve=>setTimeout(resolve,5));assert.deepEqual(records.get('backgrounds').map(row=>row.id),['retain']);assert.equal(await (await store.backgroundFile('retain')).text(),'local');
+console.log('49 IndexedDB storage assertions passed.');

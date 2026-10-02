@@ -1,10 +1,11 @@
 // One record per top-level collection avoids overwriting unrelated tab edits.
-export async function openStateDatabase(legacy) {
+export async function openStateDatabase(legacy,namespace='search-startpage') {
+    if(typeof namespace!=='string'||!/^[a-z][a-z0-9-]{0,79}$/.test(namespace))throw new Error('invalid_storage_namespace');
     if(!globalThis.indexedDB)return null;
     let db,channel;
     try {
         db=await new Promise((resolve,reject)=>{
-            const request=indexedDB.open('search-startpage',2);
+            const request=indexedDB.open(namespace,2);
             request.onupgradeneeded=()=>{
                 if(!request.result.objectStoreNames.contains('state'))request.result.createObjectStore('state');
                 if(!request.result.objectStoreNames.contains('background-files'))request.result.createObjectStore('background-files');
@@ -18,13 +19,15 @@ export async function openStateDatabase(legacy) {
             request.onsuccess=()=>{const cursor=request.result;if(cursor){result[cursor.key]=cursor.value;cursor.continue();}};
             tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
         });
-        channel=globalThis.BroadcastChannel?new BroadcastChannel('search-startpage-data'):null;
+        channel=globalThis.BroadcastChannel?new BroadcastChannel(namespace+'-data'):null;
         const write=(values,files=[])=>new Promise((resolve,reject)=>{
             const tx=db.transaction(files.length?['state','background-files']:'state','readwrite');
             tx.oncomplete=()=>{channel?.postMessage(true);resolve();};
             tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error || new Error('storage_aborted'));
-            for(const [key,value] of Object.entries(values))tx.objectStore('state').put(value,key);
-            for(const {id,blob} of files){const store=tx.objectStore('background-files');if(blob===null)store.delete(id);else store.put(blob,id);}
+            try {
+                for(const [key,value] of Object.entries(values))tx.objectStore('state').put(value,key);
+                for(const {id,blob} of files){const store=tx.objectStore('background-files');if(blob===null)store.delete(id);else store.put(blob,id);}
+            }catch(error){try{tx.abort();}catch{}reject(error);}
         });
         const file=id=>new Promise((resolve,reject)=>{
             const tx=db.transaction('background-files','readonly'),request=tx.objectStore('background-files').get(id);
