@@ -428,3 +428,11 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 ### Phase 7 基盤再検証
 
 全JS構文/全単体（実HTTP専用除外）成功。UI/両DB構文84、両DB基盤39/認証HTTP12/同期17成功。切替間隔の編集中値保持・ライブラリ型防御を補修。新規DB/Migrationなし。前記ブラウザ証拠を維持、今回の追加補修のブラウザ確認は未実施。途中コミット、Phase 7未完了。
+
+### Phase 7 アップロード検査・私有保存サービス
+
+- Files: BackgroundUpload.php、background-upload.php/background-upload-http.php、tests/docker.ps1、docs/background.md、進捗/監査。前のライブラリ基盤はee76732へ保存済み。
+- Security: 実HTTP由来/拡張子/実MIME/画像寸法/25MiB・500MiB、危険な名前拒否、乱数保存名、非公開所有者ディレクトリ0600/0700、symlink拒否。所有者認証は今後ControllerでAuthへ接続する。
+- 検証1: 両DB環境で検査22成功。検証2: 両環境www-dataで独立HTTP14成功（非公開/404/同名保護/symlink拒否を含む）。検証3: PHP構文87成功、直前のJS全単体/両DB基盤39/auth HTTP12/sync17維持。一時領域/プロセスは終了時除去。
+- DB/API/UI: 今回変更なし、公開upload endpointなし。HTTP試験はサービス用fixtureで、実アプリ認証・CSRFの成功と扱わない。
+- Remaining: 圧縮・環境不足警告、メタDB、認証/CSRF API、容量の原子的適用と清掃、500MiB受付設定（現在32M）、アップロード画面/Cloud Sync、全条件編集/天気/地域。Phase 7未完了。
