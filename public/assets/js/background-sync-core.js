@@ -33,7 +33,7 @@ export function backgroundDocuments(localRows,cloudRows,checkpoint,userId) {
         const foreign=row.cloudOwner!==undefined&&String(row.cloudOwner)!==owner;
         if(foreign||(!enabled(row)&&!Object.hasOwn(base,row.id))){protectedIds.add(row.id);continue;}
         if(Object.hasOwn(local,row.id))throw new Error('invalid_sync_id');
-        local[row.id]=backgroundRecord(row);
+        local[row.id]=!enabled(row)&&Object.hasOwn(base,row.id)?{...base[row.id],cloudSync:false}:backgroundRecord(row);
     }
     for(const row of rows(cloudRows)) {
         if(!normalizeBackground(row))throw new Error('INVALID_BACKGROUND');

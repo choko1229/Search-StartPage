@@ -153,4 +153,5 @@ return [
     'BACKGROUND_COMPRESSION_FAILED'=>'Compression failed. The original file was retained.',
     'background_source'=>'Background source','background_source_url'=>'URL or color','background_source_upload'=>'Local file',
     'background_local_file'=>'Image or video file (choose only to replace it)','background_local_only'=>'Saved on this device (sync OFF)',
+    'background_cloud_sync'=>'Sync this background to the cloud (sign-in required)','background_sync_on'=>'Cloud sync ON',
 ];

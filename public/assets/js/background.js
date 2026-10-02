@@ -5,6 +5,7 @@ import {color,bounded} from './appearance-core.js';
 import {syncUser} from './sync-api.js';
 import {recordSettings} from './settings-history.js';
 import {inspectBackgroundFile} from './background-file-core.js';
+import {initializeBackgroundSync} from './background-sync.js';
 
 export function initializeBackground() {
     const panel=document.getElementById('settings-background'),settingsDialog=document.getElementById('search-settings');
@@ -29,7 +30,7 @@ export function initializeBackground() {
     field('overlayColor','background_overlay_color','color','#000000');
     field('position','display_position','select','center',{choices:[['center','position_center'],['top','header_top'],['bottom','header_bottom'],['left','align_left'],['right','align_right']]});
     field('fit','background_fit','select','cover',{choices:[['cover','fit_cover'],['contain','fit_contain'],['fill','fit_fill']]});
-    for(const [key,label,value] of [['fixed','background_fixed',true],['autoplay','background_autoplay',true],['loop','background_loop',true],['mute','background_mute',true],['paused','background_pause',false]]){const input=field(key,label,'checkbox','');input.checked=value;}
+    for(const [key,label,value] of [['fixed','background_fixed',true],['autoplay','background_autoplay',true],['loop','background_loop',true],['mute','background_mute',true],['paused','background_pause',false],['cloudSync','background_cloud_sync',false]]){const input=field(key,label,'checkbox','');input.checked=value;}
     field('fallback','background_mobile_fallback','text','',{maxlength:'2048'});
     const timeRule=field('timeRule','background_time_rule','checkbox','');timeRule.checked=false;
     field('timeStart','background_time_start','time','08:00');field('timeEnd','background_time_end','time','18:00');
@@ -43,7 +44,7 @@ export function initializeBackground() {
     function resetForm(){editingId=null;for(const [key,value] of Object.entries(defaults)){if(fields[key].type==='checkbox')fields[key].checked=value;else fields[key].value=value;}form.dataset.pending='false';error.textContent='';}
     clear.addEventListener('click',resetForm);settingsDialog.addEventListener('settings-discard',resetForm);
     form.addEventListener('submit',async event=>{
-        event.preventDefault();if(saving)return;const values=Object.fromEntries(new FormData(form));for(const key of ['fixed','autoplay','loop','mute','paused'])values[key]=fields[key].checked;
+        event.preventDefault();if(saving)return;const values=Object.fromEntries(new FormData(form));for(const key of ['fixed','autoplay','loop','mute','paused','cloudSync'])values[key]=fields[key].checked;
         delete values.file;
         if(timeRule.checked)values.rule={type:'time',start:fields.timeStart.value,end:fields.timeEnd.value};
         saving=true;add.disabled=true;
@@ -55,7 +56,9 @@ export function initializeBackground() {
                 else if(previous?.fileId===id)Object.assign(values,{fileId:id,url:'',type:previous.type,fileSize:previous.fileSize,fileVersion:previous.fileVersion});
                 else throw new Error('INVALID_UPLOAD');
             }else if(previous?.fileId)files.push({id:previous.fileId,blob:null});
-            const row=normalizeBackground({...values,id,localOnly:true});if(!row)throw new Error('background_invalid');
+            const combined={...previous,...values,id,localOnly:!values.cloudSync,rule:values.rule??null};
+            if(values.sourceType!=='upload'){for(const key of ['fileId','fileVersion','fileRevision','syncedFileVersion'])delete combined[key];combined.fileSize=0;}
+            const row=normalizeBackground(combined);if(!row)throw new Error('background_invalid');
             await setMany(state=>{const patch={backgroundMode:'library',backgroundSelected:row.id};return {settings:{...state.settings,...patch},settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,'background'),backgrounds:[...(Array.isArray(state.backgrounds)?state.backgrounds:[]).filter(item=>item?.id!==row.id),row]};},files);resetForm();
         }catch(failure){error.textContent=t(['INVALID_UPLOAD','INVALID_UPLOAD_NAME','UNSUPPORTED_BACKGROUND_FORMAT','BACKGROUND_TOO_LARGE','BACKGROUND_MIME_MISMATCH','background_invalid'].includes(failure.message)?failure.message:'storage_unavailable');}finally{saving=false;add.disabled=false;}
     });
@@ -65,7 +68,7 @@ export function initializeBackground() {
             const wrapper=node('div',undefined,{class:'background-entry'});
             const button=node('button',row.id.startsWith('preset-')?t(row.id):row.name,{type:'button',class:'secondary','aria-pressed':String(setting('backgroundSelected','')===row.id)});
             button.disabled=row.deleted===true;button.addEventListener('click',()=>saveSettings({backgroundMode:'library',backgroundSelected:row.id},'background').catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(button);
-            if(row.fileId)wrapper.append(node('small',`${t('background_local_only')} · ${(row.fileSize/1048576).toFixed(2)} MiB`));
+            wrapper.append(node('small',`${t(row.cloudSync?'background_sync_on':'background_local_only')}${row.fileId?' · '+(row.fileSize/1048576).toFixed(2)+' MiB':''}`));
             if(!row.id.startsWith('preset-')){
                 if(row.deleted!==true){const edit=node('button',t('edit_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_edit')}: ${row.name}`});edit.textContent=t('background_edit');edit.addEventListener('click',()=>{editingId=row.id;for(const [key,input] of Object.entries(fields)){const value=key==='timeRule'?Boolean(row.rule?.type==='time'):key==='timeStart'?row.rule?.start:key==='timeEnd'?row.rule?.end:row[key];if(input.type==='checkbox')input.checked=value??defaults[key];else input.value=input.type==='file'?'':String(value??defaults[key]);}form.dataset.pending='true';fields.name.focus();});wrapper.append(edit);}
                 const archive=node('button',t(row.deleted?'background_restore':'background_archive'),{type:'button',class:'secondary','aria-label':`${t(row.deleted?'background_restore':'background_archive')}: ${row.name}`});archive.addEventListener('click',()=>setMany(state=>({backgrounds:(state.backgrounds || []).map(item=>item.id===row.id?{...item,deleted:row.deleted!==true}:item)})).catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(archive);
@@ -100,5 +103,5 @@ export function initializeBackground() {
         }
     }
     window.addEventListener('data-change',event=>{if(['settings','backgrounds'].includes(event.detail)){renderLibrary();apply(true);}});window.addEventListener('resize',()=>apply(true));document.addEventListener('visibilitychange',()=>apply(true));
-    setInterval(()=>{if(!document.hidden)apply();},10000);renderLibrary();apply(true);
+    setInterval(()=>{if(!document.hidden)apply();},10000);renderLibrary();apply(true);initializeBackgroundSync(panel);
 }

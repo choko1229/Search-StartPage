@@ -153,4 +153,5 @@ return [
     'BACKGROUND_COMPRESSION_FAILED'=>'圧縮できなかったため元ファイルを保存しました。',
     'background_source'=>'背景の追加方法','background_source_url'=>'URL・色','background_source_upload'=>'端末のファイル',
     'background_local_file'=>'画像・動画ファイル（変更する場合だけ選択）','background_local_only'=>'この端末に保存（同期OFF）',
+    'background_cloud_sync'=>'この背景をクラウド同期（ログインが必要）','background_sync_on'=>'クラウド同期ON',
 ];

@@ -1,8 +1,13 @@
 import {t,node} from './i18n.js';
-export function syncDialog(kind, conflicts = []) {
+let dialogQueue=Promise.resolve();
+export function syncDialog(kind,conflicts=[],scope='') {
+    const result=dialogQueue.then(()=>showSyncDialog(kind,conflicts,scope));
+    dialogQueue=result.catch(()=>{});return result;
+}
+function showSyncDialog(kind, conflicts,scope) {
     return new Promise(resolve=>{
         const dialog=node('dialog',undefined,{'aria-labelledby':'sync-dialog-title',class:'sync-dialog'});
-        dialog.append(node('h2',t(kind==='initial'?'sync_initial_title':'sync_conflicts'),{id:'sync-dialog-title'}));
+        dialog.append(node('h2',t(kind==='initial'?'sync_initial_title':'sync_conflicts')+(scope?' · '+scope:''),{id:'sync-dialog-title'}));
         const finish=value=>{dialog.close();dialog.remove();resolve(value);};
         dialog.addEventListener('cancel',event=>{event.preventDefault();finish(kind==='initial'?'later':null);});
         if(kind==='initial') {

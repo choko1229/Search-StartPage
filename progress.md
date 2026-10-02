@@ -309,3 +309,15 @@ store.setManyのfiles引数は最新stateから操作配列を生成できるよ
 検証1: ACK単体で受信/既存cache/編集中名前/新fileVersion/保管/OFF/削除/所有者拒否/URL切替成功。検証2: 全JS単体20ファイル成功、追加JS構文成功。検証3: IndexedDBモデル41項目でfactory再計算・通知時の整合・ファイルとcheckpointのquota rollback・再試行成功を確認、既存store12/session37/merge23も成功。初回factory試験はfontSize22のままで失敗、書込みキーだけのrevision監視を全入力stateへ拡張して再成功。実ブラウザquota枯渇ではなくモデル試験。PHP/DB/UI変更なし、直前両DB証拠維持。
 
 コードはまだ同期スケジューラ/UIから呼んでいない。次はbackground sync sessionの部分成功/初回選択/CAS409再読込/同一owner再確認を接続、ACK plannerをsetManyのvalues/files factoryから利用する。Cloud Sync編集UI・競合dialog/ルール・offline復帰・実HTTP2端末/実IDB・ログアウト所有権Blob清掃/容量表示が残る。UI編集では既存cloudOwner/fileRevision/syncedFileVersionを保持する。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## Phase 7 背景同期sessionと設定画面接続（2026-10-03）
+
+BackgroundSyncSessionとWeb adapterを背景画面へ接続。初回Local/Cloud/LaterはpendingInitialを保存し部分成功から再開、項目ごとにACKを保存。409は一覧を再取得し最大3連続で停止。同期前/ACK前の同一所有者確認、成功したuploadの原本を保持してACK版を保存、圧縮後ファイル取得が途切れても再uploadせず受信再開。背景ON/OFF・今すぐ同期・失敗/未ログイン状態を追加。背景編集で既存cloudOwner/fileRevision/syncedFileVersionを保持、URL切替は旧ファイル参照を除去。受信ACKはstoreのmeta/files factoryへ接続。online/表示復帰と適応間隔で再実行。
+
+OFFはファイルやローカル編集を送らず、旧ACK所有項目へのOFFフラグだけ送る。OFF後もローカルの置換済みBlobを維持。初回Cloudで置き換わるローカルON項目は永久削除せず保管/同期OFFへ退避。背景と一般同期のdialogをキュー化し、背景用titleを明示して同時modal衝突を避ける。競合保存ルールは現状background checkpoint内だけ（他端末へのルール共有は未接続）。
+
+検証1: sessionモデルで2端末/異なる設定のマージ/圧縮結果/同期OFFの新ファイル非送信/409/Later/ログアウト・所有者変化拒否/受信中断→再送なし復帰を成功。検証2: 全JS単体21ファイル/構文38、両DBとUIの基盤39/翻訳一致、両DB背景実HTTP40成功。モデルは実HTTP2端末として扱わない。PHP/DB schema変更なし、直前Migration証拠維持。検証3: 実UI8083で既存uploadのON保存/再読み込みでcheckbox保持・blob画像naturalWidth1、OFFへ戻す/未ログイン表示、console warn/error0。画像.test-output/phase7-background-sync-settings.png（Git除外）、タブ11保持。認証済みブラウザではない。
+
+public/langはUI8082と最新両DBへ反映、8082backendも最新へ反映。検証背景は同期OFFへ復帰し保持。実OAuthは成功前提のユーザー指示を維持、検証成功とはしない。
+
+次はJS session/transportの実HTTP2端末と実IndexedDB確認、競合dialog・offline通信/ACK失敗後再開、ログアウト所有権Blob清掃と容量表示、ルール共有を完成させる。server成功後ACK永続化に失敗した場合の再送抑止/再起動後の扱いは専用試験と補修が必要。API読込の所有者hint追加/アカウント切替途中の応答も監査する。条件全種編集/天気・地域/手動動画再生、巨大動画実通信・圧縮+DB容量・耐久的孤立清掃/Admin警告も残る。Phase 7未完了、8〜12未着手、Version 1.0未完成。
