@@ -42,12 +42,24 @@ export function initializeSettingsModal() {
         reset.disabled=categoryKeys[name].length===0;
     }
     function renderHistory() {
+        for(const input of dialog.querySelectorAll('[data-history-key]'))labels[input.dataset.historyKey]=input.getAttribute('aria-label');
+        Object.assign(labels,{customThemes:t('custom_theme_saved'),customThemeId:t('custom_theme_saved'),themeRegion:t('appearance_region')});
+        const describe=(key,target)=>{
+            if(!target.present)return t('settings_default');
+            if(typeof target.value==='boolean')return t(target.value?'settings_on':'settings_off');
+            if(key==='customThemes')return Object.values(target.value || {}).map(theme=>theme?.name || '').join(', ');
+            if(key==='customThemeId')return get('settings',{}).customThemes?.[target.value]?.name || t('settings_default');
+            if(key==='themeRegion')return `${target.value?.latitude ?? ''}, ${target.value?.longitude ?? ''}`;
+            if(key==='theme')return t('theme_'+target.value);
+            if(key==='animationLevel')return t('animation_'+target.value);
+            return typeof target.value==='string'?target.value:JSON.stringify(target.value);
+        };
         const saved=get('settingsHistory',{entries:[],cursor:0});
         undo.disabled=saved.cursor===0;redo.disabled=saved.cursor>=saved.entries.length;
         history.replaceChildren();
         for(const item of [...saved.entries].reverse()) {
             const name=t('category_'+(categories.includes(item.label)?item.label:categoryOf(item.label)));
-            const changes=item.changes.map(change=>`${labels[change.key] || t('category_'+categoryOf(change.key))}: ${change.previous.present?JSON.stringify(change.previous.value):t('settings_default')} → ${change.next.present?JSON.stringify(change.next.value):t('settings_default')}`).join('; ');
+            const changes=item.changes.map(change=>`${labels[change.key] || t('category_'+categoryOf(change.key))}: ${describe(change.key,change.previous)} → ${describe(change.key,change.next)}`).join('; ');
             history.append(node('li',`${new Date(item.time).toLocaleString()} · ${name} · ${changes}`));
         }
     }
@@ -71,9 +83,10 @@ export function initializeSettingsModal() {
         select(category);renderHistory();
     });
     window.addEventListener('data-change',event=>{if(event.detail==='settingsHistory')renderHistory();});
+    dialog.addEventListener('settings-labels',renderHistory);
     const form=document.getElementById('provider-form');
-    const pending=()=>[...form.elements].some(input=>['name','url','prefix','icon'].includes(input.name) && input.value!=='');
-    async function closeImportant(){if(await ask(t('settings_discard_confirm'))){form.reset();dialog.close();}}
+    const pending=()=>dialog.querySelector('[data-pending=true]') || [...form.elements].some(input=>['name','url','prefix','icon'].includes(input.name) && input.value!=='');
+    async function closeImportant(){if(await ask(t('settings_discard_confirm'))){form.reset();dialog.dispatchEvent(new CustomEvent('settings-discard'));dialog.close();}}
     dialog.addEventListener('cancel',event=>{if(pending()){event.preventDefault();void closeImportant();}});
     dialog.addEventListener('click',event=>{
         const rect=dialog.getBoundingClientRect();

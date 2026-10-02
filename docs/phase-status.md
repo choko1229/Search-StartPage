@@ -374,3 +374,17 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 検証3: IABでカテゴリ表示、チェック変更→Undo→Redo、再読込して日時/Previous/Newと20件履歴のcursor保持を確認。カテゴリresetの標準confirmで操作が停止（Input.dispatchMouseEvent/Emulation focusタイムアウト）、getJsDialog/closeも同じ状態。新タブ8は描画できるがイベント無反応。reset成功とはしない。確認をアプリ内dialogへ変更、構文/単体は成功、変更後のブラウザ検証は未確認。Mobile/resize/Close重要設定も未確認。今回は検証画像未作成。
 
 残件: 上記未確認UIとtheme/sunrise/glass/custom fonts/animation/greeting/clock/date/header/onboarding。挨拶はspec§69で既定ON（以前の進捗の既定OFF記述は誤り、時計/日付だけOFF）。Phase 6未完了、Phase 7へ進まない。
+
+### Phase 6 テーマ・フォント・基本表示・検索欄（2026-10-02）
+
+- Files: appearance-core.js/appearance.js、settings schema/modal、search.js/CSS、翻訳、Response CSP、appearance-core.test.mjs、docs/appearance.md。
+- Theme: Light/Dark/OS/森/ローズ/Custom複数保存、地域の太陽時近似（NOAA）・白夜/極夜/日付変更線。地域未設定はOS、許可を自動要求しない。0.75秒フェード。地域座標の同期対象をUIに表示。
+- Fonts/Animation: System/Serif/Mono/Google/Custom HTTPS、size/weight/line height/spacing。外部接続の説明、失敗時fallback、4段階とreduced motion優先。CSPはGoogle外部CSSとHTTPSフォントを追加、スクリプト制限は維持。
+- UI: 挨拶既定ON、時計/日付OFF、カスタム文/時間帯/既存APIのユーザー名、12/24h/秒/日付形式/曜日。検索欄は位置3種・responsive/fixed320〜900・高さ48/56/72・Glass色/透過/blur/枠線/角丸/影/文字/placeholder。モバイルは固定幅でも画面幅へ縮小。
+- DB/API: Migrationと認証経路の変更なし。既存設定同期へ接続、Custom定義はカテゴリresetでも保持。履歴の表示を設定名とテーマ名へ改善。
+- 検証1: 全JS構文、appearance37/history19、store12/IndexedDB21/session37/merge23/data24/API12/account12/search23/preferences18/favorites/layout16合格。全*.test.mjs一括実行は実HTTP専用ファイルへの引数不足で停止し、単体一覧から除外して全回帰成功。実HTTP試験の今回の再実行は未実施（直前Phase 5の証拠を維持）。
+- 検証2: UI/両DB構文84、両DB基盤39/sync17成功。最新app/public/lang/testsを反映、最後のJS/CSS修正も反映済み。
+- 検証3: 新タブ9で旧confirm停止が解消。Searchカテゴリreset→Undoで25件/7日/候補方針を復元、suggestOnFocus ONに復元、未確定provider Close取消/破棄を確認。Dark、Custom A/B保存と再読込、公式配信元のCustom font load完了、時計/日付とカスタム挨拶の再読込保持を確認。390pxモーダル全画面、PC960×612→851×549リサイズ→再表示960×612。検索欄420px/72px/opacity .4/blur20px/radius28px/影なしの保存・再読込、390pxで内容343px/document375px、console warn/error0。初期化後標準56px。未保存テーマClose確認と破棄も確認。
+- Issues fixed: 他項目を続けて操作すると未保存の数値/文字が戻る不具合を発見。編集中draft保持とblur保存で再検証成功。標準検索欄が共通button余白で61.6pxへ膨らむ問題を56pxへ補修。
+- Images（Git除外）: .test-output/phase6-display.png、phase6-mobile.png、phase6-glass-mobile.png、phase6-appearance.png。検証用のGeneral/Appearance選択は初期値へ戻したが、再利用するCustomテーマ定義A/Bと既存entityは保持。
+- Remaining: 時計/日付の位置・サイズ・フォント・色・不透明度、header全設定、§82初回案内。Google Fontsモード/solar地域入力と時刻切替/reduced motionの実UIは未確認。実Discord後の名前表示も未確認を留保。Phase 6未完了、Phase 7へ進まない。

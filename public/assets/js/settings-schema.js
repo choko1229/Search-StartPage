@@ -1,14 +1,14 @@
 export const categories=['general','search','ai','favorites','background','appearance','sync','shortcuts','privacy'];
 // Fixed reset lists deliberately exclude entity collections and operational state.
 export const categoryKeys={
-    general:['greetingEnabled','greetingMessage','clockEnabled','dateEnabled'],
+    general:['greetingEnabled','greetingMessage','clockEnabled','dateEnabled','clockSeconds','dateWeekday','clockFormat','dateFormat'],
     search:['initialMode','webDefault','urlPolicy','suggestOnFocus','historyArea','historyLimit','historyDays'],
     ai:['aiDefault','aiOrder'],
     favorites:['favoritePosition','favoriteWidth','favoriteHeight','favoriteGap','favoriteLimit','favoriteColumns','favoriteContextMenu','favoriteStats','favoriteSearch','favoriteSort','favoriteDisplay','folderSort','rememberFavoritesExpanded'],
     background:[],
-    appearance:['theme','themeTransition','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','animationLevel'],
+    appearance:['theme','themeTransition','themeRegion','customThemeId','fontMode','googleFont','customFontUrl','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','animationLevel','searchPosition','searchWidthMode','searchWidth','searchHeight','searchBackground','searchOpacity','searchBlur','searchBorder','searchBorderWidth','searchRadius','searchShadow','searchText','searchPlaceholder'],
     sync:['syncEnabled','syncHistory'],
     shortcuts:['webKey','aiKey','historyKey'],
     privacy:['saveHistory','externalSuggest','clearSyncedOnLogout'],
 };
-export const categoryOf=key=>categories.find(category=>categoryKeys[category].includes(key)) || 'general';
+export const categoryOf=key=>key==='customThemes'?'appearance':categories.find(category=>categoryKeys[category].includes(key)) || 'general';

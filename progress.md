@@ -32,8 +32,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 6設定モーダル/Undo/カテゴリresetの実装から継続。まずアプリ内確認ダイアログでカテゴリreset→Undo、未確定検索先のClose取消/破棄、Mobile全画面/PCリサイズ再表示時初期サイズ、consoleを再検証する。旧検証タブ7の標準confirmでCDP操作が停止し、同じoriginの新タブ8は描画できるがJSイベントが動かない状態。終端と断定せず次ターンの実状態を確認。ブラウザ検証用suggestOnFocusはOFFになったのでUndoで元のONへ戻す。
-2. Theme（Light/Dark/OS/Custom/Presets、複数保存、地域の日の出/日の入り、0.5〜1秒transition）、Font（system/preset/Google/custom、size/weight/line height/spacing）、Animation None/Low/Standard/Richを実装。検索box/glassと時計/日付の既定OFF・挨拶の既定ON、オンボーディング可変7〜8stepsへ接続する。
+1. Phase 6を継続。時計/日付の位置・サイズ・フォント・色・不透明度（§68）と、ヘッダーの位置/Alignment/Size/Opacity/Background/Blur/Order/Visibility（§70）を実装する。ログイン成功の前提で進行し、認証バイパスは追加しない。
+2. 初回オンボーディング可変7〜8steps（§82）を実装。Google Fontsモード、地域入力の実時刻切替、Animation/reduced motionの実ブラウザを検証する。テーマ/フォント/検索欄Glass/時計の基本表示は下記最新記録を参照。旧confirm停止は新タブ9で解消、カテゴリreset/Undo/Close確認/Mobile/PCリサイズは検証済み。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
 ## 保存履歴
@@ -41,6 +41,16 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 6254f38: 既存Phase 1〜3とPhase 4途中の基準保存。
 6ca6bd3: アカウント容量表示・同期済みデータ削除処理。同期所有権マニフェストの書込みはPhase 5に未接続。
 29d5bdb: 仕様全文監査。今回のPhase 2補修は別コミットで保存する。
+
+## Phase 6 最新の再開地点（2026-10-02）
+
+テーマ（Light/Dark/OS/Presets/複数Custom/地域太陽時）、フォント（System/preset/Google/HTTPS Custom）とサイズ/太さ/行間/文字間、Animation4種、挨拶・時計・日付の基本表示、検索欄Glassと配置/幅/高さ/色/透過/ぼかし/枠線/角丸/影を実装。詳細はdocs/appearance.md、phase-status最新追記。時計・日付の追加style、header、初回案内が残る。Phase 6未完了。
+
+検証1: 全JS構文・appearance37/history19と既存全単体回帰成功。実HTTP専用testを引数なし一括実行した失敗は記録し、適切な単体一覧で再成功。今回実HTTPの追加実行はしていない。
+検証2: UI/両DB構文84、両DB基盤39/sync17成功。DB/Migration変更なし、最新ソース反映済み。
+検証3: 旧標準confirm停止は新タブ9で解消。reset/Undo・重要Close取消/破棄・Mobile全画面・PCresize非永続を確認。Dark/複数Custom/Customfont読込/時計日付挨拶の保存、検索欄420px/72px/透過.4/ぼかし20px/角丸28px/影なしと再読込を確認。390pxで横はみ出しなし、console warn/error0。入力途中が戻る問題をdraft保持とblur保存で補修。標準高さ56pxを確認。
+
+検証UIはGeneral/Appearance初期値に戻し、Custom A/B定義と既存favorites/history/providerは保持。画像は.test-output/phase6-appearance.png等（Git除外）。IABタブ9をhandoffで保持。ユーザー指定のログイン成功前提は継続、実OAuth/実認証ブラウザは未確認。冒頭「次に実行すること」から継続する。
 
 ## Phase 4最新検証
 

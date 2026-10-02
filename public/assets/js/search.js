@@ -7,6 +7,7 @@ import {history, record, removeHistory, clearHistory} from './history.js';
 import {suggestions, cancelSuggestions} from './suggest.js';
 import {initializeSettings} from './search-settings.js';
 import {initializeSettingsModal} from './settings-modal.js';
+import {initializeAppearance} from './appearance.js';
 import './favorites.js';
 import './sync.js';
 import {favorites, openFavorite} from './favorites-store.js';
@@ -153,6 +154,7 @@ document.getElementById('history-clear').addEventListener('click', () => {if (co
 window.addEventListener('storage-unavailable', () => {status.textContent = t('storage_unavailable');});
 initializeSettings(refresh);
 initializeSettingsModal();
+initializeAppearance();
 window.addEventListener('data-change',event=>{if(event.detail==='settings')refresh();});
 refresh();
 openLinkedHistory();
