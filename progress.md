@@ -32,8 +32,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 6を継続。時計/日付の位置・サイズ・フォント・色・不透明度（§68）と、ヘッダーの位置/Alignment/Size/Opacity/Background/Blur/Order/Visibility（§70）を実装する。ログイン成功の前提で進行し、認証バイパスは追加しない。
-2. 初回オンボーディング可変7〜8steps（§82）を実装。Google Fontsモード、地域入力の実時刻切替、Animation/reduced motionの実ブラウザを検証する。テーマ/フォント/検索欄Glass/時計の基本表示は下記最新記録を参照。旧confirm停止は新タブ9で解消、カテゴリreset/Undo/Close確認/Mobile/PCリサイズは検証済み。
+1. Phase 6の初回オンボーディング可変7〜8steps（§82）を実装する。Welcome/Appearance/Background/Search/AI/Favorites・Shortcuts/Discord/Complete、各ステップSkipと設定への接続。Backgroundの本体はPhase 7で接続し、空のステップを実装済みと扱わない。ログイン成功の前提で進行し、認証バイパスは追加しない。
+2. Animation/reduced motionの実ブラウザ検証、Phase 6全要件を添付仕様とspec§37/53–56/68–82で最終照合する。時計/日付の追加styleとheaderを実装・再読込/Mobile/日英で検証済み。Google Fonts実読込と架空地域の昼夜判定も確認。実Discord後の表示は留保。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
 ## 保存履歴
@@ -183,3 +183,15 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 検証3: IABでカテゴリ表示、チェック変更→Undo→Redo、再読込して日時/Previous/Newと20件履歴のcursor保持を確認。カテゴリresetの標準confirmで操作が停止（Input.dispatchMouseEvent/Emulation focusタイムアウト）、getJsDialog/closeも同じ状態。新タブ8は描画できるがイベント無反応。reset成功とはしない。確認をアプリ内dialogへ変更、構文/単体は成功、変更後のブラウザ検証は未確認。Mobile/resize/Close重要設定も未確認。今回は検証画像未作成。
 
 残件: 上記未確認UIとtheme/sunrise/glass/custom fonts/animation/greeting/clock/date/header/onboarding。挨拶はspec§69で既定ON（以前の進捗の既定OFF記述は誤り、時計/日付だけOFF）。Phase 6未完了、Phase 7へ進まない。
+
+## Phase 6 時計・日付styleとヘッダー（2026-10-02）
+
+§68の独立配置/サイズ/フォント/色/不透明度、§70のヘッダー上下/整列/サイズ/不透明度/背景/ぼかし/項目順序/表示を追加。既存の保存/同期/Undoへ接続。ログイン導線は既存認証APIの現在ユーザー有無でLogin/Profileを表示し、実OAuthは未確認。Migrationなし。
+
+検証1: display-layout21、appearance37/history19と全JS構文・既存全単体回帰成功。
+検証2: UI/両DB構文84、両DB基盤39/認証HTTP12/sync17成功。最新JS/CSS/翻訳/View反映済み。
+検証3: 時計64px/Mono/検索欄下、header下/左/blur8/brand非表示/順序変更の保持、390px document/header375px、同じ右上の時計と日付が非重複、日英設定、Google Font loaded、架空座標によるLight/Darkを確認。warn/error0。画像.test-output/phase6-header-display.png、phase6-header-mobile.png（Git除外）。
+
+不具合: 数値のblur保存による設定リスト再描画がcheckbox clickを消した。ヘッダー設定の内容が変わる場合だけ再描画し、再検証成功。地域の未確定入力保持とClose確認、カテゴリ初期化後の入力欄反映を補修。検証専用座標・General/Appearance選択を初期値へ戻し日本語へ復帰、entityとCustom定義を保持。
+
+次は冒頭1の初回ウィザード。Phase 6未完了、Phase 7へまだ進まない。

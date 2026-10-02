@@ -122,4 +122,7 @@ return [
     'search_design'=>'検索欄のデザイン','search_position'=>'検索欄の位置','position_upper'=>'中央より上','position_center'=>'中央','position_lower'=>'中央より下',
     'search_width_mode'=>'幅の指定','width_responsive'=>'画面に合わせる','width_fixed'=>'固定','search_width'=>'固定幅（px）','search_height'=>'高さ','height_compact'=>'コンパクト','height_standard'=>'標準','height_large'=>'大きい',
     'search_opacity'=>'背景の不透明度','search_blur'=>'背景のぼかし（px）','search_border_width'=>'枠線の幅（px）','search_radius'=>'角の丸み（px）','search_background'=>'背景色','search_border'=>'枠線の色','search_text'=>'文字色','search_placeholder'=>'プレースホルダーの色','search_shadow'=>'影を表示',
+    'clock_design'=>'時計の外観','date_design'=>'日付の外観','display_position'=>'位置','display_above'=>'検索欄の上','display_below'=>'検索欄の下','display_top_left'=>'左上','display_top_right'=>'右上','display_bottom_left'=>'左下','display_bottom_right'=>'右下',
+    'display_size'=>'サイズ（px）','display_color'=>'色','display_opacity'=>'不透明度','font_inherit'=>'ページのフォントを使う',
+    'header_design'=>'ヘッダー','header_position'=>'ヘッダーの位置','header_top'=>'上','header_bottom'=>'下','header_alignment'=>'整列','align_left'=>'左','align_center'=>'中央','align_right'=>'右','header_items'=>'ヘッダー項目の順序と表示','header_item_settings'=>'設定','header_item_history'=>'履歴','header_item_account'=>'ログイン / プロフィール','header_item_brand'=>'サイト名','header_item_language'=>'言語','header_profile'=>'プロフィール','header_login'=>'Discordログイン','order_up'=>'上へ','order_down'=>'下へ',
 ];

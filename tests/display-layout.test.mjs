@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {widgetStyle,headerPreferences,headerItems,palettes} from '../public/assets/js/appearance-core.js';
+import {categoryKeys} from '../public/assets/js/settings-schema.js';
+assert.deepEqual(widgetStyle({},'clock',palettes.dark),{position:'above',size:'48px',font:'inherit',color:palettes.dark.text,opacity:'1'});
+assert.equal(widgetStyle({},'date',palettes.light).color,palettes.light.muted);
+const clock=widgetStyle({clockPosition:'top-right',clockSize:300,clockFont:'serif',clockColor:'#abcdef',clockOpacity:-1},'clock',palettes.light);
+assert.equal(clock.position,'top-right');assert.equal(clock.size,'120px');assert.equal(clock.font,'Georgia, serif');assert.equal(clock.color,'#abcdef');assert.equal(clock.opacity,'0');
+assert.equal(widgetStyle({datePosition:'unsafe',dateFont:'url(evil)',dateColor:'red'},'date',palettes.light).position,'above');
+assert.equal(widgetStyle({dateFont:'url(evil)'},'date',palettes.light).font,'inherit');
+const header=headerPreferences({headerOrder:['account','account','invalid','settings'],headerVisibility:{history:false,settings:true},headerPosition:'bottom',headerAlignment:'left',headerSize:100,headerOpacity:2,headerBackground:'url(evil)',headerBlur:-3},palettes.dark);
+assert.deepEqual(header.order,['account','settings','history','brand','language']);assert.equal(header.visible.history,false);assert.equal(header.visible.brand,true);
+assert.equal(header.position,'bottom');assert.equal(header.alignment,'left');assert.equal(header.size,'32px');assert.equal(header.opacity,'1');assert.equal(header.background,palettes.dark.background);assert.equal(header.blur,'0px');
+assert.deepEqual(headerPreferences({headerOrder:null},palettes.light).order,headerItems);
+assert.equal(headerPreferences({},palettes.light).alignment,'right');
+assert.ok(['clockPosition','dateOpacity','headerOrder','headerVisibility'].every(key=>categoryKeys.general.includes(key)));
+console.log('21 display layout assertions passed.');

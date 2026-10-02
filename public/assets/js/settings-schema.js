@@ -1,7 +1,7 @@
 export const categories=['general','search','ai','favorites','background','appearance','sync','shortcuts','privacy'];
 // Fixed reset lists deliberately exclude entity collections and operational state.
 export const categoryKeys={
-    general:['greetingEnabled','greetingMessage','clockEnabled','dateEnabled','clockSeconds','dateWeekday','clockFormat','dateFormat'],
+    general:['greetingEnabled','greetingMessage','clockEnabled','dateEnabled','clockSeconds','dateWeekday','clockFormat','dateFormat',...['clock','date'].flatMap(prefix=>['Position','Size','Font','Color','Opacity'].map(name=>prefix+name)),'headerPosition','headerAlignment','headerSize','headerOpacity','headerBackground','headerBlur','headerOrder','headerVisibility'],
     search:['initialMode','webDefault','urlPolicy','suggestOnFocus','historyArea','historyLimit','historyDays'],
     ai:['aiDefault','aiOrder'],
     favorites:['favoritePosition','favoriteWidth','favoriteHeight','favoriteGap','favoriteLimit','favoriteColumns','favoriteContextMenu','favoriteStats','favoriteSearch','favoriteSort','favoriteDisplay','folderSort','rememberFavoritesExpanded'],

@@ -62,3 +62,28 @@ export function searchStyles(settings,palette) {
         '--search-placeholder':color(settings.searchPlaceholder,palette.muted),
     };
 }
+
+export const displayFonts={inherit:'inherit',system:'system-ui, sans-serif',serif:'Georgia, serif',mono:'ui-monospace, Consolas, monospace'};
+export function widgetStyle(settings,prefix,palette) {
+    const positions=['above','below','top-left','top-right','bottom-left','bottom-right'];
+    return {
+        position:positions.includes(settings[prefix+'Position'])?settings[prefix+'Position']:'above',
+        size:`${bounded(settings[prefix+'Size'],prefix==='clock'?48:16,10,120)}px`,
+        font:displayFonts[settings[prefix+'Font']] || displayFonts.inherit,
+        color:color(settings[prefix+'Color'],prefix==='clock'?palette.text:palette.muted),
+        opacity:String(bounded(settings[prefix+'Opacity'],1,0,1)),
+    };
+}
+export const headerItems=['settings','history','account','brand','language'];
+export function headerPreferences(settings,palette) {
+    const order=Array.isArray(settings.headerOrder)?settings.headerOrder:[];
+    const visibility=settings.headerVisibility && typeof settings.headerVisibility==='object'?settings.headerVisibility:{};
+    return {
+        order:[...new Set([...order.filter(item=>headerItems.includes(item)),...headerItems])],
+        visible:Object.fromEntries(headerItems.map(item=>[item,visibility[item]!==false])),
+        position:settings.headerPosition==='bottom'?'bottom':'top',
+        alignment:['left','center','right'].includes(settings.headerAlignment)?settings.headerAlignment:'right',
+        size:`${bounded(settings.headerSize,16,10,32)}px`,opacity:String(bounded(settings.headerOpacity,1,0,1)),
+        background:color(settings.headerBackground,palette.background),blur:`${bounded(settings.headerBlur,0,0,40)}px`,
+    };
+}

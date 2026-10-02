@@ -388,3 +388,15 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 - Issues fixed: 他項目を続けて操作すると未保存の数値/文字が戻る不具合を発見。編集中draft保持とblur保存で再検証成功。標準検索欄が共通button余白で61.6pxへ膨らむ問題を56pxへ補修。
 - Images（Git除外）: .test-output/phase6-display.png、phase6-mobile.png、phase6-glass-mobile.png、phase6-appearance.png。検証用のGeneral/Appearance選択は初期値へ戻したが、再利用するCustomテーマ定義A/Bと既存entityは保持。
 - Remaining: 時計/日付の位置・サイズ・フォント・色・不透明度、header全設定、§82初回案内。Google Fontsモード/solar地域入力と時刻切替/reduced motionの実UIは未確認。実Discord後の名前表示も未確認を留保。Phase 6未完了、Phase 7へ進まない。
+
+### Phase 6 時計・日付・ヘッダーstyle（2026-10-02）
+
+- Files: layout.phpのdata-header-item、appearance-core/appearance.js、search.css、settings schema/modal、ja/en、display-layout.test.mjs、appearance.md。
+- UI: 時計/日付は上/下/4隅、size10〜120、font4種、色/opacity。隅が同じ場合は縦にずらす。Headerは上/下、左右/中央、size10〜32、opacity、背景色/blur、5項目（Settings/History/Account/Brand/Language）の順序/表示。全項目OFFでも検索設定ボタンから復元可。
+- Auth/Security: 既存現在ユーザーAPIでLogin/Profileラベル。認証・権限を変更しない。数値の範囲、色hex、フォント/配置enum、重複・未知header keyを除外。DB/API/Migration変更なし。
+- 検証1: 新規display21、appearance37/history19、全構文と既存JS回帰すべて成功。
+- 検証2: UI/両DBPHP構文84、両DB基盤39/認証HTTP12/sync17成功。
+- 検証3: 時計64px/Mono/下とheader下/左/blur8/brand非表示/並べ替え、再読込保持。390pxでdocument/header375px、header bottom844px（viewport844px）。同じ右上でclock bottomとdate top一致・非重複。日英の全追加設定、Google Fonts実読込完了表示、架空地域の昼夜Light/Dark切替確認、warn/error0。画像phase6-header-display.png/header-mobile.png（Git除外）。
+- Issues: 数値blurでリストを再描画するとcheckbox clickが消える問題を再現。設定内容が変わる場合だけ再描画しフォーカス復元、同じ操作を成功。地域入力の未確定draft/Close確認、保存/Undo/resetの入力値反映も補修。ブラウザのdocument.fonts列挙はread-only wrapper非対応で失敗、アプリ側FontFaceSet.load完了表示を使い実読込確認。
+- Cleanup: General/Appearance初期値、地域入力空、日本語へ復帰。既存entity・Custom保存定義を保持。
+- Remaining: §82可変初回ウィザード、Animation/reduced motionの実UI、Phase 6最終照合。実Discord後の名前/Profile未確認を留保。Phase 6未完了。

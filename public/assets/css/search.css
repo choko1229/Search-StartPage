@@ -63,6 +63,22 @@ dialog [data-close] { float: right; }
  .home-display .greeting {font-size:1.1rem;}
  .home-display .clock {display:block;font-size:clamp(2rem,6vw,3rem);font-variant-numeric:tabular-nums;}
  .home-display .date {display:block;color:var(--muted);}
+ .home-display [data-position^=top-],.home-display [data-position^=bottom-] {position:fixed;z-index:2;margin:0;max-width:calc(100vw - 2rem);overflow-wrap:anywhere;pointer-events:none;}
+ .home-display [data-position^=top-] {top:calc(5rem + var(--display-offset,0px));}
+ .home-display [data-position^=bottom-] {bottom:calc(1rem + var(--display-offset,0px));}
+ .header-at-bottom .home-display [data-position^=bottom-] {bottom:calc(5rem + var(--display-offset,0px));}
+ .home-display [data-position$=-left] {left:1rem;text-align:left;}
+ .home-display [data-position$=-right] {right:1rem;text-align:right;}
+ .custom-header {justify-content:flex-end;flex-wrap:wrap;gap:.8rem;}
+ .custom-header[data-alignment=left] {justify-content:flex-start;}
+ .custom-header[data-alignment=center] {justify-content:center;}
+ .custom-header[data-position=bottom] {position:fixed;inset:auto 0 0;z-index:3;padding-block:.6rem;max-height:35vh;overflow:auto;}
+ .header-at-bottom {padding-bottom:9rem;}
+ .header-items {padding-left:1.2rem;}
+ .header-items li {display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-block:.5rem;}
+ .header-items label {display:flex;gap:.4rem;align-items:center;margin-right:auto;}
+ #settings-general fieldset {margin-block:1rem;min-width:0;}
+ @media(max-width:600px) {.custom-header {flex-direction:row;align-items:center;}.custom-header .language-form {flex-wrap:wrap;}.custom-header[data-position=bottom] {font-size:min(1rem,100%);}}
  #settings-appearance fieldset {display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-block:1rem;}
  #settings-appearance fieldset label {display:grid;gap:.3rem;}
  [data-animation=none] *,[data-animation=none] *::before,[data-animation=none] *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}

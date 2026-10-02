@@ -42,7 +42,8 @@ export function initializeSettingsModal() {
         reset.disabled=categoryKeys[name].length===0;
     }
     function renderHistory() {
-        for(const input of dialog.querySelectorAll('[data-history-key]'))labels[input.dataset.historyKey]=input.getAttribute('aria-label');
+        for(const input of dialog.querySelectorAll('[data-history-key]'))labels[input.dataset.historyKey]=input.dataset.historyLabel || input.getAttribute('aria-label');
+        labels.headerOrder=t('header_items');labels.headerVisibility=t('header_items');
         Object.assign(labels,{customThemes:t('custom_theme_saved'),customThemeId:t('custom_theme_saved'),themeRegion:t('appearance_region')});
         const describe=(key,target)=>{
             if(!target.present)return t('settings_default');
