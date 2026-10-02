@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {backgroundRecord,backgroundDocuments,mergeBackgrounds,resolveBackgrounds,backgroundPayload} from '../public/assets/js/background-sync-core.js';
+const row={id:'a',name:'Image',type:'image',sourceType:'url',url:'https://example.test/a.png',cloudSync:true,localOnly:false};
+const record=backgroundRecord(row),base={a:record};
+assert.equal(record.cloudSync,true);assert.equal(record.source[0].revision,null);
+assert.equal(backgroundRecord({...row,cloudSync:false,localOnly:false}).cloudSync,false);
+const local={a:{...record,name:'Local name'}},cloud={a:{...record,appearance:{...record.appearance,blur:12}}};
+let merged=mergeBackgrounds(base,local,cloud);assert.equal(merged.conflicts.length,0);assert.equal(merged.data.a.name,'Local name');assert.equal(merged.data.a.appearance.blur,12);
+merged=mergeBackgrounds(base,local,{a:{...record,name:'Cloud name'}});assert.equal(merged.conflicts.length,1);
+assert.throws(()=>resolveBackgrounds(base,local,{a:{...record,name:'Cloud name'}},{}),/unresolved/);
+assert.equal(resolveBackgrounds(base,local,{a:{...record,name:'Cloud name'}},{[merged.conflicts[0].id]:'cloud'}).a.name,'Cloud name');
+merged=mergeBackgrounds(base,{a:{...record,deleted:true}},cloud);assert.equal(merged.conflicts.length,1);assert.deepEqual(merged.conflicts[0].path,['backgrounds','a']);
+const archiveResolved=resolveBackgrounds(base,{a:{...record,deleted:true}},cloud,{[merged.conflicts[0].id]:'local'});assert.equal(archiveResolved.a.deleted,true);assert.equal(archiveResolved.a.appearance.blur,0);
+assert.equal(mergeBackgrounds(base,base,cloud).data.a.appearance.blur,12);
+const localSource={...record,source:[{...record.source[0],url:'https://example.test/local.png'}]},cloudSource={...record,source:[{type:'video',sourceType:'url',url:'https://example.test/cloud.mp4',revision:null}]};
+merged=mergeBackgrounds(base,{a:localSource},{a:cloudSource});assert.equal(merged.conflicts.length,1);assert.deepEqual(merged.conflicts[0].path,['backgrounds','a','source']);
+const resolvedSource=resolveBackgrounds(base,{a:localSource},{a:cloudSource},{[merged.conflicts[0].id]:'cloud'}).a.source[0];assert.equal(resolvedSource.type,'video');assert.equal(resolvedSource.url,'https://example.test/cloud.mp4');
+for(const [key,value] of [['angle',45],['brightness',.5],['overlay',.25],['speed',2],['paused',true]]){
+    const variant={a:{...record,appearance:{...record.appearance,[key]:value}}};
+    const combined=mergeBackgrounds(base,local,variant);assert.equal(combined.conflicts.length,0);assert.equal(combined.data.a.name,'Local name');assert.equal(combined.data.a.appearance[key],value);
+}
+const revision='a'.repeat(64),uploaded={...row,url:'',sourceType:'upload',fileId:'a',fileSize:123,fileVersion:1};
+assert.equal(backgroundRecord(uploaded).source[0].revision,'local:a:1');
+const synced={...uploaded,fileRevision:revision,syncedFileVersion:1};assert.equal(backgroundRecord(synced).source[0].revision,revision);
+assert.equal(backgroundRecord({...synced,fileVersion:2}).source[0].revision,'local:a:2');
+assert.equal(backgroundRecord({...row,sourceType:'upload',url:'/api/backgrounds/a/file',fileRevision:revision},true).source[0].revision,revision);
+assert.throws(()=>backgroundRecord({...uploaded,fileVersion:0}),/REVISION_INVALID/);
+assert.throws(()=>backgroundRecord({...uploaded,fileRevision:'bad'},true),/REVISION_INVALID/);
+const payload=backgroundPayload(backgroundRecord(synced));assert.equal(payload.sourceType,'upload');assert.equal(payload.fileId,undefined);assert.equal(payload.fileVersion,undefined);assert.equal(payload.fileRevision,undefined);assert.equal(payload.fileSize,undefined);
+assert.equal(payload.rule,null);
+let documents=backgroundDocuments([{...row,localOnly:true,cloudSync:false}],[row],null,'1');assert.deepEqual(documents.local,{});assert.deepEqual(documents.cloud,{});assert.deepEqual(documents.protectedIds,['a']);
+documents=backgroundDocuments([{...row,localOnly:true,cloudSync:false}],[row],{userId:'1',document:base},'1');assert.equal(documents.local.a.cloudSync,false);assert.equal(documents.cloud.a.cloudSync,true);
+documents=backgroundDocuments([{...row,cloudOwner:'2'}],[row],{userId:'2',document:base},'1');assert.deepEqual(documents.previous,{});assert.deepEqual(documents.local,{});assert.deepEqual(documents.cloud,{});
+documents=backgroundDocuments([],[row,{...row,id:'b',name:'B'}],null,'1');assert.deepEqual(Object.keys(documents.cloud),['a','b']);
+assert.throws(()=>backgroundDocuments([row,row],[],null,'1'),/invalid_sync_id/);
+assert.throws(()=>backgroundDocuments([{...row,cloudSync:false},row],[],null,'1'),/invalid_sync_id/);
+assert.throws(()=>backgroundRecord({...row,id:'constructor'}),/INVALID_BACKGROUND/);
+console.log('Background sync core: opt-in, account ownership, file revisions, field merge, archive conflicts and resolution passed.');
