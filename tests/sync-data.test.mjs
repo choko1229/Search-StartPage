@@ -30,4 +30,8 @@ const offAfterSync=syncValues({...state,history:[{id:'owned'},{id:'private'}],sy
 assert.deepEqual(offAfterSync.syncOwnership.collections.history,['owned']);
 assert.equal(syncDocument({...state,settingsHistory:{entries:[{label:'theme'}],cursor:1}},presets,cloudHistory).settingsHistory,undefined);
 assert.equal(syncDocument({...state,onboarding:{step:'search',complete:false}},presets).onboarding,undefined);
-console.log('25 sync data assertions passed.');
+const localBackground={...state,settings:{backgroundMode:'library',backgroundSelected:'local',backgroundSwitch:'random'}};
+assert.equal(syncDocument(localBackground,presets).settings.backgroundMode,undefined);
+assert.equal(syncDocument(localBackground,presets).settings.backgroundSelected,undefined);
+assert.equal(syncValues(localBackground,{settings:{backgroundMode:'solid'}},checkpoint,'now',presets).settings.backgroundMode,'library');
+console.log('28 sync data assertions passed.');

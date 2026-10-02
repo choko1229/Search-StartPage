@@ -35,7 +35,7 @@ export function initializeAppearance() {
     }
     field(appearance,'theme','appearance_theme','select','solar',{choices:[['solar','theme_solar'],['light','theme_light'],['dark','theme_dark'],['os','theme_os'],['forest','theme_forest'],['rose','theme_rose'],['custom','theme_custom']]});
     const background=document.getElementById('settings-background');
-    field(background,'backgroundMode','background_mode','select','theme',{choices:[['theme','background_theme'],['solid','background_solid']]});
+    field(background,'backgroundMode','background_mode','select','theme',{choices:[['theme','background_theme'],['solid','background_solid'],['library','background_library']]});
     field(background,'backgroundColor','search_background','color','#f4f6fa');
     field(appearance,'themeTransition','appearance_transition','number',0.75,{min:'0',max:'5',step:'0.05'});
     const region=node('fieldset'),regionLabel=node('legend',t('appearance_region'));region.append(regionLabel);

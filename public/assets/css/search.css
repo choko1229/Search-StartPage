@@ -59,6 +59,14 @@ dialog [data-close] { float: right; }
  .onboarding {width:min(640px,calc(100vw - 2rem));overflow:auto;}
  .onboarding-fields {display:grid;gap:1rem;margin-block:1rem;}
  .onboarding-fields label {display:grid;gap:.4rem;}
+ .background-layer {inset:0;z-index:0;pointer-events:none;overflow:hidden;min-height:100vh;}
+ .background-media,.background-overlay {position:absolute;inset:0;}
+ .background-media img,.background-media video {width:100%;height:100%;display:block;}
+ main,.site-header {z-index:1;}
+ main,.site-header:not([data-position=bottom]) {position:relative;}
+ .background-library {display:flex;flex-wrap:wrap;gap:.5rem;margin-block:1rem;}
+ .background-editor {display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;}
+ .background-editor label {display:grid;gap:.3rem;}
  html,body,.panel,.search-box,dialog,.favorite-item {transition:background-color var(--theme-duration,.75s),color var(--theme-duration,.75s),border-color var(--theme-duration,.75s);}
  button,.button {color:var(--button-text,white);}
  button.secondary {color:var(--accent);}

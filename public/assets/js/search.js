@@ -9,6 +9,7 @@ import {initializeSettings} from './search-settings.js';
 import {initializeSettingsModal} from './settings-modal.js';
 import {initializeAppearance} from './appearance.js';
 import {initializeOnboarding} from './onboarding.js';
+import {initializeBackground} from './background.js';
 import './favorites.js';
 import './sync.js';
 import {favorites, openFavorite} from './favorites-store.js';
@@ -156,6 +157,7 @@ window.addEventListener('storage-unavailable', () => {status.textContent = t('st
 initializeSettings(refresh);
 initializeSettingsModal();
 initializeAppearance();
+initializeBackground();
 window.addEventListener('data-change',event=>{if(event.detail==='settings')refresh();});
 refresh();
 openLinkedHistory();

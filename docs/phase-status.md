@@ -412,3 +412,19 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 - 検証3: 初回・外観保存/途中再開・単色・SearchSkip不変・重複キー拒否・DiscordSkip・完了/非表示、再実行/Later/Welcome再開・全Skip・Backを日英UIで確認。390px document375/dialog358/content356、warn/error0。AnimationNone 0s、Settings Escape/外側Close。画像phase6-onboarding.png/onboarding-mobile.png（Git除外）。
 - Issue: 日の出境界のfractional msがDateで切り捨てられるためLightにならないことを単体で再現。solarTimesを整数msへ丸め境界2つを再成功。実時刻の精度を過大に主張しない。
 - Gate: docs/phase6-gate.mdで添付の11完了条件とspec§53〜56/68〜82を照合、Phase 6機能ゲート検証済み。実OAuth/名前/Profileと実OS reduced motion切替は最終監査へ留保。認証済み7stepsは単体のみ確認。Phase 7へ進む、Version 1.0未完成。
+
+### Phase 7 背景ライブラリ基盤（2026-10-02・実装中）
+
+- Files: background-core.js/background.js、search/appearance接続、CSS、settings-schema、ja/en、Response CSP、sync-data、background-core/sync-data検証。現在未コミット。
+- UI: Solid/Gradient/Image/Video、HTTPS/サイト内URL、プリセットと端末内ライブラリ、編集・保管/復元、描画調整、動画速度/ミュート/ループ/停止、モバイル代替画像、手動/ランダム/時間条件切替。
+- Rules: 11条件、AND/OR、詳細条件優先・同順位ランダムの判定コア。編集UIは時間条件のみ、天気・気温の実データは未接続。
+- DB/API: 変更なし。アップロード/所有者別ファイル保存/メタデータ/圧縮/容量/背景ごとのCloud Syncは未実装。現在は端末専用、ローカル選択を同期ACKで上書きしない暫定保護。
+- Security: URL/色/数値の検証、文字列のtextContent表示。画像blobとHTTPS動画のCSP追加、スクリプト制限維持。認証バイパスなし。ファイルアップロードの安全性は未実装なので検証済みとしない。
+- 検証1: background-core41、sync-data28と追加JS構文確認成功。
+- 検証2: UI/両DB構文84成功、Phase初期に両DB基盤39/sync17回帰成功。Migration追加なし。
+- 検証3: Gradient保存/再読込、画像読込、動画1.5倍/ミュート/ループ/停止、390px代替画像/横はみ出しなし、時間条件、編集/保管/復元、reset時ライブラリ保持、console warn/error0。Git除外画像phase7-gradient/mobile-fallback/library-mobile。MDN公式flower.webm URLで検証。
+- Remaining: 回帰検証と途中コミット、安全なアップロード・圧縮/容量・Cloud Sync、全条件編集/天気/地域、手動動画再生導線。Phase 7未完了、Phase 8〜12未着手。状態確認時点で新たな検証は実行していない。
+
+### Phase 7 基盤再検証
+
+全JS構文/全単体（実HTTP専用除外）成功。UI/両DB構文84、両DB基盤39/認証HTTP12/同期17成功。切替間隔の編集中値保持・ライブラリ型防御を補修。新規DB/Migrationなし。前記ブラウザ証拠を維持、今回の追加補修のブラウザ確認は未実施。途中コミット、Phase 7未完了。

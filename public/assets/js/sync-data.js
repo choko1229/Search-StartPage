@@ -1,8 +1,9 @@
 import {collectionMap} from './sync-core.js';
 export const syncCollections = ['favorites','favorite-folders','history','providers-web','providers-ai'];
-const localSettings = new Set(['syncEnabled','syncHistory','clearSyncedOnLogout']);
+const localSettings = new Set(['syncEnabled','syncHistory','clearSyncedOnLogout','backgroundSelected','backgroundSwitch','backgroundInterval']);
+const localSetting=(state,key)=>localSettings.has(key) || key==='backgroundMode' && state.settings?.backgroundMode==='library';
 export function syncDocument(state, presets, cloudHistory = {}, checkpoint = state.syncCheckpoint) {
-    const settings = Object.fromEntries(Object.entries(state.settings || {}).filter(([key])=>!localSettings.has(key)));
+    const settings = Object.fromEntries(Object.entries(state.settings || {}).filter(([key])=>!localSetting(state,key)));
     const document = {settings};
     for (const key of syncCollections) {
         if (key === 'history' && state.settings?.syncHistory !== true) document[key] = structuredClone(cloudHistory);
@@ -18,9 +19,9 @@ export function syncDocument(state, presets, cloudHistory = {}, checkpoint = sta
 }
 export function syncValues(state, document, checkpoint, time, presets = {web:[],ai:[]}) {
     const values = {settings:{}};
-    for (const [key,value] of Object.entries(state.settings || {})) if(localSettings.has(key)) values.settings[key]=value;
-    for (const [key,value] of Object.entries(document.settings || {})) if(!localSettings.has(key)) values.settings[key]=value;
-    const ownership = {userId:checkpoint.userId,settings:Object.keys(checkpoint.document.settings || {}).filter(key=>!localSettings.has(key)),collections:{}};
+    for (const [key,value] of Object.entries(state.settings || {})) if(localSetting(state,key)) values.settings[key]=value;
+    for (const [key,value] of Object.entries(document.settings || {})) if(!localSetting(state,key)) values.settings[key]=value;
+    const ownership = {userId:checkpoint.userId,settings:Object.keys(checkpoint.document.settings || {}).filter(key=>!localSetting(state,key)),collections:{}};
     for (const key of syncCollections) {
         if (key === 'history' && state.settings?.syncHistory !== true) {
             if(String(state.syncOwnership?.userId)===String(checkpoint.userId) && Array.isArray(state.syncOwnership?.collections?.history)) {
