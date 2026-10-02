@@ -22,7 +22,7 @@ final class BackgroundRepository
         $statement=$this->pdo->prepare('SELECT COALESCE(SUM(file_size),0) FROM backgrounds WHERE user_id=?');$statement->execute([$user]);
         return ['used_bytes'=>(int)$statement->fetchColumn(),'limit_bytes'=>$this->limitBytes>0?$this->limitBytes:null];
     }
-    public function save(int $user,array $item,?int $expected=null,?array $file=null): array
+    public function save(int $user,array $item,?int $expected=null,?array $file=null,bool $clearFile=false): array
     {
         $this->pdo->beginTransaction();
         try {
@@ -33,18 +33,18 @@ final class BackgroundRepository
             if($expected===null && $before)throw new HttpException(409,'BACKGROUND_CONFLICT');
             if($expected!==null && !$before)throw new HttpException(404,'NOT_FOUND');
             if($before && (int)$before['version']!==$expected)throw new HttpException(409,'BACKGROUND_CONFLICT');
-            $size=$file['bytes']??($before['file_size']??0);
+            $size=$clearFile?0:($file['bytes']??($before['file_size']??0));
             if(!is_int($size))$size=(int)$size;
             if($size<0||$size>524288000)throw new HttpException(422,'INVALID_BACKGROUND');
             $usage=$this->usage($user)['used_bytes']-(int)($before['file_size']??0)+$size;
             if($this->limitBytes>0 && $usage>$this->limitBytes)throw new HttpException(413,'BACKGROUND_QUOTA_EXCEEDED');
             $settings=json_encode($item['settings'],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
-            $filename=$file['filename']??($before['file_path']??null);
+            $filename=$clearFile?null:($file['filename']??($before['file_path']??null));
             if($filename!==null && !preg_match('/^[a-f0-9]{48}\.(jpg|png|gif|webp|avif|mp4|webm)$/D',$filename))throw new HttpException(422,'INVALID_BACKGROUND');
             $type=$file['type']??$item['type']; $source=$filename!==null?'upload':'url';
-            if($filename!==null && $type!==($before['type']??$file['type']))throw new HttpException(422,'INVALID_BACKGROUND');
+            if($filename!==null && $file===null && $type!==$before['type'])throw new HttpException(422,'INVALID_BACKGROUND');
             $values=[$item['name'],$type,$source,$filename,$source==='url'?$item['url']:null,$size,
-                $file['mime']??($before['mime']??null),(int)$item['cloudSync'],$settings,(int)$item['deleted']];
+                $clearFile?null:($file['mime']??($before['mime']??null)),(int)$item['cloudSync'],$settings,(int)$item['deleted']];
             if($before) {
                 $statement=$this->pdo->prepare('UPDATE backgrounds SET name=?,type=?,source_type=?,file_path=?,external_url=?,file_size=?,mime=?,cloud_sync=?,settings_json=?,deleted=?,version=version+1,updated_at=UTC_TIMESTAMP() WHERE user_id=? AND id=?');
                 $statement->execute([...$values,$user,$item['id']]);

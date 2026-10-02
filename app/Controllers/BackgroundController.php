@@ -20,7 +20,7 @@ final class BackgroundController
         return (array)json_decode($row['settings_json'],false,32,JSON_THROW_ON_ERROR)+[
             'id'=>$row['id'],'name'=>$row['name'],'type'=>$row['type'],'sourceType'=>$row['source_type'],
             'url'=>$row['source_type']==='upload'?'/api/backgrounds/'.$row['id'].'/file':($row['external_url']??''),
-            'fileSize'=>(int)$row['file_size'],'cloudSync'=>(bool)$row['cloud_sync'],'deleted'=>(bool)$row['deleted'],
+            'fileSize'=>(int)$row['file_size'],'fileRevision'=>$row['file_path']===null?null:hash('sha256',$row['file_path']),'cloudSync'=>(bool)$row['cloud_sync'],'deleted'=>(bool)$row['deleted'],
             'version'=>(int)$row['version'],'createdAt'=>$row['created_at'],'updatedAt'=>$row['updated_at']];
     }
     public function index(Request $request): Response
@@ -34,19 +34,31 @@ final class BackgroundController
         if(!is_object($input))throw new HttpException(422,'INVALID_BACKGROUND');
         return Response::json(['item'=>self::present($this->repository->save($user,BackgroundInput::validate($input)))],201);
     }
-    public function upload(Request $request): Response
+    public function upload(Request $request,array $params=[]): Response
     {
         $user=$this->owner($request);$raw=$request->input('item');
         if(strlen($raw)>65536)throw new HttpException(422,'INVALID_BACKGROUND');
         try{$input=json_decode($raw,false,24,JSON_THROW_ON_ERROR);}catch(\JsonException){throw new HttpException(422,'INVALID_BACKGROUND');}
         if(!is_object($input))throw new HttpException(422,'INVALID_BACKGROUND');
+        $before=null;$expected=null;
+        if(isset($params['id'])) {
+            $before=$this->repository->find($user,$params['id']);if(!$before)throw new HttpException(404,'NOT_FOUND');
+            if(isset($input->id)&&$input->id!==$params['id'])throw new HttpException(422,'INVALID_BACKGROUND');
+            $version=$request->input('version');
+            if(!preg_match('/^(?:0|[1-9][0-9]{0,15})$/D',$version)||(float)$version>9007199254740990)throw new HttpException(422,'INVALID_INPUT');
+            $expected=(int)$version;if((int)$before['version']!==$expected)throw new HttpException(409,'BACKGROUND_CONFLICT');
+            $input=(object)array_replace(self::present($before),(array)$input);
+        }
         $item=BackgroundInput::validate($input,true);$staged=null;$compressed=null;$committed=false;
         try {
             $staged=$this->storage->receive($user,$request->files['file']??[]);
             $compressed=(new BackgroundCompression())->compress($staged['path']);
             $item['type']=$compressed['type'];
-            $saved=$this->repository->save($user,$item,null,$compressed);$committed=true;
-            return Response::json(['item'=>self::present($saved),'storage'=>$this->repository->usage($user),'warning'=>$compressed['warning']],201);
+            $saved=$this->repository->save($user,$item,$expected,$compressed);$committed=true;
+            if($before!==null&&$before['file_path']!==null) {
+                try{@unlink($this->storage->existingPath($user,$before['file_path']));}catch(HttpException){}
+            }
+            return Response::json(['item'=>self::present($saved),'storage'=>$this->repository->usage($user),'warning'=>$compressed['warning']],$before===null?201:200);
         } finally {
             if($staged!==null && (!$committed || ($compressed!==null&&$compressed['path']!==$staged['path'])))@unlink($staged['path']);
             if(!$committed && $compressed!==null && $compressed['path']!==($staged['path']??null))@unlink($compressed['path']);
@@ -57,8 +69,13 @@ final class BackgroundController
         $user=$this->owner($request);$before=$this->repository->find($user,$params['id']);if(!$before)throw new HttpException(404,'NOT_FOUND');
         $patch=$request->jsonObject?->item;if(!is_object($patch))throw new HttpException(422,'INVALID_BACKGROUND');
         if(isset($patch->id)&&$patch->id!==$params['id'])throw new HttpException(422,'INVALID_BACKGROUND');
-        $item=BackgroundInput::validate((object)array_replace(self::present($before),(array)$patch),$before['source_type']==='upload');
-        return Response::json(['item'=>self::present($this->repository->save($user,$item,SyncInput::version($request,$user)))]);
+        if(property_exists($patch,'sourceType')&&(!in_array($patch->sourceType,['url','upload'],true)||($patch->sourceType==='upload'&&$before['source_type']!=='upload')))throw new HttpException(422,'INVALID_BACKGROUND');
+        $clearFile=isset($patch->sourceType)&&$patch->sourceType==='url';
+        if($clearFile&&$before['source_type']==='upload'&&!property_exists($patch,'url'))$patch->url='';
+        $item=BackgroundInput::validate((object)array_replace(self::present($before),(array)$patch),$before['source_type']==='upload'&&!$clearFile);
+        $saved=$this->repository->save($user,$item,SyncInput::version($request,$user),null,$clearFile);
+        if($clearFile&&$before['file_path']!==null){try{@unlink($this->storage->existingPath($user,$before['file_path']));}catch(HttpException){}}
+        return Response::json(['item'=>self::present($saved)]);
     }
     public function delete(Request $request,array $params): Response
     {
@@ -70,6 +87,6 @@ final class BackgroundController
     {
         $user=$this->owner($request);$row=$this->repository->find($user,$params['id']);
         if(!$row||$row['deleted']||$row['source_type']!=='upload')throw new HttpException(404,'NOT_FOUND');
-        return BackgroundFileResponse::create($request,$this->storage->existingPath($user,$row['file_path']),$row['mime']);
+        return BackgroundFileResponse::create($request,$this->storage->existingPath($user,$row['file_path']),$row['mime'],hash('sha256',$row['file_path']));
     }
 }

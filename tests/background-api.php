@@ -64,6 +64,25 @@ try {
     [$status]=$request('GET','/api/backgrounds/file-id/file');$check($status===404,'archived file not served');
     $check($repository->usage($user)['used_bytes']===strlen($png),'archived files still count toward usage');
     [$status,$json]=$request('PUT','/api/backgrounds/file-id',['version'=>2,'item'=>['deleted'=>false]],$csrf);$check($status===200&&!$json['data']['item']['deleted'],'archived background can be restored');
+    $before=$repository->find($user,'file-id');$revision=$json['data']['item']['fileRevision'];$oldPath=$root.'/storage/uploads/backgrounds/'.$user.'/'.$before['file_path'];
+    [$status,,$bytes]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['If-Match: "'.$revision.'"']);$check($status===200&&$bytes===$png,'matching file revision served');
+    [$status]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['If-Match: "'.str_repeat('0',64).'"']);$check($status===412,'stale file revision cannot retrieve newer bytes');
+    $replace=static fn(string $version,string $id='file-id'):string=>str_replace('--'.$boundary."--\r\n",'--'.$boundary."\r\nContent-Disposition: form-data; name=\"version\"\r\n\r\n".$version."\r\n--".$boundary."--\r\n",$upload($id,$png));
+    [$status]=$request('POST','/api/backgrounds/file-id/upload',null,null,$replace('3'),$boundary);$check($status===403,'replacement requires CSRF');
+    [$status]=$request('POST','/api/backgrounds/foreign-only/upload',null,$csrf,$replace('1','foreign-only'),$boundary);$check($status===404,'foreign replacement denied');
+    [$status]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('2'),$boundary);$check($status===409&&is_file($oldPath),'stale replacement preserves prior file');
+    [$status]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('3x'),$boundary);$check($status===422&&is_file($oldPath),'malformed multipart version rejected');
+    [$status,$json]=$request('POST','/api/backgrounds/file-id/upload',null,$csrf,$replace('3'),$boundary);
+    clearstatcache(true,$oldPath);
+    $check($status===200&&$json['data']['item']['version']===4&&$json['data']['item']['fileRevision']!==$revision&&!is_file($oldPath),'replacement commits new revision then removes old file');
+    [$status,,$bytes]=$request('GET','/api/backgrounds/file-id/file');$check($status===200&&$bytes===$png&&$repository->usage($user)['used_bytes']===strlen($png),'replacement bytes and quota are correct');
+    [$status]=$request('GET','/api/backgrounds/file-id/file',null,null,null,null,['If-Match: "'.$revision.'"']);$check($status===412,'old revision is invalid after replacement');
+    $currentPath=$root.'/storage/uploads/backgrounds/'.$user.'/'.$repository->find($user,'file-id')['file_path'];
+    [$status]=$request('PUT','/api/backgrounds/file-id',['version'=>4,'item'=>['sourceType'=>'url']],$csrf);$check($status===422&&is_file($currentPath),'image URL conversion requires an explicit URL');
+    [$status]=$request('PUT','/api/backgrounds/file-id',['version'=>4,'item'=>['sourceType'=>'url','url'=>'javascript:alert(1)']],$csrf);$check($status===422&&is_file($currentPath),'invalid URL conversion preserves upload');
+    [$status,$json]=$request('PUT','/api/backgrounds/file-id',['version'=>4,'item'=>['sourceType'=>'url','url'=>'https://example.test/replaced.png']],$csrf);clearstatcache(true,$currentPath);
+    $check($status===200&&$json['data']['item']['sourceType']==='url'&&$json['data']['item']['fileSize']===0&&$json['data']['item']['fileRevision']===null&&!is_file($currentPath)&&$repository->usage($user)['used_bytes']===0,'conversion to URL commits before file cleanup and releases quota');
+    [$status]=$request('PUT','/api/backgrounds/file-id',['version'=>5,'item'=>['sourceType'=>'upload']],$csrf);$check($status===422,'upload source cannot be declared without actual file');
     $statement=$pdo->prepare('SELECT COUNT(*) FROM background_rules WHERE user_id=?');$statement->execute([$user]);$check((int)$statement->fetchColumn()===1,'conditions stored in separate owned table');
     echo "$passed background API assertions passed.\n";
 } finally {

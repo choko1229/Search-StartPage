@@ -15,6 +15,7 @@ const bytes=new Uint8Array([137,80,78,71]),blob=new Blob([bytes],{type:'image/pn
 assert.equal((await createBackground({id:'a',type:'image'},'1',blob)).status,201);
 const upload=calls.at(-1);assert.equal(upload.url,'/api/backgrounds/upload');assert.equal(upload.options.headers['Content-Type'],undefined);
 assert.equal(upload.options.headers['X-CSRF-Token'],'test');assert.equal(upload.options.body.get('file').name,'background.png');assert.equal(upload.options.body.get('file').size,4);assert.equal(upload.options.body.get('user_id'),'1');
+await createBackground({id:'a',type:'image'},'1',blob,2);assert.equal(calls.at(-1).url,'/api/backgrounds/a/upload');assert.equal(calls.at(-1).options.body.get('version'),'2');
 await updateBackground({id:'a',cloudSync:false},2,'1');assert.equal(calls.at(-1).options.method,'PUT');assert.equal(JSON.parse(calls.at(-1).options.body).version,2);
 const count=calls.length;await assert.rejects(createBackground({id:'../a'},'1'),/INVALID_BACKGROUND/);await assert.rejects(createBackground({id:'a'},'0'),/OWNER_INVALID/);await assert.rejects(updateBackground({id:'a'},-1,'1'),/VERSION_INVALID/);assert.equal(calls.length,count);
 globalThis.fetch=async()=>response({csrf_token:null});await assert.rejects(createBackground({id:'a'},'1'),/CSRF_FAILED/);
@@ -22,6 +23,10 @@ globalThis.fetch=async()=>new Response('not JSON');await assert.rejects(readBack
 const item={id:'a',type:'image',sourceType:'upload',fileSize:4,url:'https://untrusted.example/file'};
 globalThis.fetch=async(url)=>{assert.equal(url,'/api/backgrounds/a/file');return new Response(bytes,{headers:{'Content-Type':'image/png','Content-Length':'4'}});};
 const downloaded=await downloadBackground(item);assert.equal(downloaded.size,4);assert.equal(downloaded.type,'image/png');assert.deepEqual(new Uint8Array(await downloaded.arrayBuffer()),bytes);
+const revision='a'.repeat(64);
+globalThis.fetch=async(url,options)=>{assert.equal(options.headers['If-Match'],'"'+revision+'"');return new Response(bytes,{headers:{'Content-Type':'image/png','ETag':'"'+revision+'"'}});};
+assert.equal((await downloadBackground({...item,fileRevision:revision})).size,4);
+globalThis.fetch=async()=>new Response(bytes,{headers:{'Content-Type':'image/png','ETag':'"'+ 'b'.repeat(64)+'"'}});await assert.rejects(downloadBackground({...item,fileRevision:revision}),/REVISION_INVALID/);
 for(const [headers,error] of [[{'Content-Type':'text/html'},'INVALID_UPLOAD'],[{'Content-Type':'image/png','Content-Length':'5'},'SIZE_INVALID']]){
     globalThis.fetch=async()=>new Response(bytes,{headers});await assert.rejects(downloadBackground(item),new RegExp(error));
 }

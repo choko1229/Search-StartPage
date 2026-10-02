@@ -5,12 +5,16 @@ use App\Http\{Request,Response,HttpException};
 
 final class BackgroundFileResponse
 {
-    public static function create(Request $request,string $path,string $mime): Response
+    public static function create(Request $request,string $path,string $mime,?string $revision=null): Response
     {
         $size=filesize($path);if($size===false||$size<1)throw new HttpException(404,'NOT_FOUND');
         $start=0;$end=$size-1;$status=200;
         $headers=['Content-Type'=>$mime,'Accept-Ranges'=>'bytes','Cache-Control'=>'private, no-store',
             'Content-Disposition'=>'inline; filename="background.'.pathinfo($path,PATHINFO_EXTENSION).'"'];
+        if($revision!==null) {
+            $headers['ETag']='"'.$revision.'"';
+            if(isset($request->server['HTTP_IF_MATCH'])&&$request->server['HTTP_IF_MATCH']!==$headers['ETag'])return new Response('',412,$headers+['Content-Length'=>'0']);
+        }
         $range=$request->server['HTTP_RANGE']??null;
         if($range!==null) {
             if(!is_string($range)||!preg_match('/^bytes=(\d*)-(\d*)$/D',$range,$match)||($match[1]===''&&$match[2]==='')) {
