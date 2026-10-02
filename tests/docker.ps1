@@ -23,7 +23,7 @@ if ($StartOnly) {
     return
 }
 foreach ($service in @('app-mysql', 'app-mariadb')) {
-    foreach ($test in @('tests/lint.php', 'tests/run.php', 'tests/background-upload.php', 'tests/background-upload-http.php', 'tests/integration.php', 'tests/search-api.php', 'tests/metadata.php', 'tests/oauth-validation.php', 'tests/auth.php', 'tests/auth-http.php', 'tests/sync.php', 'tests/sync-projection.php', 'tests/sync-merge.php', 'tests/sync-retention.php', 'tests/cloud-api.php', 'tests/login-rate-limit.php', 'tests/login-rate-concurrency.php', 'tests/login-rate-http.php')) {
+    foreach ($test in @('tests/lint.php', 'tests/run.php', 'tests/background-upload.php', 'tests/background-upload-http.php', 'tests/background-compression.php', 'tests/integration.php', 'tests/search-api.php', 'tests/metadata.php', 'tests/oauth-validation.php', 'tests/auth.php', 'tests/auth-http.php', 'tests/sync.php', 'tests/sync-projection.php', 'tests/sync-merge.php', 'tests/sync-retention.php', 'tests/cloud-api.php', 'tests/login-rate-limit.php', 'tests/login-rate-concurrency.php', 'tests/login-rate-http.php')) {
         & $dockerExecutable compose exec --user www-data -T $service php $test
         if ($LASTEXITCODE -ne 0) { throw "Failed: $service $test" }
     }

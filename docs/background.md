@@ -23,4 +23,12 @@ PHPのHTTPアップロード由来検証については[PHP公式move_uploaded_f
 
 background-core41、sync-data28単体と既存JS回帰、両DB環境のPHP既存回帰を確認。ファイル検査22単体と独立ループバックHTTP14項目を両DBの隔離コンテナで実行。HTTP試験はwww-dataで非公開保存/実MIME/危険形式拒否/同名上書き防止/symlink拒否を検証し、一時領域を終了時に除去する。このHTTP試験は保存サービスの証拠であり、本アプリの認証/CSRF/容量競合/圧縮/ファイル同期の証拠ではない。
 
-次はImagick→GD/FFmpegの環境検出・圧縮・圧縮後サイズ計測、専用メタ情報Migration/Repository、所有権・CSRF付きAPI、容量制限の原子的適用と失敗時ファイル清掃、アップロードUI/背景ごとのCloud Syncへ接続する。500MiB multipartを許可するPHP/Webサーバー設定も未反映（現Docker post_max_size=32M）。不足環境の警告はシステム全体を停止させない。条件編集全種・天気/地域・手動動画再生導線も未完了。
+`BackgroundCompression`はImagick優先/GD fallback、FFmpegのPATHまたはSEARCH_FFMPEG_PATH検出を実装。画像は寸法・PNG透過を保持、JPEGのEXIF向きを実画素へ反映。ImagickはGIFフレーム/遅延/ループを保持。GDで保持できないアニメーションやメモリ不足見込みは元データを保持する。APNGは現エンジンで安全に再エンコードできることを証明していないため保持・警告。入力を削除せず、検証済みの小さい出力だけを返し、大きくなる場合は元データを返す。容量計測用bytesは採用ファイルの実サイズ。
+
+FFmpegはshellを介さない引数配列、検査済み形式のdemuxer固定、ネットワークprotocol拒否、2threads/120秒/出力500MiB上限。失敗・機能不足は元ファイルと共に警告コードを返す。管理画面での警告表示はPhase 9へ接続が必要。Imagickのメモリ/ディスク等を制限し呼出後に元の上限へ復帰。圧縮はDB登録前サービスで、まだUpload APIへ接続していない。
+
+実圧縮専用コンテナ`search-compression-20261002`でImagick/GD/FFmpeg17項目、GDのみ/FFmpeg16項目、proc_open禁止環境12項目、元の両DB環境で機能不足8項目を確認。画像/動画は試験コードがローカル生成したデータで外部媒体をダウンロードしていない。最初のImagick呼出メソッド誤りは試験で検出して修正し再成功。タイムアウト・巨大動画の実エンコード・全画像形式/実カメラのICCは未検証。
+
+`docker/compression.Dockerfile`は省略可能な圧縮試験用。BASE_IMAGEは既定php:8.2-apache-bookworm、検証時は既存の隔離アプリイメージを指定した。GD/EXIF/Imagick3.8.1/FFmpegを含む。アプリ全体で必須にはしない。圧縮試験はSEARCH_TEST_MODE=1でtests/background-compression.phpを実行。実画像decoderやFFmpegで未対応の場合の警告を成功した圧縮と扱わない。
+
+次は専用メタ情報Migration/Repository、所有権・CSRF付きAPI、容量制限の原子的適用と失敗時ファイル清掃、アップロードUI/背景ごとのCloud Syncへ接続する。500MiB multipartを許可するPHP/Webサーバー設定も未反映（現Docker post_max_size=32M）。条件編集全種・天気/地域・手動動画再生導線も未完了。

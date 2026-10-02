@@ -22,8 +22,7 @@ final class EnvironmentCheck
             $checks[] = ['name' => $directory, 'ok' => is_writable($this->root . '/' . $directory), 'required' => true];
         }
         $checks[] = ['name' => 'GD / Imagick', 'ok' => extension_loaded('gd') || extension_loaded('imagick'), 'required' => false];
-        $ffmpeg = getenv('SEARCH_FFMPEG_PATH') ?: '';
-        $checks[] = ['name' => 'FFmpeg (SEARCH_FFMPEG_PATH)', 'ok' => $ffmpeg !== '' && is_file($ffmpeg) && is_executable($ffmpeg), 'required' => false];
+        $checks[] = ['name' => 'FFmpeg (PATH / SEARCH_FFMPEG_PATH)', 'ok' => BackgroundCompression::ffmpegPath() !== null, 'required' => false];
         return $checks;
     }
 

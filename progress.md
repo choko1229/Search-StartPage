@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は最新のアップロード基盤記録から再開。ライブラリ基盤はee76732へ保存済み。次はImagick→GD/FFmpegの環境判定・圧縮・圧縮後容量計測を実装し、メタ情報Migration/Repositoryと認証/CSRF付きAPIへ接続する。HTTP受付の検査/私有保存サービスは作成済みだが、公開API/UI/Cloud Syncは未接続。条件編集全種・天気/地域・動画の手動再生も残る。既存ファイルを作り直さない。
+1. Phase 7は最新の圧縮記録から再開。ライブラリee76732、アップロード検査dfbcf26へ保存済み。Imagick→GD/FFmpegの環境判定・実圧縮・最終サイズ計測サービスを実装/検証済み。次はdatabase/migrationsのメタ情報Migration、Repository、Auth/CSRF付きAPIと容量競合/失敗時清掃を接続する。公開API/UI/Cloud Syncは未接続。条件編集全種・天気/地域・動画の手動再生も残る。既存ファイルを作り直さない。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -231,3 +231,15 @@ Phase 7実装中。Solid/Gradient/Image/Video、HTTPS URL・サイト内パス�
 検証3: 両DBPHP構文87成功。直前JS全構文/全単体と両DB基盤39/auth HTTP12/sync17成功。今回新規UI操作なし、既存背景ブラウザ証拠を維持。DB/Migration変更なし。
 
 docs/background.mdに仕様・現時点の範囲と残件を記録、Docker一括検証に2試験を追加。次は圧縮と環境不足検出、DBメタ/認証・CSRF API/容量競合・失敗時清掃、500MiB multipart設定、Upload UI/Cloud Syncへ接続する。現在post_max_size32Mのまま。Phase 7未完了、8〜12未着手、Version 1.0未完成。
+
+## Phase 7 実圧縮サービス（2026-10-02）
+
+BackgroundCompressionを追加。Imagick優先→GD、FFmpegをPATH/SEARCH_FFMPEG_PATHで検出。寸法/PNG色・透過、JPEG EXIF向き、Imagick GIFフレーム・遅延・loopを保護。小さくなった検証済み出力だけ採用し、元ファイルはDB確定前に削除しない。最終ファイルbytesを計測。機能不足/encoder失敗は元ファイル+警告、GDアニメーションやAPNGは保持。Imagickリソース制限、FFmpeg引数配列/入力demuxer固定/ネットワークprotocol拒否/2threads/120秒/500MiB出力上限。InstallerのFFmpeg判定を同じ自動検出へ統一。Adminへの警告表示はPhase 9で接続が必要。
+
+検証1: 元の両DB環境で機能不足8項目成功、両DB基盤39/auth HTTP12/sync17、構文89成功。Migrationなし。
+検証2: Docker専用search-compression-test:20261002を作成しsearch-compression-20261002を稼働。www-dataでImagick/GD/FFmpeg17、GDのみ/FFmpeg16、proc_open禁止12成功。実PNG圧縮・色/透過・向き付きJPEG・GIFアニメーション・実動画圧縮・失敗時元データ維持・一時出力清掃を確認。画像/動画は試験内ローカル生成。
+検証3: 上記各経路を補修後に再成功。最初のImagick試験はautoOrientImageという利用できないメソッドで失敗しGDへfallback、優先順試験で検出。autoOrientと互換手動回転へ修正し再合格。GDのみの写真向きも確認。今回UI操作なし、既存ライブラリUI証拠維持。
+
+専用DockerfileはBASE_IMAGE引数（既定php:8.2-apache-bookworm）、GD/EXIF/Imagick3.8.1/FFmpegを任意検証用に追加。本アプリDockerfileは変更していない。専用コンテナは待機状態で次回試験に再利用可能、DBなし。既存2DB/UIは保持。全形式/巨大動画/120秒期限の実発動/ICCの実写真は未検証。
+
+次はdatabase/migrationsの背景メタDBとRepository、認証/CSRF API、圧縮後bytesを使う容量制限の原子的適用、失敗時清掃、その後Upload UI/Cloud Sync。Requestはまだ$_FILESを持たず、PHP multipart上限32Mのため500MiB受付設定も必要。Phase 7未完了、8〜12未着手。

@@ -436,3 +436,12 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 - 検証1: 両DB環境で検査22成功。検証2: 両環境www-dataで独立HTTP14成功（非公開/404/同名保護/symlink拒否を含む）。検証3: PHP構文87成功、直前のJS全単体/両DB基盤39/auth HTTP12/sync17維持。一時領域/プロセスは終了時除去。
 - DB/API/UI: 今回変更なし、公開upload endpointなし。HTTP試験はサービス用fixtureで、実アプリ認証・CSRFの成功と扱わない。
 - Remaining: 圧縮・環境不足警告、メタDB、認証/CSRF API、容量の原子的適用と清掃、500MiB受付設定（現在32M）、アップロード画面/Cloud Sync、全条件編集/天気/地域。Phase 7未完了。
+
+### Phase 7 実圧縮・環境判定
+
+- Files: BackgroundCompression.php、EnvironmentCheck.php、background-compression.php、docker/compression.Dockerfile、Docker一括検証、background.md/進捗。
+- Behavior: Imagick→GD/FFmpeg、小さい検証済み出力のみ採用、元データ維持/実最終サイズ、機能不足/失敗警告。PNG色/透過、JPEG向き、Imagick GIFアニメーション保護。GD非対応animation/APNGは保持。
+- Security: Imagickリソース制限/復元、GDメモリ見込み確認、FFmpeg引数配列/固定demuxer/ネットワークprotocol拒否/期限・出力上限、非公開候補出力/失敗時除去。処理を認証APIへまだ接続していない。
+- 検証1: 両DB機能不足8/基盤39/auth HTTP12/sync17/構文89成功。検証2: 専用www-data Imagick/GD/FFmpeg17、GDのみ16、proc_open禁止12成功。検証3: 補修後各経路再成功、写真向き/GIF/動画/失敗保持/一時出力除去を確認。
+- Failure: 最初はImagickの誤メソッド呼出でfallback、優先順試験が失敗。autoOrientと互換回転へ補修し再成功。
+- DB/API/UI: 新規変更なし。圧縮後容量のDB適用/Upload API・画面/Cloud Syncは未実装。巨大動画/期限発動/全形式/ICC実写真未確認。Admin警告表示はPhase 9へ。Phase 7未完了。
