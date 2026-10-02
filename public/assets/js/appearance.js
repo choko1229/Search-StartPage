@@ -1,6 +1,6 @@
 import {get,setting,setSetting} from './store.js';
 import {t,node} from './i18n.js';
-import {palettes,color,bounded,fontUrl,fontName,themePalette,greetingKey,searchStyles,widgetStyle,headerPreferences,headerItems} from './appearance-core.js';
+import {palettes,color,bounded,fontUrl,fontName,themePalette,greetingKey,searchStyles,widgetStyle,headerPreferences,animationLevel} from './appearance-core.js';
 import {syncUser} from './sync-api.js';
 
 export function initializeAppearance() {
@@ -34,6 +34,9 @@ export function initializeAppearance() {
         wrapper.append(input);panel.append(wrapper);return input;
     }
     field(appearance,'theme','appearance_theme','select','solar',{choices:[['solar','theme_solar'],['light','theme_light'],['dark','theme_dark'],['os','theme_os'],['forest','theme_forest'],['rose','theme_rose'],['custom','theme_custom']]});
+    const background=document.getElementById('settings-background');
+    field(background,'backgroundMode','background_mode','select','theme',{choices:[['theme','background_theme'],['solid','background_solid']]});
+    field(background,'backgroundColor','search_background','color','#f4f6fa');
     field(appearance,'themeTransition','appearance_transition','number',0.75,{min:'0',max:'5',step:'0.05'});
     const region=node('fieldset'),regionLabel=node('legend',t('appearance_region'));region.append(regionLabel);
     const latitude=node('input',undefined,{type:'number',min:'-90',max:'90',step:'any','aria-label':t('latitude')});
@@ -142,11 +145,11 @@ export function initializeAppearance() {
         header.style.fontSize=headerStyle.size;header.style.opacity=headerStyle.opacity;header.style.backgroundColor=headerStyle.background;header.style.backdropFilter=`blur(${headerStyle.blur})`;
         for(const [index,item] of headerStyle.order.entries()){const element=header.querySelector(`[data-header-item=${item}]`);if(element){element.hidden=!headerStyle.visible[item];element.style.order=index;}}
         document.body.classList.toggle('header-at-bottom',headerStyle.position==='bottom');renderHeaderItems();
-        root.style.color=palette.text;root.style.backgroundColor=palette.background;
+        root.style.color=palette.text;root.style.backgroundColor=settings.backgroundMode==='solid'?color(settings.backgroundColor,palette.background):palette.background;
         root.style.setProperty('--button-text',palette.background);root.style.colorScheme=['dark','forest'].includes(settings.theme) || palette.background===palettes.dark.background?'dark':'light';
         root.style.setProperty('--theme-duration',`${reduced.matches?0:bounded(settings.themeTransition,0.75,0,5)}s`);
         root.style.fontSize=`${bounded(settings.fontSize,16,10,32)}px`;root.style.fontWeight=bounded(settings.fontWeight,400,100,900);root.style.lineHeight=bounded(settings.lineHeight,1.6,1,2.5);root.style.letterSpacing=`${bounded(settings.letterSpacing,0,-2,6)}px`;
-        root.dataset.animation=reduced.matches?'none':(['none','low','standard','rich'].includes(settings.animationLevel)?settings.animationLevel:'rich');
+        root.dataset.animation=animationLevel(settings.animationLevel,reduced.matches);
         const signature=JSON.stringify([settings.fontMode,settings.googleFont,settings.customFontUrl]);
         if(signature!==fontSignature) {
             fontSignature=signature;if(customFont)document.fonts.delete(customFont);customFont=null;googleLink?.remove();googleLink=null;

@@ -56,6 +56,9 @@ dialog [data-close] { float: right; }
  .settings-actions p {margin:0;}
  .settings-history {padding-left:1.2rem;font-size:.85rem;}
  .settings-history li {padding-block:.4rem;}
+ .onboarding {width:min(640px,calc(100vw - 2rem));overflow:auto;}
+ .onboarding-fields {display:grid;gap:1rem;margin-block:1rem;}
+ .onboarding-fields label {display:grid;gap:.4rem;}
  html,body,.panel,.search-box,dialog,.favorite-item {transition:background-color var(--theme-duration,.75s),color var(--theme-duration,.75s),border-color var(--theme-duration,.75s);}
  button,.button {color:var(--button-text,white);}
  button.secondary {color:var(--accent);}

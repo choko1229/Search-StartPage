@@ -23,7 +23,7 @@ export function solarTimes(date,latitude,longitude) {
     if(cosine< -1)return {polar:'day',sunrise:null,sunset:null};
     const noon=720-4*longitude-equation,angle=Math.acos(Math.max(-1,Math.min(1,cosine)))/rad;
     const midnight=Date.UTC(year,date.getUTCMonth(),date.getUTCDate());
-    return {polar:null,sunrise:midnight+(noon-4*angle)*60000,sunset:midnight+(noon+4*angle)*60000};
+    return {polar:null,sunrise:Math.round(midnight+(noon-4*angle)*60000),sunset:Math.round(midnight+(noon+4*angle)*60000)};
 }
 export function daytime(date,latitude,longitude) {
     if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return null;
@@ -43,6 +43,7 @@ export function themePalette(settings,date=new Date(),osDark=false) {
     return Object.fromEntries(Object.entries(base).map(([name,value])=>[name,color(custom?.[name],value)]));
 }
 export function greetingKey(hour){return hour<11?'greeting_morning':hour<18?'greeting_day':'greeting_evening';}
+export const animationLevel=(value,reduced=false)=>reduced?'none':['none','low','standard','rich'].includes(value)?value:'rich';
 
 export function searchStyles(settings,palette) {
     const heights={compact:48,standard:56,large:72},positions={upper:'8vh',center:'20vh',lower:'30vh'};

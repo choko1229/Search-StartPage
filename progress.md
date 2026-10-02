@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先。Phase 5の同期機能ゲートは検証済み（実OAuthを留保）。Phase 6実装中、Phase 7〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
+Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先。Phase 5の同期機能ゲートは検証済み（実OAuthを留保）。Phase 6機能ゲート検証済み（実OAuth留保）。Phase 7〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
 
 Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリック候補、履歴件数/期間/エリアを実装し3種類の検証を実施。ヘッダー履歴導線（§33）も実装・ブラウザ検証済み。Command Palette導線はPhase 8、履歴同期はPhase 5に接続する。
 
@@ -32,8 +32,8 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 6の初回オンボーディング可変7〜8steps（§82）を実装する。Welcome/Appearance/Background/Search/AI/Favorites・Shortcuts/Discord/Complete、各ステップSkipと設定への接続。Backgroundの本体はPhase 7で接続し、空のステップを実装済みと扱わない。ログイン成功の前提で進行し、認証バイパスは追加しない。
-2. Animation/reduced motionの実ブラウザ検証、Phase 6全要件を添付仕様とspec§37/53–56/68–82で最終照合する。時計/日付の追加styleとheaderを実装・再読込/Mobile/日英で検証済み。Google Fonts実読込と架空地域の昼夜判定も確認。実Discord後の表示は留保。
+1. Phase 7 Background Systemへ進む。spec§57〜67/120〜121と添付Phase 7を読み、現在の単色背景を画像/動画/Gradient・URL/Upload/Preset/Libraryへ拡張する。保存先・圧縮・容量・権限・条件AND/OR/優先順位・天気/地域同期を順に実装。既存データと本番を保護する。
+2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
 ## 保存履歴
@@ -195,3 +195,15 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 不具合: 数値のblur保存による設定リスト再描画がcheckbox clickを消した。ヘッダー設定の内容が変わる場合だけ再描画し、再検証成功。地域の未確定入力保持とClose確認、カテゴリ初期化後の入力欄反映を補修。検証専用座標・General/Appearance選択を初期値へ戻し日本語へ復帰、entityとCustom定義を保持。
 
 次は冒頭1の初回ウィザード。Phase 6未完了、Phase 7へまだ進まない。
+
+## Phase 6 ウィザードと機能ゲート（2026-10-02）
+
+初回Wizardを追加。ゲスト8steps、認証済みはDiscord案内なし7steps。各Skip/Back/Later、途中再開、完了後非表示、設定から再実行。設定と進捗を原子的saveSettingsで保存、進捗はtop-level端末専用・同期対象外。背景は実単色選択を実装、画像/動画等はPhase 7へ拡張。
+
+検証1: 全JS構文、onboarding18/appearance42/display21/history19、既存store/IndexedDB/sync/search/favorites回帰成功。最終sync-dataはWizard進捗を送信しない25項目成功。
+検証2: UI/両DBPHP構文84、両DB基盤39/認証HTTP12/sync17成功。Migrationなし、既存7Migrationの検証証拠維持。最新ソース反映。
+検証3: 初回自動表示、Dark保存→再読込でBackgroundから再開、単色反映、SearchのBing未保存をSkipしてGoogle保持、重複キー拒否、Discord案内Skip、完成・再読込で非表示。再実行/Later/再読込Welcome、全Skip、Back、日英・390px（document375/dialog358/content356）、AnimationNone duration0s、設定Escape/外側Close、warn/error0。画像.test-output/phase6-onboarding.png/onboarding-mobile.png（Git除外）。
+
+境界試験で日の出の小数msとDate整数msの誤差による比較不一致を発見。太陽時を整数msへ丸め、日の出Light/日の入りDarkの境界を追加して再成功。検証用背景・外観を初期値へ戻し日本語復帰、Wizard完了済み。既存entity/Custom定義保持。
+
+添付Phase 6の11機能ゲートとspec§53〜56/68〜82をdocs/phase6-gate.mdで照合。Phase 6機能ゲート検証済みとしてPhase 7へ進む。実OAuth/実認証済み名前/Profile、実OS reduced motion切替は未確認を最終監査へ留保。7stepsは認証済み実ブラウザではなく単体確認。Version 1.0未完成。次は冒頭Phase 7手順。

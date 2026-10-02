@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {solarTimes,daytime,themePalette,palettes,fontUrl,fontName,color,bounded,greetingKey,searchStyles} from '../public/assets/js/appearance-core.js';
+import {solarTimes,daytime,themePalette,palettes,fontUrl,fontName,color,bounded,greetingKey,searchStyles,animationLevel} from '../public/assets/js/appearance-core.js';
 const equinox=new Date('2026-03-20T12:00:00Z'),equator=solarTimes(equinox,0,0);
 assert.ok(Math.abs(new Date(equator.sunrise).getUTCHours()-6)<=1);assert.ok(Math.abs(new Date(equator.sunset).getUTCHours()-18)<=1);
 assert.equal(daytime(new Date('2026-03-20T03:00:00Z'),35.7,139.7),true);
@@ -29,4 +29,6 @@ const design=searchStyles({searchWidthMode:'fixed',searchWidth:1200,searchHeight
 assert.equal(design['--search-width'],'900px');assert.equal(design['--search-height'],'72px');assert.equal(design['--search-offset'],'30vh');
 assert.equal(design['--search-background'],'rgba(18,52,86,1)');assert.equal(design['--search-blur'],'0px');
 assert.equal(design['--search-shadow'],'none');assert.equal(design['--search-text'],palettes.light.text);
-console.log('37 appearance core assertions passed.');
+assert.equal(animationLevel('rich',true),'none');assert.equal(animationLevel('low'),'low');assert.equal(animationLevel('bad'),'rich');
+assert.equal(daytime(new Date(equator.sunrise),0,0),true);assert.equal(daytime(new Date(equator.sunset),0,0),false);
+console.log('42 appearance core assertions passed.');

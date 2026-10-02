@@ -400,3 +400,15 @@ settings-history.jsは日時/設定/Previous/New・存在フラグを20件保持
 - Issues: 数値blurでリストを再描画するとcheckbox clickが消える問題を再現。設定内容が変わる場合だけ再描画しフォーカス復元、同じ操作を成功。地域入力の未確定draft/Close確認、保存/Undo/resetの入力値反映も補修。ブラウザのdocument.fonts列挙はread-only wrapper非対応で失敗、アプリ側FontFaceSet.load完了表示を使い実読込確認。
 - Cleanup: General/Appearance初期値、地域入力空、日本語へ復帰。既存entity・Custom保存定義を保持。
 - Remaining: §82可変初回ウィザード、Animation/reduced motionの実UI、Phase 6最終照合。実Discord後の名前/Profile未確認を留保。Phase 6未完了。
+
+### Phase 6 初回ウィザード・機能ゲート（2026-10-02）
+
+- Files: onboarding-core.js/onboarding.js、search接続、単色background設定、settings modal/schema、appearance/core/CSS、ja/en、onboarding-core.test.mjs、sync-data/appearance検証、phase6-gate.md。
+- Wizard: 8steps（認証済み7）、Welcome/Appearance/Background/Search/AI/Favorites・Shortcuts/Discord/Complete。各Skip/Back/Later、再開/完了/再実行。設定と進捗をIDB同一transactionへ保存。進捗は端末専用、設定は既存同期対象。重要draftがある設定画面から再実行する場合は既存confirmを通す。
+- Background: themeまたは実Solid colorを選択・反映。Phase 7で画像/動画/Gradient/ライブラリと圧縮等を追加する。
+- Security/Validation: provider現行ID、theme/animation enum、font size範囲、色hex、予約/重複/履歴キー衝突を拒否。Secret入力/認証バイパスなし。DB/API/Migration変更なし。
+- 検証1: onboarding18/appearance42/display21/history19、全JS構文・既存回帰合格。sync-data25は進捗同期除外を確認。
+- 検証2: UI/両DB構文84、両DB基盤39/auth HTTP12/sync17合格。
+- 検証3: 初回・外観保存/途中再開・単色・SearchSkip不変・重複キー拒否・DiscordSkip・完了/非表示、再実行/Later/Welcome再開・全Skip・Backを日英UIで確認。390px document375/dialog358/content356、warn/error0。AnimationNone 0s、Settings Escape/外側Close。画像phase6-onboarding.png/onboarding-mobile.png（Git除外）。
+- Issue: 日の出境界のfractional msがDateで切り捨てられるためLightにならないことを単体で再現。solarTimesを整数msへ丸め境界2つを再成功。実時刻の精度を過大に主張しない。
+- Gate: docs/phase6-gate.mdで添付の11完了条件とspec§53〜56/68〜82を照合、Phase 6機能ゲート検証済み。実OAuth/名前/Profileと実OS reduced motion切替は最終監査へ留保。認証済み7stepsは単体のみ確認。Phase 7へ進む、Version 1.0未完成。

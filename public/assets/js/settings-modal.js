@@ -88,6 +88,7 @@ export function initializeSettingsModal() {
     const form=document.getElementById('provider-form');
     const pending=()=>dialog.querySelector('[data-pending=true]') || [...form.elements].some(input=>['name','url','prefix','icon'].includes(input.name) && input.value!=='');
     async function closeImportant(){if(await ask(t('settings_discard_confirm'))){form.reset();dialog.dispatchEvent(new CustomEvent('settings-discard'));dialog.close();}}
+    dialog.addEventListener('open-onboarding',async()=>{if(pending() && !await ask(t('settings_discard_confirm')))return;form.reset();dialog.dispatchEvent(new CustomEvent('settings-discard'));dialog.close();dialog.dispatchEvent(new CustomEvent('onboarding-approved'));});
     dialog.addEventListener('cancel',event=>{if(pending()){event.preventDefault();void closeImportant();}});
     dialog.addEventListener('click',event=>{
         const rect=dialog.getBoundingClientRect();

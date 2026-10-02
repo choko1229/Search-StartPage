@@ -20,4 +20,6 @@ AnimationはNone / Low / Standard / Rich（既定）。端末のreduced motion�
 
 ブラウザで時計の64px/等幅/検索欄の下、ヘッダー下/左寄せ/ぼかし8px/サイト名非表示/並べ替え・再読込・390px表示を確認。日本語/英語の設定を確認、架空地域での昼夜テーマ切替とGoogle Fontsの読み込み完了を確認。地域のカテゴリ初期化は座標入力欄も空へ戻す。
 
-残件: 初回オンボーディング、reduced motionの実ブラウザ検証とPhase 6全項目の最終照合。実Discord認証後の名前・Profile表示は未確認を留保。Phase 6全体は未完了。
+初回ウィザードは8steps（ログイン済みはDiscord案内を省く7steps）。Welcome/Appearance/Background/Search/AI/Favorites・Shortcuts/Discord/Completeへ進み、各Skip、Back、Later、設定画面からの再実行に対応。次へ進む際に設定と進捗を同じIndexedDB transactionへ保存する。進捗は端末専用で同期しない。設定は既存の同期対象。背景ステップでは実際の単色を選択でき、画像/動画はPhase 7で追加する。
+
+Phase 6の機能ゲートはdocs/phase6-gate.mdで確認済み。実Discord認証後の名前・Profile、実OS reduced motion切替は未確認を最終監査へ留保。Version 1.0全体は未完成。
