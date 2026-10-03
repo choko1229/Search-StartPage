@@ -85,7 +85,7 @@ function execute(query, target, id, usePrefix = true) {
     const provider = providers(target).find(item => item.id === id) ?? current(target);
     if (!provider) return;
     const url = queryUrl(provider, query); if (!url) return;
-    const go = async () => {record(query, provider.id, target); recordProvider(provider.id); remember(target, provider.id); setSetting('lastMode', target);await recordStatistic(target==='ai'?'ai_search':'search',{provider:provider.id});navigate(url);};
+    const go = async () => {await record(query, provider.id, target); recordProvider(provider.id); remember(target, provider.id); setSetting('lastMode', target);await recordStatistic(target==='ai'?'ai_search':'search',{provider:provider.id});navigate(url);};
     if (provider.copy) {
         document.getElementById('copy-query').value = query;
         pendingAi = go; document.getElementById('ai-copy-dialog').showModal();
@@ -128,7 +128,7 @@ function renderHistory() {
         const open = node('button', item.query, {type: 'button', class: 'history-query'});
         open.addEventListener('click', () => execute(item.query, item.mode, item.provider, false));
         const remove = node('button', t('delete'), {type: 'button', 'aria-label': `${t('delete')} ${item.query}`});
-        remove.addEventListener('click', () => {removeHistory(item.id); renderHistory();});
+        remove.addEventListener('click', async () => {try{await removeHistory(item.id);renderHistory();}catch{status.textContent=t('storage_unavailable');}});
         row.append(open, node('small', new Date(item.at).toLocaleDateString()), remove); container.append(row);
     }
 }
@@ -156,7 +156,7 @@ function renderHistoryArea() {
     }
 }
 window.addEventListener('data-change',event=>{if(event.detail==='history')renderHistoryArea();});
-document.getElementById('history-clear').addEventListener('click', () => {if (confirm(t('confirm_clear_history'))) {clearHistory(); renderHistory();}});
+document.getElementById('history-clear').addEventListener('click', async () => {if (confirm(t('confirm_clear_history'))) {try{await clearHistory();renderHistory();}catch{status.textContent=t('storage_unavailable');}}});
 window.addEventListener('storage-unavailable', () => {status.textContent = t('storage_unavailable');});
 initializeSettings(refresh);
 const settingsModal=initializeSettingsModal();

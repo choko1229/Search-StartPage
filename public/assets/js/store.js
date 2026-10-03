@@ -16,7 +16,11 @@ const revisions=new Map(),pending=new Map();
 const notify=name=>window.dispatchEvent(new CustomEvent('data-change',{detail:name}));
 function enqueue(operation) {
     const result=queue.then(operation);
-    queue=result.catch(error=>{lastError=error;window.dispatchEvent(new CustomEvent('storage-unavailable'));});
+    queue=result.catch(error=>{
+        // Conditional conflicts are retried from current data, not storage failures.
+        if(error.message==='storage_conflict')return;
+        lastError=error;window.dispatchEvent(new CustomEvent('storage-unavailable'));
+    });
     return result;
 }
 export async function flush() {

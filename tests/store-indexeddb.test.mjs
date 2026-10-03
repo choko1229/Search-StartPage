@@ -145,3 +145,27 @@ await assert.rejects(palette.complete(logoutIntent),/storage_conflict/);
 assert.deepEqual(palette.pending(),replacement);assert.equal(await (await store.backgroundFile('racing')).text(),'retained');
 assert.equal(records.get('backgrounds')[0].id,'racing');
 console.log('Palette logout storage: conditional commit rejects another tab replacing the intent before cleanup.');
+
+// The real history module must rebase a stale tab against committed IndexedDB data.
+const historyStore=await import('../public/assets/js/store.js');
+const historyModule=await import('../public/assets/js/history.js');
+await historyStore.flush();
+let storageWarnings=0;window.addEventListener('storage-unavailable',()=>storageWarnings++);
+const otherRow={id:'other-tab',query:'Other tab',provider:'test',mode:'web',at:Date.now()};
+records.set('history',[otherRow]);
+await historyModule.record('This tab','test','web');
+assert.deepEqual(new Set(records.get('history').map(row=>row.query)),new Set(['This tab','Other tab']));
+assert.equal(storageWarnings,0,'expected CAS retry must not display a storage failure');
+const thirdRow={...otherRow,id:'third-tab',query:'Third tab',at:Date.now()};
+records.set('history',[thirdRow,...records.get('history')]);
+await historyModule.removeHistory('other-tab');
+assert.ok(records.get('history').some(row=>row.id==='third-tab'));
+assert.ok(!records.get('history').some(row=>row.id==='other-tab'));
+const beforeFailure=structuredClone(records.get('history'));abortNext=true;
+await historyModule.record('Aborted query','test','web');
+assert.deepEqual(records.get('history'),beforeFailure,'aborted history recording preserves existing data');
+assert.equal(storageWarnings,1,'physical storage failure still emits a warning');
+abortNext=true;await assert.rejects(historyModule.clearHistory(),/quota/);
+assert.deepEqual(records.get('history'),beforeFailure);
+await historyModule.clearHistory();assert.deepEqual(records.get('history'),[]);
+console.log('History: stale-tab append/delete rebase, aborted writes preserve data, clear retry and conflict warning classification passed.');

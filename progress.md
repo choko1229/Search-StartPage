@@ -1002,3 +1002,19 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: 両DBstatistics API各30とNode statistics privacy/offline/reload retry/ACK failure/batching/source/in-flight edits再成功。追加Migration/製品コード変更なし、全16Installer40/PHP180などの直前証拠を維持。git diff --checkを確認する。実DBイベントだけで大規模性能/実Extension/cloud共有/背景/同期/通信障害/ACK失敗/複数tab競合を成功扱いにしない。
 
 次に実行すること: docs/phase9-gate.mdから残るweather/upload/account機能停止・復旧の実UIと背景イベント、実故障再送/複数tabを確認。Update管理は仕様104〜109を満たす実処理へ接続する必要あり、Phase9導線とPhase10実処理の境界を明確にし仮ボタンで完成扱いにしない。LogRetentionのOS定期実行未設定も追跡。承認が来れば専用生成対象の管理者実UIを再prepareして検証・清掃する。Phase9ゲート確定まで次Phaseへ進まない。
+
+## Phase9 実DB障害再送・2タブ競合と履歴Regression補修（2026-10-04）
+
+前ターンはaa36dfb/匿名実検索・AI・favorite・Palette/ゲート監査によりprogress。progress/status/gitから実故障再送へ再開。Phase9進行中、10〜12未着手、Version1.0未完成。管理者実権限操作の承認は回答なし、拒否後に迂回なし。
+
+検証1: 専用search-phase9-roles-20261004-mysql-1だけ停止し、tab28で生成ローカル検索が継続/遷移。アクセスログの統計POSTステータスだけ抽出し503確認。DB復旧→reloadでsearch1→2/visit4→6、次reload+tab29でvisit8でもsearch2のまま。実2タブのボタンを同時実行してsearch2→4/visit8→10、イベント欠落/重複なし。DBはhealthyへ復旧済み。認証情報/識別子/生ログを出さず一時CLI集計を使用。
+
+発見/修正: 上記2タブで履歴Aが欠落。history.jsのrecord/remove/clear/起動時期限整理が古い配列のset上書きだった。全て条件付きsetManyと最新データ再適用へ変更し、検索はrecordのcommitを待って遷移、保存不能でも検索継続。削除UIはawait成功後に更新。store.jsの期待されたstorage_conflictで保存不能警告を出す問題も除外し、実quota障害は従来警告を維持。既に失われた旧A履歴の復元はしていない。
+
+検証2: Node IndexedDB試験にstale-tab append/delete rebase、実abortで既存保持、clear abort/retry、CAS誤警告なし/物理失敗警告ありを追加成功。search23/preferences18/store14/sync-data28/session37/merge23/account既存+ownership/background ACK/session/upload intents/recovery/statistics queue成功。history/search/storeのJS構文成功。両DBstatistics API各30再成功、製品JSは両8099/8100へ反映。PHP/Migration変更なし、直前180/全16Installer40証拠を維持。
+
+検証3: 修正後実2タブで生成A/Bが両方履歴保持。初回CAS誤警告を見つけstore補修、最終別C/D実同時検索も両行保持・旧A/Bも残る。最後の入力は遅れて開いたWizardでtarget mismatch、同tab DOMで阻止を確認してあとで続ける後に再成功。最終両Console0、保存不能誤表示なし。画像phase9-statistics-retry-history保存・目視。DB最終search8/visit18/その他6、7集計区分32件。一時observerコンテナから除去、専用端末設定/生成query/history/favorite/匿名eventを保持。tab28履歴画面/tab29ホームをhandoff。
+
+残る確認: 実端末のACK保存失敗、完全network offline、多数tabstress、実Extension、backgroundfeature/syncイベント、大規模統計、weather/upload/account停止実UI。DB障害と実2タブが通ってもこれらを成功扱いにしない。docs/phase9-gate.md更新。
+
+次に実行すること: 残るPhase9機能停止・復旧の実UIと背景イベントを専用環境で確認。90日ログ定期実行とUpdate Management/Phase10実処理の接続を仕様に従って進める。管理者実UIは明示承認が来れば専用fixtureで検証・清掃。Phase9ゲート確認まで次Phaseへ進まない。
