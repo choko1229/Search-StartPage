@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {appendPreset} from '../public/assets/js/provider-presets.js';
+import {syncDocument} from '../public/assets/js/sync-data.js';
+const custom={id:'custom',name:'User choice',prefix:'own',url:'https://example.test/?q={query}',enabled:true};
+const preset={id:'newpreset',name:'New default',prefix:'new',url:'https://example.test/search?q={query}',enabled:false,sortOrder:99};
+const saved=[custom];const added=appendPreset(saved,preset,saved);
+assert.equal(saved.length,1);assert.equal(preset.enabled,false);assert.deepEqual(added[0],custom);
+assert.equal(added[1].enabled,true);assert.equal(added[1].sortOrder,1);assert.notEqual(added[1],preset);
+assert.throws(()=>appendPreset(saved,preset,[{...custom,prefix:'NEW'}]));
+assert.throws(()=>appendPreset(saved,preset,[{...custom,id:'newpreset'}]));
+assert.throws(()=>appendPreset(saved,{...preset,url:'javascript:alert(1)'},saved));
+const state={'providers-web':saved};const defaults={web:[preset],ai:[]};
+assert.deepEqual(Object.keys(syncDocument(state,defaults)['providers-web']),['custom']);
+assert.equal(syncDocument({'providers-web':added},defaults)['providers-web'].newpreset.sortOrder,1);
+console.log('Provider presets preserve saved lists, reject conflicts and remain sync compatible.');

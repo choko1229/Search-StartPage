@@ -225,4 +225,8 @@ return [
     'statistics_retention'=>'D7 retention','statistics_retention_help'=>'Anonymous devices first active in the selected period that were active again on the seventh UTC day. Only cohorts with a fully elapsed seventh day by the period end and today are included. The numerator counts returning devices and the denominator counts eligible devices.',
     'statistics_no_cohort'=>'No eligible cohort','statistics_search_engines'=>'Search engine usage','statistics_ai_providers'=>'AI provider usage','statistics_features'=>'Feature usage','statistics_sources'=>'Web / Extension ratio (events)','statistics_empty'=>'No events in this period.',
     'statistics_daily'=>'Daily activity','statistics_daily_table'=>'Show daily values','statistics_date'=>'Date',
+    'admin_presets'=>'Search and AI presets','presets_web'=>'Search engine presets','presets_ai'=>'AI provider presets',
+    'presets_help'=>'These defaults apply to devices that have not saved their own provider list. Existing local or cloud lists remain intact. Reload to receive changes. Each group needs at least one enabled entry. Prefixes and IDs must be unique across both groups. Up to 50 entries per group. Fill in the blank entry to add a provider; save to add another. URL templates use {query}; AI providers may instead offer copying. Entries with smaller order values appear first.',
+    'presets_new'=>'Add a preset','presets_id'=>'Stable ID','presets_name'=>'Name','presets_url'=>'URL template','presets_prefix'=>'Prefix','presets_icon'=>'Icon text','presets_sort_order'=>'Order','presets_enabled'=>'Enabled','presets_copy'=>'Offer query copying','presets_remove'=>'Remove from defaults',
+    'provider_preset_choose'=>'Available presets','provider_preset_add'=>'Add preset',
 ];

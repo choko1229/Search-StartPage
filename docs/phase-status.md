@@ -1110,3 +1110,20 @@ Phase9進行中、10〜12未着手、Version1.0未完成。匿名収集基盤と
 未確認: 大規模統計性能、全ブラウザ/Extension実収集、統計の実検索/AI/favorite/背景/Palette送信と故障再送/実複数タブ競合、実DiscordOAuth。匿名収集からの実feature同期イベントはENホーム遷移後UIで2件表示、生成fixtureaccountの通常同期であり実OAuthの証拠ではない。
 
 次に実行すること: spec92/添付Phase9のPresetsを既存provider/default bootstrapと接続し管理API/日英UI/監査/権限を実装。続いて管理者追加解除/最後の管理者保護/容量操作/Update導線。全14空DBInstaller往復、EN管理Save/統計期間操作、天気/背景upload/account停止実UI、統計実端末収集を継続。統計指標はdocs/statistics.mdに定義を保存、Phase9ゲート前にPhase10へ進まない。
+## Phase9 検索・AIプリセット管理と全15Installer（2026-10-04）
+
+前のGoalターンは統計集計d383d7b/両48/実JA期間と日英mobileによりprogress。progress/status/git/spec13〜19/92から次のPresetsへ再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+実装: ProviderPresets/PresetState/ProviderPresetRepository/AdminPresetsController、管理API GET/POST /api/admin/presets・HTML /admin/presets、公開 /api/provider-presets、home bootstrap、dashboard導線、日英フォーム。全体versionによる409/CSRF/server admin/厳密schema/HTTP(S) URL認証情報禁止/IDとPrefix全分類一意/各最低1enabled/順序。保存と監査before/after/actor/versionを同一transaction、file outbox、private排他cache失効・再公開。通常homeはcacheを利用しDB不能時は同梱値で端末検索を維持。個人の保存済み一覧はそのまま使い、利用者の検索設定から追加可能なpresetを明示追加する導線を実装。
+
+Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとlog_entries.context_jsonをMEDIUMTEXTへ拡張。大きいcatalog/beforeafter監査を切り詰めない。test-only downは既存設定/監査が64KiB超なら拒否して保護。公開形式の並び順は既存同期のsortOrder、管理内部はsort_order。新しいpresetIDの匿名統計はcustom分類で名前/URLを送らない。
+
+検証1: 既存専用8095/8096へ015追加、最終API/DB各36成功。権限/CSRF/不正URL/余分field/bool/重複/空enabled/順序/CAS、public更新とHEX Escape、日英編集HTML、同じ通常HTML保存、DB/file audit、再seedで編集保持、64KiB超catalog/audit、cacheでDBloader未呼出、権限剥奪。fixtureだけfinally削除、初期preset復元。最初HTML試験は303を200として失敗判定していたため303+GET200へ修正。同期仕様の監査でsort_orderを公開するとSyncDocumentが拒否することを発見し、sortOrder投影と実server validator試験で修正。実同期リクエストで新presetを編集するブラウザ検証は未実行。
+
+検証2: Node provider-presets保存済み保持/disabledpreset明示有効化/衝突/安全URL/同期互換成功、search23/sync-data28、JS構文成功。tests/docker.ps1へadmin-presets追加、Parser/git diff --check成功。UI追加は純粋処理の試験で、実ユーザー操作の証拠ではない。
+
+検証3: 新規search-phase9-presets-20261004を独立DB/config/storage volumesでbuildしMySQL8097/MariaDB8098で空DB全15up/repeat/down/Web Installer再up各40成功。これにより全14Installer未確認を最新全15で解消。続けて各presets36/statistics admin48/collection30/admin64/policy29/sync17/cloudAPI52/searchAPI/auth43/基盤39/PHP175成功。プロセス39825/13621/90698すべて正常終了。codecなしのimageであり圧縮環境の既存証拠と区別。既存8095/96等のconfig/storage/volumesを保持。最新Docker runner変更はhostのみ、製品コードは新imageに反映済み。
+
+未確認: プリセット実管理ブラウザ保存/追加/削除/日英mobile/Console、ユーザー検索設定からのpreset追加と保存済み一覧保持、cache破損/実DB停止、大量同時編集、実Extension。今回はブラウザ操作を実行しておらず以前のtab23 EN統計ログイン要求等を最新UI成功の証拠にしない。実DiscordOAuth/全browser/大規模統計性能などの留保を維持。
+
+次に実行すること: docs/admin-presets.mdとdocs/admin-ui-testing.mdに従い新環境localhost8097でwww-data所有の専用短期fixtureを準備し、JA/ENの管理preset保存/追加/削除・mobile/Consoleと利用者のpreset追加/既存一覧保持を実検証。認証fixture清掃後の画面を保存成功と誤認しない。続いて管理者追加解除/最後の管理者保護/容量操作/Update導線、EN管理Save/統計期間操作と残る機能停止/統計実端末試験。Phase9ゲート確定前にPhase10へ進まない。

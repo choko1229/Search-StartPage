@@ -22,7 +22,14 @@ if (!$config->get('installed') && App\Http\Transport::allowsLocalHttp($_SERVER))
 Session::start($sessionConfig);
 $translator = new Translator($root, $_SESSION['locale'] ?? Translator::preferred($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? ''));
 $view = new View($root, $translator);
-$core = new CoreController($config, $view);
+$presetState=new App\Services\PresetState($root.'/storage/presets');
+$resolvePresets=static function()use($presetState,$config):array {
+    try{return App\Services\ProviderPresets::client($presetState->resolve(static function()use($config):array {
+        $pdo=App\Database\Database::connect($config->get('database'));
+        return (new App\Repositories\ProviderPresetRepository($pdo))->read()['presets'];
+    }));}catch(Throwable){return App\Services\ProviderPresets::client(App\Services\ProviderPresets::defaults());}
+};
+$core = new CoreController($config, $view,$resolvePresets);
 $installer = new InstallerController(new InstallationService($root), new EnvironmentCheck($root), $view, new FileLogger($root . '/storage/logs'));
 $router = new Router();
 if ($config->get('installed')) {
@@ -73,6 +80,18 @@ if ($config->get('installed')) {
         $router->add('GET',$path,$policyHandler('read'),[$adminMiddleware]);
         $router->add('POST',$path,$policyHandler('update'),[$adminMiddleware,new Csrf()]);
     }
+    $presetsHandler=static function(string $method)use($resolveAdmin,$config,$presetState,$view):Closure {
+        return static function(Request $request)use($resolveAdmin,$config,$presetState,$view,$method):App\Http\Response {
+            [$auth,,,$audit]=$resolveAdmin();
+            try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            return (new App\Controllers\AdminPresetsController(new App\Repositories\ProviderPresetRepository($pdo),$presetState,$auth,$audit,$view))->$method($request);
+        };
+    };
+    foreach(['/admin/presets','/api/admin/presets'] as $path){
+        $router->add('GET',$path,$presetsHandler('read'),[$adminMiddleware]);
+        $router->add('POST',$path,$presetsHandler('update'),[$adminMiddleware,new Csrf()]);
+    }
+    $router->add('GET','/api/provider-presets',static fn(Request $request):App\Http\Response=>App\Http\Response::json(['presets'=>$resolvePresets()]));
     $router->add('GET','/api/site-policy',static fn(Request $request):App\Http\Response=>App\Http\Response::json(['flags'=>$resolvePolicy()['flags']]));
     $statisticsReport=static function(Request $request)use($config,$view):App\Http\Response {
         try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}

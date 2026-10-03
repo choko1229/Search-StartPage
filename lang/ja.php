@@ -225,4 +225,8 @@ return [
     'statistics_retention'=>'7日後の再利用率（D7）','statistics_retention_help'=>'指定期間に初めて利用した匿名端末が、UTCで7日後に再利用した割合です。期間終了時と今日の時点で7日後の一日が完了している端末だけを対象にします。分子は再利用端末数、分母は対象端末数です。',
     'statistics_no_cohort'=>'集計対象の端末はありません','statistics_search_engines'=>'検索エンジンの利用','statistics_ai_providers'=>'AIプロバイダーの利用','statistics_features'=>'機能の利用','statistics_sources'=>'Web／Extensionの比率（イベント数）','statistics_empty'=>'この期間のイベントはありません。',
     'statistics_daily'=>'日別の利用','statistics_daily_table'=>'日別の数値を表示','statistics_date'=>'日付',
+    'admin_presets'=>'検索・AIプリセット','presets_web'=>'検索エンジンのプリセット','presets_ai'=>'AIプロバイダーのプリセット',
+    'presets_help'=>'独自の検索先一覧を保存していない端末に初期値として適用されます。保存済みの端末・クラウド一覧は維持されます。変更の反映には再読込が必要です。各分類に有効な項目を最低1件残し、IDとPrefixは分類をまたいで重複させないでください。各分類50件まで。空欄の項目に入力して保存すると追加でき、次の空欄が表示されます。URLには{query}を使います。AIではコピー案内も利用できます。並び順の小さい項目から表示されます。',
+    'presets_new'=>'プリセットを追加','presets_id'=>'固定ID','presets_name'=>'名前','presets_url'=>'URLテンプレート','presets_prefix'=>'Prefix','presets_icon'=>'アイコン文字','presets_sort_order'=>'並び順','presets_enabled'=>'有効化','presets_copy'=>'検索文のコピー案内','presets_remove'=>'初期値から削除',
+    'provider_preset_choose'=>'追加できるプリセット','provider_preset_add'=>'プリセットを追加',
 ];

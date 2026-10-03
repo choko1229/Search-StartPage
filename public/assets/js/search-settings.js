@@ -1,4 +1,5 @@
-import {t, node} from './i18n.js';
+import {t, node, presets} from './i18n.js';
+import {appendPreset} from './provider-presets.js';
 import {recordStatistic} from './statistics.js';
 import {setting, setSetting} from './store.js';
 import {providers, saveProviders} from './providers.js';
@@ -63,6 +64,18 @@ export function initializeSettings(refresh) {
         }
         preferences.append(node('p', t('external_suggest_privacy'), {class: 'muted'}));
         const items = providers(kind.value, false);
+        const allProviders=[...providers('web',false),...providers('ai',false)];
+        const choices=presets[kind.value].filter(row=>!allProviders.some(saved=>saved.id===row.id));
+        const picker=node('div',undefined,{'data-setting':'preset-picker'});
+        const label=node('label',t('provider_preset_choose'));
+        const select=node('select',undefined,{'aria-label':t('provider_preset_choose')});
+        for(const row of choices)select.append(node('option',row.name,{value:row.id}));
+        const add=node('button',t('provider_preset_add'),{type:'button'});add.disabled=choices.length===0;select.disabled=choices.length===0;
+        add.addEventListener('click',()=>{
+            try{saveProviders(kind.value,appendPreset(items,choices.find(row=>row.id===select.value),allProviders));error.textContent='';render();refresh();}
+            catch{error.textContent=t('invalid_provider');}
+        });
+        label.append(select);picker.append(label,add);preferences.append(picker);
         const list = document.getElementById('provider-list'); list.replaceChildren();
         items.forEach((item, index) => {
             const row = node('div', undefined, {class: 'provider-row'});
