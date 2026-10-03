@@ -2,7 +2,7 @@ export const commandCategories=['commands','favorites','search','ai','settings',
 const weights={commands:300,favorites:250,search:225,ai:225,settings:180,tags:120,folders:120,history:80};
 const normalize=value=>String(value).normalize('NFKC').toLocaleLowerCase().trim().replace(/\s+/gu,' ');
 const forbidden=new Set(['__proto__','constructor','prototype']);
-const validId=value=>typeof value==='string'&&/^[a-zA-Z0-9:_-]{1,160}$/.test(value)&&!forbidden.has(value);
+const validId=value=>typeof value==='string'&&/^[a-zA-Z0-9:_-]{1,512}$/.test(value)&&!forbidden.has(value);
 const validText=value=>typeof value==='string'&&value.trim()!==''&&value.length<=512;
 const subsequence=(needle,haystack)=>{let at=0;for(const character of haystack){if(character===needle[at])at++;if(at===needle.length)return true;}return false;};
 function statistics(usage,id,now) {

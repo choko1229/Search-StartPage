@@ -15,3 +15,7 @@
 新規tests/command-registry.test.mjsとcommand-executor.test.mjs、既存回帰を含む全JS30が成功。新規モジュールはまだsearch.jsにimportしていない。PHP/API/DB/Migration変更なし。Phase7の既存検証を維持。UI・レスポンシブ・console・実操作は今後検証する。
 
 次の接続ではFavorites/Providers/History/Settingsの既存処理を利用する。テーマ/背景/検索先/AI変更、Favorite追加/削除、履歴消去、Login/Logout、Random Backgroundを実操作へ接続し、実行/取消/次回から確認しないと操作別設定を検証する。確認省略でサーバー権限/CSRFを省略してはいけない。Usageは実行成功後に記録し、検索/取消/失敗を使用として数えない。
+
+## 製品接続（2026-10-03）
+
+Palette画面とCtrl+K/キーボード、5初期groups、8カテゴリの製品登録、列挙操作、実確認画面、操作別確認設定/原子保存、成功usageを実装。JA/ENでテーマ変更（Cancel/確認なし/再ON）と設定移動、recent/frequentの再読込保持、検索先Cancel、390px/console0を確認。全JS30、両DB基盤39/認証42成功。お気に入り/tag/folder/history等のPalette実操作、background/provider実変更、logout/同期削除回復、拡張登録、保存失敗・ARIA監査は未確認。Phase8の完了判定はまだ行わない。

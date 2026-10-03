@@ -8,7 +8,7 @@ export const categoryKeys={
     background:['backgroundMode','backgroundColor','backgroundSelected','backgroundSwitch','backgroundInterval','backgroundLibrarySort'],
     appearance:['theme','themeTransition','themeRegion','customThemeId','fontMode','googleFont','customFontUrl','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','animationLevel','searchPosition','searchWidthMode','searchWidth','searchHeight','searchBackground','searchOpacity','searchBlur','searchBorder','searchBorderWidth','searchRadius','searchShadow','searchText','searchPlaceholder'],
     sync:['syncEnabled','syncHistory'],
-    shortcuts:['webKey','aiKey','historyKey'],
+    shortcuts:['webKey','aiKey','historyKey','commandConfirmations'],
     privacy:['saveHistory','externalSuggest','clearSyncedOnLogout'],
 };
 export const categoryOf=key=>key==='customThemes'?'appearance':categories.find(category=>categoryKeys[category].includes(key)) || 'general';

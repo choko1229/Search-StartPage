@@ -114,3 +114,4 @@ dialog [data-close] { float: right; }
  }
 
 .background-entry {display:flex;flex-direction:column;gap:.35rem;min-width:0;width:10rem;max-width:100%;} .background-entry button {overflow-wrap:anywhere;} .background-thumbnail {height:5.5rem;border-radius:.5rem;overflow:hidden;} .background-thumbnail img,.background-thumbnail video {width:100%;height:100%;display:block;}
+.command-palette input {width:100%;} #palette-results {max-height:50vh;overflow:auto;} #palette-results [role=option] {display:flex;justify-content:space-between;gap:1rem;width:100%;margin-block:.35rem;text-align:left;overflow-wrap:anywhere;} #palette-results [aria-selected=true] {outline:2px solid var(--accent);outline-offset:-2px;} #palette-results small {flex-shrink:0;} .command-confirmation label {display:block;margin-block:1rem;} #settings-shortcuts fieldset label {display:block;margin-block:.5rem;}

@@ -231,3 +231,7 @@ new ResizeObserver(entries => {
 }).observe(section);
 initializeLayoutSettings();
 render();
+export function focusFavorites({folder='',tag=''}={}) {
+    folderId=folders().some(row=>row.id===folder)?folder:'';tags.clear();if(tag)tags.add(tag);
+    filter.value='';render();section.scrollIntoView({block:'start'});filter.focus();
+}

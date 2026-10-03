@@ -100,4 +100,5 @@ export function initializeSettingsModal() {
     link?.addEventListener('click',event=>{event.preventDefault();document.getElementById('search-settings-open').click();});
     if(location.hash==='#settings')document.getElementById('search-settings-open').click();
     select(category);renderHistory();
+    return {open(name='general'){document.getElementById('search-settings-open').click();select(categories.includes(name)?name:'general');}};
 }

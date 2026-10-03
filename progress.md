@@ -609,3 +609,19 @@ command-executor.jsを実装。state操作は既定confirm、操作ごとのfals
 docs/phase8-gate.mdに7完了条件の実装・未実装を記録。新規coreは実装済みだがsearch.jsにimportされず、Palette画面/データ登録/列挙操作/確認設定の永続化は未実装。Phase8途中保存、Phase9〜12未着手、Version1.0未完成。Phase7機能ゲート確定コミット7bb4832。実OAuth等の未確認留保は継続。
 
 次に実行すること: command-palette.jsでCtrl+K/modal/キーボード/8カテゴリ検索結果/5初期groupsを製品へ接続。既存Favorites/Providers/History/Settingsの公開関数・イベントを確認して列挙実操作を登録する。command executorへ実確認dialogとsaveSettingsによる操作別confirm設定を接続し、成功後のusage永続化、登録解除/データ変更に追従。JA/EN/mobile実UIと両DB回帰を検証してからPhase8完了判定。
+
+## Phase8 製品画面・操作の接続（2026-10-03）
+
+command-palette.js/palette-product-commands.jsを追加しsearch.jsで起動。Ctrl+Kとボタン、modal検索/listbox/矢印/Home/End/Enter/Escape、初期5groups、検索empty、実行失敗statusを接続。成功後commandUsageをIndexedDBへ原子的保存（500件）、保存できなくても既存storage警告経路で操作継続。新機能はexport paletteCommands.registerで追加できる。標準runが返す移動callbackはusage保存・Paletteを閉じた後に実行する。
+
+既存Favoriteを開く/追加/削除、フォルダ/タグ絞り込み、履歴を開く/再検索/全消去、カテゴリ設定を開く、6テーマ/Customテーマ・背景選択/Random Background、検索先/AI変更、Login/account移動・JSON logout APIを登録。settingsModal.openとfocusFavoritesを追加し既存処理を再利用。データ変更時に登録を更新、タグIDを文字のcode point列から安定導出（順序変化でusageを別タグへ誤付与しない）。ID上限512に拡張。title/keywordsはtextContentのみ。
+
+state確認dialogは実行/取消/次回から確認しない。操作key単位のboolean設定をatomic setManyで保存。ショートカットカテゴリに7種の確認設定を追加しカテゴリresetへ接続。確認省略で権限/CSRFを省略しない。コード監査でLogoutの接続先がHTML /auth/logoutだったため、既存JSON /api/auth/logoutへ修正（実OAuth検証は行わず）。JA/EN key追加時、既存palette_backgroundと競合する命名を変更し外観のラベルを保持。
+
+検証1: 全JS30単体成功、新規Palette/登録/検索接続の構文成功。タグID安定化後にregistry/executor専用単体も再成功、git diff --check成功。今回は製品data adapterの専用単体は未追加、実UI証拠と区別。
+検証2: 隔離8083/8084で翻訳key一致含むPHP基盤各39、JA/EN構文、既存認証HTTP/API回帰各42成功。JSON logout/CSRF/長期cookie/owner/current-device/失効を確認。DB/API/Migration追加なし、9Migration Installer往復40の直前証拠維持、今回はInstaller再実行なし。実OAuth成功とは扱わない。
+検証3: 実8083ゲストUIでCtrl+K起動→テーマquery→Enter→確認Cancel→再Enter/次回確認なし/実行でDarkへ変更→初期recent/frequentへ反映→Lightを確認なしで変更→Open settingsで実設定dialog、設定履歴にDark/Lightを確認。ショートカット確認設定でテーマ確認を再ON、検索先確認が別途ON維持。Bing Enterの確認を取消、empty queryの該当なし、背景検索を390px document375/scroll375で確認。EN切替（reload）後もrecent/frequent維持、Darkで確認再表示/取消を確認。warn/error0。画像.test-output/phase8-palette-mobile.png/phase8-palette-en.pngを保存・目視確認。最後にJAへ戻しtab16 handoff、viewport reset。JA再起動のWizardが開く場合は次回あとで続けるで閉じる。
+
+今回のUI検証はテーマ/設定/検索先Cancelが中心。お気に入り/tag/folder/history/provider実変更/background/Random/Delete/ログインlogoutの実Palette操作は未確認。確認省略の設定共有、storage失敗時の製品UI、ARIA詳細、拡張登録の実画面も後続検証。Phase8未完了、Phase9〜12未着手、Version1.0未完成。app config/既存DBvolume/背景ファイルを保持、public/langは8083/4に反映。
+
+次に実行すること: 専用検証Favorite・Folder・Tag・HistoryをUIで作り8カテゴリの横断操作と実actionを確認。検索先/AI変更、背景/ランダムと確認、確認設定reset/保存失敗/再読込を検証。Palette product adapter/logoutのテスト可能な境界を分離し実HTTP成功/失敗に接続、許可済み隔離認証でLogoutとclearSyncedOnLogoutの回復も確認。未確認を成功にせずPhase8ゲート判定まで実装・修正を続ける。
