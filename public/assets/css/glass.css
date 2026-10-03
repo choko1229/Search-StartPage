@@ -51,6 +51,10 @@ body .search-tools button { font-size: .8rem; padding: .45rem .75rem; }
 body .search-tools [role=group] { padding: .25rem; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--glass-surface); backdrop-filter: blur(16px); }
 body .search-tools [role=group] button { padding: .35rem .9rem; border-radius: 10px; }
 body .search-box { align-items: center; }
+body .search-symbol { width: 24px; height: 24px; margin-left: .8rem; flex-shrink: 0; color: var(--search-placeholder, var(--muted)); }
+body #search-execute { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; padding: .6rem; border-radius: 50%; }
+body #search-execute svg { width: 24px; height: 24px; }
+body .search-box textarea { resize: none; }
 body .search-box select { background: transparent; border-right: 1px solid var(--glass-line); border-radius: 0; padding-inline: .75rem; }
 body .search-box textarea { align-self: stretch; padding-inline: .65rem; }
 body .search-mode-switch { display: flex; align-items: center; flex-shrink: 0; padding: .2rem; border-radius: 999px; background: color-mix(in srgb, var(--muted) 12%, transparent); }
@@ -68,12 +72,21 @@ body .custom-header[data-alignment=right] [data-header-item=brand] { margin-righ
 body #search-help { font-size: .72rem; text-align: center; margin-top: .9rem; }
 body .provider-shortcuts { justify-content: center; gap: .6rem; }
 body .provider-shortcuts button { border: 0; background: var(--glass-surface); color: inherit; border-radius: 999px; padding: .4rem .8rem; }
-body #favorites-section { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-line); }
-body .favorite-item { border-color: var(--glass-line); border-radius: 18px; background: var(--glass-surface); backdrop-filter: blur(16px); }
+body #favorites-section { margin-top: 1.8rem; padding-top: 1rem; border-top: 1px solid var(--glass-line); }
+body .favorite-item { border-color: var(--glass-line); border-radius: 18px; background: color-mix(in srgb, var(--panel) 58%, transparent); backdrop-filter: blur(16px); }
+body .favorite-item:hover, body .favorite-item:focus-within { background: var(--glass-surface); box-shadow: 0 8px 24px #0002; }
+body .favorite-name { font-weight: 500; font-size: .8rem; }
+body #favorite-add, body #folder-manage { background: transparent; color: inherit; border-color: var(--glass-line); padding: .4rem .7rem; font-size: .8rem; }
+body #favorite-filter { background: color-mix(in srgb, var(--panel) 45%, transparent); border-color: var(--glass-line); padding: .55rem .8rem; font-size: .8rem; }
 body .favorites-toolbar button, body .favorites-toolbar input, body .favorites-toolbar select { font-size: .8rem; }
 body #favorites-section > details { font-size: .8rem; margin-bottom: 1rem; color: var(--muted); }
 body #favorites-section > details summary { cursor: pointer; }
-body #folder-tabs button { font-size: .8rem; border-radius: 999px; }
+body #folder-tabs button { font-size: .8rem; border-radius: 0; background: transparent; color: var(--muted); border: 0; border-bottom: 2px solid transparent; padding: .5rem 1rem; }
+body #folder-tabs [aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+    body .favorite-menu-button { opacity: 0; }
+    body .favorite-item:hover .favorite-menu-button, body .favorite-item:focus-within .favorite-menu-button { opacity: 1; }
+}
 body dialog { border-radius: 24px; padding: 1.5rem; }
 body dialog::backdrop { background: #07152566; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 body dialog h2 { font-size: 1.25rem; letter-spacing: -.03em; margin-bottom: 1rem; }
@@ -96,7 +109,7 @@ body .settings-content .preference { font-size: .85rem; padding-block: .25rem; }
     body .panel { border-radius: 20px; padding: 1.25rem; }
     body .search-tools { flex-wrap: wrap; }
     body .search-tools button { padding-inline: .6rem; }
-    body .search-box textarea { flex: 1 1 100%; }
+    body .search-box textarea { flex: 1 1 calc(100% - 58px); min-width: 0; }
     body .search-box .search-mode-switch { margin-left: .35rem; }
     body .search-box select { flex: 1; max-width: none; }
     body #favorites-section { margin-top: 2rem; }

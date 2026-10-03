@@ -8,6 +8,7 @@
         <button type="button" id="search-settings-open" class="secondary"><?= $e($t->get('search_settings')) ?></button>
     </div>
     <div class="search-box">
+        <svg class="search-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg>
         <label class="sr-only" for="provider"><?= $e($t->get('provider')) ?></label>
         <label class="sr-only" for="query"><?= $e($t->get('search_input')) ?></label>
         <textarea id="query" rows="1" maxlength="12000" placeholder="<?= $e($t->get('search_placeholder')) ?>" role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false" aria-describedby="search-help ai-hint"></textarea>
@@ -16,7 +17,7 @@
             <button type="button" id="mode-ai" aria-pressed="false"><?= $e($t->get('ai_mode')) ?></button>
         </div>
         <select id="provider"></select>
-        <button type="button" id="search-execute"><?= $e($t->get('search')) ?></button>
+        <button type="button" id="search-execute" aria-label="<?= $e($t->get('search')) ?>" title="<?= $e($t->get('search')) ?>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
     </div>
     <p id="ai-hint" hidden><?= $e($t->get('ai_recommend')) ?></p>
     <ul id="suggestions" role="listbox" aria-label="<?= $e($t->get('suggestions')) ?>" hidden></ul>

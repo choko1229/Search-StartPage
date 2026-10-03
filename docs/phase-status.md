@@ -1263,3 +1263,15 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: 両DBへ更新fixture反映、構文、通常prepare/cleanup成功。policy各29/background API各56/weather各73/statistics各30成功。実行session57679をpollしexit0。Node weather-context disable/recovery、background transport/session/upload intents/recovery/ACK、statistics privacy/queue成功。新規Migrationなし、直前全16Installer/PHP180と基盤40の証拠を維持。git diff --check確認。
 
 次に実行すること: 地域設定の一過性保存警告を複数tab/同期の競合で再現し、実データ保持と原因を調べて修正。必要なら安全なエラー分類の試験を追加する。EN weather/upload停止表示、生成背景の所有者切替/清掃故障を確認。Glassブランドアイコン/密度/明暗/accountとLogRetention定期実行・Update管理もPhase9残件として継続。管理者実権限変更は明示承認待ちで迂回なし。全DoDまでGoal完了にしない。
+
+## 参考画像に合わせた検索・お気に入りの整理（2026-10-04）
+
+最新のユーザー参考画像を優先し、既存Glass外観を追加調整。検索欄に装飾SVGの虫眼鏡と矢印ボタンを追加（翻訳済みaria-label/titleを維持）、textareaのresize操作を非表示。お気に入りの並び順/表示形式/非表示切替を既存Favorite設定へ集約。各IDとハンドラは保持し、検索filterはホームに維持。folder tabを下線表示へ、tileを半透明58%へ、補助ボタンを軽くし、hover対応端末だけmenuをhover/focus-withinで表示。touch端末では常時表示。検索・配置の明示設定は引き続き優先。Migration/DB変更なし。
+
+検証1: Node favorites CRUD/検証/並び替え/shortcut/statistics成功、favorites-layout16/search23/preferences18/appearance42成功。
+検証2: 隔離MySQL8099/MariaDB8100へView/CSSを反映、基盤各40成功、変更View両方のPHP構文両環境成功。
+検証3: browser2/tab6、JA/EN通常UIでWeb/AI切替、settings Favoriteカテゴリにsort/display/show hiddenが存在、cardへ変更しURL/統計行を確認後icon-nameへ復元。filter GitHubで1件→clearで4件。既存生成背景/お気に入りは保持、プレビューだけmanual/夕暮れのテラスを再選択。mobile実測viewport390/document375/scroll375/search343で横溢れなし、Console warn/error0。初回AI操作は遅れたWizardに遮られ、閉じて再実行した成功だけ採用。日英言語変更/reloadで設定を保持。画像glass-refined-desktop-ja.png/mobile-ja.pngを保存・目視、viewport reset、日本語Webのtab6をdeliverable。
+
+旧tab6には開始時に保存警告が残っていたがreloadで消失。今回その原因を解決した証拠にはしない。地域設定/複数tab競合Regressionを次の優先事項として維持。
+
+次に実行すること: 地域保存の一過性警告の再現・原因・保持範囲を確認。Glassのブランドアイコン、読みやすさ、account画面の仕上げを継続。Phase9のEN weather/upload停止、清掃故障、LogRetention定期実行、Update管理の残件を追跡。Phase9進行中、10〜12未着手、Version1.0未完成。管理者実権限操作の明示承認待ちは維持し迂回しない。spec.mdを変更/stageしない。

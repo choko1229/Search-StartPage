@@ -7,6 +7,15 @@
     </div>
     <div id="folder-tabs" role="tablist" aria-label="<?= $e($t->get('folders')) ?>"></div>
     <details><summary><?= $e($t->get('favorite_options')) ?></summary>
+        <div class="favorites-toolbar">
+            <select id="favorite-sort" aria-label="<?= $e($t->get('sort')) ?>">
+                <?php foreach (['manual','usage','recent','name'] as $sort): ?><option value="<?= $e($sort) ?>"><?= $e($t->get($sort)) ?></option><?php endforeach; ?>
+            </select>
+            <select id="favorite-display" aria-label="<?= $e($t->get('display')) ?>">
+                <?php foreach (['icon-name','icon','card','auto'] as $display): ?><option value="<?= $e($display) ?>"><?= $e($t->get($display)) ?></option><?php endforeach; ?>
+            </select>
+            <label><input type="checkbox" id="favorite-show-hidden"><?= $e($t->get('show_hidden')) ?></label>
+        </div>
         <label><input id="favorite-context-setting" type="checkbox"><?= $e($t->get('favorite_context_setting')) ?></label>
         <label><input id="favorite-stats-setting" type="checkbox"><?= $e($t->get('favorite_stats_setting')) ?></label>
         <label><?= $e($t->get('favorite_search_setting')) ?><select id="favorite-search-setting">
@@ -18,13 +27,6 @@
     </details>
     <div class="favorites-toolbar">
         <input id="favorite-filter" type="search" aria-label="<?= $e($t->get('find_favorites')) ?>" placeholder="<?= $e($t->get('find_favorites')) ?>">
-        <select id="favorite-sort" aria-label="<?= $e($t->get('sort')) ?>">
-            <?php foreach (['manual','usage','recent','name'] as $sort): ?><option value="<?= $e($sort) ?>"><?= $e($t->get($sort)) ?></option><?php endforeach; ?>
-        </select>
-        <select id="favorite-display" aria-label="<?= $e($t->get('display')) ?>">
-            <?php foreach (['icon-name','icon','card','auto'] as $display): ?><option value="<?= $e($display) ?>"><?= $e($t->get($display)) ?></option><?php endforeach; ?>
-        </select>
-        <label><input type="checkbox" id="favorite-show-hidden"><?= $e($t->get('show_hidden')) ?></label>
     </div>
     <button type="button" id="favorite-tag-reset" hidden></button>
     <div id="favorites-grid" role="list"></div>
