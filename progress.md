@@ -930,3 +930,20 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 未確認: プリセット実管理ブラウザ保存/追加/削除/日英mobile/Console、ユーザー検索設定からのpreset追加と保存済み一覧保持、cache破損/実DB停止、大量同時編集、実Extension。今回はブラウザ操作を実行しておらず以前のtab23 EN統計ログイン要求等を最新UI成功の証拠にしない。実DiscordOAuth/全browser/大規模統計性能などの留保を維持。
 
 次に実行すること: docs/admin-presets.mdとdocs/admin-ui-testing.mdに従い新環境localhost8097でwww-data所有の専用短期fixtureを準備し、JA/ENの管理preset保存/追加/削除・mobile/Consoleと利用者のpreset追加/既存一覧保持を実検証。認証fixture清掃後の画面を保存成功と誤認しない。続いて管理者追加解除/最後の管理者保護/容量操作/Update導線、EN管理Save/統計期間操作と残る機能停止/統計実端末試験。Phase9ゲート確定前にPhase10へ進まない。
+## Phase9 プリセット実UI・保存済み一覧保持（2026-10-04）
+
+前のGoalターンはプリセット9d381a4/両DB36/全15Installer40によりprogress。progress/status/gitとadmin-ui-testingを確認して実UIの留保から再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+実装修正: プリセット選択欄のdata-setting分類が一般へ移動する不具合を修正。data-provider-presetsで描画後の清掃だけ行い、検索設定のprovider-settings内へ配置。管理preset-formにfieldset/labelのgridと入力幅を追加しラベル・入力の混在を解消。tests/admin-ui-fixtureは015があればpresetも退避/cleanup復元し、www-dataでprepareして0600の所有者を一致させる。従来環境は設定行がなければpolicyのみ、他の異常は再throwする。
+
+検証1（実ブラウザ）: browser2の新tab24/localhost8097、通常token fixtureでJA dashboardからpreset link成功。生成検索/AI各1件追加・Save・reload保持。ENで検索名変更/新たなdisabled検索preset追加/生成AI削除・Save・reload保持、生成検索2件もENから削除しexamples0確認。JA/EN管理モバイルは390px/content375、Console0。最初の画像で入力がinline混在したため修正後に画像再取得、JA/ENを目視確認。画像.test-output/phase9-presets-admin-ja.png/-en.png。追加/削除は生成専用catalog項目だけ、最後に元の全presetをfixtureから復元。
+
+検証2（利用者実操作）: tab25/127.0.0.1:8097で無保存状態の新preset表示、GoogleをMy saved Googleへ変更して独自一覧保存。管理側で初期値を変更してもreload後に独自Google名と元のpreset名を保持。新しいdisabled初期presetを選び明示追加するとenabledとして末尾に表示。JA/ENの検索カテゴリ内の選択欄、全初期preset削除後も保存済み一覧を保持、390px/content375とConsole0を確認。画像.test-output/phase9-presets-user-mobile-ja.png/-en.pngとdesktop-jaを保存。ENとJA mobile画像を目視。生成した端末一覧は専用originに保持し、通常ユーザーの端末データを変更しない。
+
+操作上の留保: 初回Wizardがreload後に遅れて開きカテゴリ操作を阻止、同tabの状態を確認してContinue laterを閉じ再操作成功。AXではpressed buttonがcheckboxとして見えるためDOM snapshotでnavigation/buttonを確認して操作。English検索先labelはselectとショートカット領域が重複しstrict selector失敗、表示済みselect #providerで確認。失敗操作を成功扱いにしない。
+
+検証3（回帰）: 両DBpresets36/statistics admin48/admin64/auth43/基盤39/PHP175成功。Node preset保持/衝突/同期互換、search23/sync-data28とJS構文/git diff --check成功。MariaDBでもwww-data fixture prepare/cleanup成功。今回Migration変更なし、全15新規Installer40の直前証拠を維持。最後のfixture出力文言の変更後はPHP単体構文を確認する。secret/key/cookieは進捗/Git/chatへ出力しない。
+
+清掃: MySQL fixtureのpolicy/presets復元、専用user/token/device/fixture/手動public preview/host key除去。実tab24 reloadでログイン要求に戻ることを確認。viewportreset。tab24 JA presetログイン要求/tab25 ENホームと既存18/19/20/21/23をhandoff。tab22エラーの復帰は未確認。管理実OAuth/全browser/Extension/cloud経由のpreset実端末共有、EN統計期間操作などの留保を維持。
+
+次に実行すること: specとPhase9仕様を確認し、管理者追加/解除・最後の管理者保護・同時変更時の権限確認・DB/file監査・日英users UIを実装して両DBと実画面で検証。続いて容量管理操作とUpdate導線、未確認のEN管理policy Save/統計期間操作、weather/upload/account機能停止と匿名統計実端末収集。Phase9ゲート前にPhase10へ進まない。

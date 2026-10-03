@@ -21,7 +21,7 @@ export function initializeSettings(refresh) {
         label.append(select); return label;
     }
     function render() {
-        dialog.querySelectorAll('[data-setting]').forEach(element=>element.remove());
+        dialog.querySelectorAll('[data-setting], [data-provider-presets]').forEach(element=>element.remove());
         const preferences = document.getElementById('search-preferences');
         preferences.replaceChildren(preference('initialMode', t('initial_mode'), [['web', t('web_mode')], ['ai', t('ai_mode')], ['last', t('last_mode')]], 'web'));
         for (const mode of ['web', 'ai']) preferences.append(preference(`${mode}Default`, t(`${mode}_default`), [...providers(mode).map(item => [item.id, item.name]), ['last', t('last_mode')]], mode === 'web' ? 'google' : 'chatgpt'));
@@ -66,7 +66,7 @@ export function initializeSettings(refresh) {
         const items = providers(kind.value, false);
         const allProviders=[...providers('web',false),...providers('ai',false)];
         const choices=presets[kind.value].filter(row=>!allProviders.some(saved=>saved.id===row.id));
-        const picker=node('div',undefined,{'data-setting':'preset-picker'});
+        const picker=node('div',undefined,{'data-provider-presets':'true'});
         const label=node('label',t('provider_preset_choose'));
         const select=node('select',undefined,{'aria-label':t('provider_preset_choose')});
         for(const row of choices)select.append(node('option',row.name,{value:row.id}));
@@ -75,8 +75,8 @@ export function initializeSettings(refresh) {
             try{saveProviders(kind.value,appendPreset(items,choices.find(row=>row.id===select.value),allProviders));error.textContent='';render();refresh();}
             catch{error.textContent=t('invalid_provider');}
         });
-        label.append(select);picker.append(label,add);preferences.append(picker);
-        const list = document.getElementById('provider-list'); list.replaceChildren();
+        label.append(select);picker.append(label,add);
+        const list = document.getElementById('provider-list'); list.before(picker);list.replaceChildren();
         items.forEach((item, index) => {
             const row = node('div', undefined, {class: 'provider-row'});
             const enabled = node('input', undefined, {type: 'checkbox', 'aria-label': `${t('enabled')} ${item.name}`});

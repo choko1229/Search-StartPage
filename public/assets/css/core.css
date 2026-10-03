@@ -27,6 +27,11 @@ button:hover, .button:hover { filter: brightness(.92); }
 main { width: min(100% - 2rem, 850px); margin: 3rem auto; }
 .statistics-chart { display: block; width: 100%; height: auto; max-width: 600px; }
 .statistics-table { overflow-x: auto; max-width: 100%; }
+.preset-form fieldset { display: grid; gap: .8rem; min-width: 0; }
+.preset-form fieldset label { display: grid; gap: .35rem; min-width: 0; }
+.preset-form fieldset input:not([type=checkbox]), .preset-form fieldset select { width: 100%; }
+.preset-form fieldset label:has(input[type=checkbox]) { display: flex; align-items: center; gap: .5rem; }
+.preset-form legend { overflow-wrap: anywhere; }
 .panel { background: var(--panel); padding: clamp(1.25rem, 4vw, 3rem); border: 1px solid var(--border); border-radius: 1rem; box-shadow: 0 12px 40px #1e293b08; }
 h1 { line-height: 1.3; font-size: clamp(1.5rem, 4vw, 2.2rem); margin: .4rem 0 1.5rem; overflow-wrap: anywhere; }
 .eyebrow { color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }

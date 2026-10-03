@@ -13,3 +13,5 @@ Migration015はsite_settingsのprovider_presets行を初期作成し、設定と
 GET `/api/provider-presets`とホームbootstrapへ現在の公開初期値を供給する。独自の端末・クラウド一覧が保存されている場合は上書きしない。利用者の検索設定には、保存済み一覧に存在しないプリセットを明示的に追加する選択欄を追加した。追加時はID/Prefixの衝突を拒否し、既存項目を保持して有効な追加項目を末尾に置く。最新初期値の反映にはページ再読込が必要。新しく追加したプリセットのIDは匿名統計ではcustom分類となり、管理者が付けた名前やURLはイベントに送らない。
 
 検証: 新規MySQL8/MariaDB10.11専用環境8097/8098で全15Migrationのup/repeat/down/Web Installer再up各40成功。管理権限/CSRF/validation/CAS/公開bootstrap/日英HTML/Escape/同期schema/監査/大きなカタログと監査/キャッシュのAPI・DB各36成功。Nodeで保存済み一覧の保持/明示追加/衝突拒否/同期互換、検索23/sync-data28成功。両DB回帰とPHP175成功。実管理者のブラウザ保存/追加/削除/mobile/Console、利用者のプリセット追加、実Extension反映は未確認。
+
+2026-10-04 実UI追加検証: JA追加/EN変更・削除/reload保持、JA/EN390px/Console0、利用者保存済み一覧の保持と新presetの明示追加を確認。追加欄のカテゴリと管理フォーム配置を修正。実OAuth/全browser/Extension/クラウド端末共有は未確認。

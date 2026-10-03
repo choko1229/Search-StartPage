@@ -10,8 +10,12 @@ if($mode==='cleanup'){
     $fixture=json_decode(file_get_contents($path),true,32,JSON_THROW_ON_ERROR);
     $policy=new App\Repositories\SitePolicyRepository($pdo);
     $policy->update($fixture['policy'],$policy->read()['version'],$fixture['user_id'],new App\Services\PolicyState($root.'/storage/policy'));
+    if(isset($fixture['presets'])){
+        $presets=new App\Repositories\ProviderPresetRepository($pdo);
+        $presets->update($fixture['presets'],$presets->read()['version'],$fixture['user_id'],new App\Services\PresetState($root.'/storage/presets'));
+    }
     $pdo->prepare('DELETE FROM users WHERE id=? AND discord_id=?')->execute([$fixture['user_id'],'999999999999999961']);
-    unlink($path);echo "Admin UI fixture cleaned and policy restored.\n";exit;
+    unlink($path);echo "Admin UI fixture cleaned and saved settings restored.\n";exit;
 }
 if($mode!=='prepare'||is_file($path))throw new RuntimeException('Specify prepare, or clean the existing fixture');
 $auth=new App\Repositories\AuthRepository($pdo);
@@ -21,6 +25,8 @@ $device=bin2hex(random_bytes(16));$token=bin2hex(random_bytes(32));$key=bin2hex(
 $auth->createDevice($user,$device,hash('sha256',$token),['browser'=>'UI verification','os'=>'Test'],time());
 $policy=(new App\Repositories\SitePolicyRepository($pdo))->read()['policy'];
 $fixture=['user_id'=>$user,'key'=>$key,'cookie'=>$device.'.'.$token,'expires'=>time()+900,'policy'=>$policy];
+try{$fixture['presets']=(new App\Repositories\ProviderPresetRepository($pdo))->read()['presets'];}
+catch(App\Http\HttpException $error){if($error->errorCode!=='ADMIN_SETTINGS_UNAVAILABLE')throw $error;}
 $encoded=json_encode($fixture,JSON_THROW_ON_ERROR);$handle=fopen($path,'x');if(!$handle)throw new RuntimeException('Cannot write fixture');
 try{if(fwrite($handle,$encoded)!==strlen($encoded))throw new RuntimeException('Incomplete fixture');}finally{fclose($handle);}chmod($path,0600);
 // The invoking runner stores this locally; do not print the key in chat.

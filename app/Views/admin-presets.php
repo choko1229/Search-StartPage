@@ -1,7 +1,7 @@
 <?php declare(strict_types=1); use App\Auth\Session; ?>
 <section class="panel"><a href="/admin"><?= $e($t->get('admin_dashboard')) ?></a><h1><?= $e($t->get('admin_presets')) ?></h1>
 <p><?= $e($t->get('presets_help')) ?></p>
-<form class="setup-form" action="/admin/presets" method="post"><input type="hidden" name="_csrf" value="<?= $e(Session::csrf()) ?>"><input type="hidden" name="version" value="<?= $e($data['version']) ?>">
+<form class="setup-form preset-form" action="/admin/presets" method="post"><input type="hidden" name="_csrf" value="<?= $e(Session::csrf()) ?>"><input type="hidden" name="version" value="<?= $e($data['version']) ?>">
 <?php foreach(['web','ai'] as $mode): ?><h2><?= $e($t->get('presets_'.$mode)) ?></h2>
 <?php $rows=$data['presets'][$mode]; if(count($rows)<50)$rows[]=['id'=>'','name'=>'','url'=>'','prefix'=>'','icon'=>'','enabled'=>true,'copy'=>false,'sort_order'=>count($rows)];
 foreach($rows as $index=>$row): ?><fieldset><legend><?= $e($row['id']===''?$t->get('presets_new'):$row['name']) ?></legend>
