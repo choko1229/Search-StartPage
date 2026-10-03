@@ -13,7 +13,7 @@
 | 5 | Sync §31/46/60/84–88/117 | 版管理/原子的DB投影/JS・PHP項目マージ/初回3択/競合UI/適応同期/各CRUD・POST同期/競合APIを実装。新規両DBInstaller35、API52/同期17/投影34/期限削除9を検証。実HTTP2端末・履歴ON切替/削除・オフライン復帰・競合ルール共有も両DB検証済み。長文履歴14.4MBの保存/読込/競合解決を両DB実HTTPで確認。IndexedDBへ旧データを移行し長文300件+checkpoint/再読込/失敗時ACK保持/保存中編集/別タブ/所有権削除を検証。背景設定はPhase 7へ接続 | 同期機能ゲート検証済み（実OAuth留保） |
 | 6 | Appearance §37/53–56/68–82 | カテゴリmodal/Undo20/reset、テーマ/複数Custom/太陽時近似/フォント/Animation、検索欄Glass、時計/日付/挨拶基本表示を実装。JS appearance37/history19と既存回帰、両DB構文84/基盤39/sync17、ブラウザreset/Undo/Close/resize/mobile、Dark/Custom/font実読込、表示の保存、検索欄固定幅/高さ/透過/ぼかしを確認。時計/日付style・ヘッダーも実装し日英/再読込/390pxで確認。Google Font読込・架空地域の昼夜も確認。初回ウィザード18単体と日英/Skip/Back/Later/再開/完了/390px実UIも確認。docs/phase6-gate.mdで照合、実OS motion切替は最終監査へ留保 | 機能ゲート検証済み（実OAuth留保） |
 | 7 | Background §57–67/120–121 | 全11条件/複合編集・実天気/地域UI・動画手動操作・単位背景同期/原子的Blob・中断receipt回復・競合ルール共有・孤立清掃を実装。両DB API55/2端末8group/500MiB実HTTP12/実圧縮quota8/圧縮HTTP15/孤立回収15。新規全9Migration/Installer各40、全PHP114/JS27。初回案内Preset/libraryも日英/mobile実UI確認。docs/phase7-gate.mdで証拠と留保を追跡 | 機能ゲート検証済み（未確認はPhase12で追跡） |
-| 8 | Palette §48–52 | Registry/全カテゴリ/ランキング/確認・確認省略設定を順に実装 | 実装中 |
+| 8 | Palette §48–52 | 全8カテゴリ/5初期groups/ランキング/実操作/操作別確認と同期/reset/拡張登録/原子削除/Logout回復を実装。JS31、両DB認証43/Logout実HTTP6/確認同期4、日英/mobile/履歴再検索/拡張UI/専用実IndexedDB失敗回復を検証。docs/phase8-gate.mdで7完了条件を照合 | 機能ゲート検証済み（実OAuth等はPhase12へ留保） |
 | 9 | Admin §90–100/118 | 管理権限、各管理機能、統計、90日ログ、監査、メンテが必要 | 未着手 |
 | 10 | Update §104–109 | GitHub/チャンネル/24h確認/検証/バックアップ/安全置換/DB/失敗復旧・手動Rollbackが必要 | 未着手 |
 | 11 | Extension §110–114 | New Tab、共有UI/設定、認証同期、列挙されたOffline機能、復帰同期が必要 | 未着手 |

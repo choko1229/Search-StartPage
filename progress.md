@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Version 1.0未完成。Phase 1は基盤検証済み。仕様全文の監査で見つかったPhase 2/3の不足を補修・再検証済み。Phase 4の実Discord往復は未確認。ユーザーの「ログインできたていですすめて」を優先。Phase 5の同期機能ゲートは検証済み（実OAuthを留保）。Phase 6機能ゲート検証済み（実OAuth留保）。Phase 7は背景ライブラリの実装中、Phase 8〜12未着手。過去の判定より本記録の最新追記とdocs/spec-audit.mdを優先する。
+Version 1.0未完成。Phase 1〜3完了。Phase 4の実Discord往復は未確認で、ユーザーの「ログインできたていですすめて」を優先。Phase 5〜8の機能ゲートは検証済み。実OAuth・認証済みUI・環境依存の未確認はPhase12監査へ追跡。Phase 9〜12未着手。再開は末尾の最新「次に実行すること」を優先する。
 
 Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリック候補、履歴件数/期間/エリアを実装し3種類の検証を実施。ヘッダー履歴導線（§33）も実装・ブラウザ検証済み。Command Palette導線はPhase 8、履歴同期はPhase 5に接続する。
 
@@ -715,3 +715,19 @@ palette-storage.js/createPaletteStorageを追加し、Palette履歴消去・favo
 Phase8未完了、Phase9〜12未着手、Version1.0未完成。製品adapter経由の削除/故障/別タブ競合の単体証拠を追加、実IndexedDB故障UIの確認は残る。実OAuth/認証済みUI・全browser/実読み上げ等の留保継続。
 
 次に実行すること: 新factoryと専用DBを使うブラウザstorage previewで生成データだけの原子保存失敗と回復を確認（通常ユーザーデータ不使用）。最新コードを8089へ反映。Phase8完了7項目と添付仕様を監査し、残る実装不足を修正して機能ゲートを判定、Phase9 Adminへ進む。
+
+## Phase8 実IndexedDB保存故障検証・機能ゲート確定（2026-10-03）
+
+前のGoalターンは保存adapter共通化・別タブ競合防御02e90c5によりprogress。progress/status/gitを確認して再開。
+
+tests/palette-storage-preview.php/mjsを追加。SEARCH_TEST_MODE=1で隔離8089/public/_testのみ配置、本番routes未登録。専用namespace palette-storage-verificationを使用し通常ページのstore・認証・外部通信不使用。製品createPaletteStorageとopenStateDatabaseを使い、試験store facadeから実DBへ原子書込み。故障は保存できない関数を含む値でDataCloneError/transaction abortを発生させる方式、実容量枯渇を証明しない。
+
+検証1: 実ブラウザtab20で生成データの履歴/favorite削除失敗保持→retry、intent事前保存失敗、清掃失敗時intent/metadata/Blob保持、DB上pending置換後の古い清掃storage_conflict、clear OFF、所有fileだけ除去/端末専用保持を一括確認。成功表示、history0/favorite1/cloudfile0/localfile5bytes/pendingなし、reload後同値保持、console warn/error0。画像.test-output/phase8-storage-recovery.png保存・目視確認。これは専用実DB＋製品factoryであり通常store facade全体/実OAuth成功の代替ではない。Node製品store統合の模擬DB試験と組み合わせて証拠を区別する。
+
+検証2: 新preview PHP/JS構文成功、既存store-indexeddb単体の製品adapter/conditional commitを再成功、git diff --check成功。製品コード変更なし、前回全JS31/両DB基盤39/認証43/実HTTPLogout6/確認同期4の証拠維持、全9Installer往復40は再実行なし。最新3JSを8089へ反映、config/DB/storage保持。
+
+検証3: 通常8083/tab18 Palette Add Favorite→実editor表示/Cancel、Discord login→確認なしで/accountへ遷移、未設定表示/console0確認。実Discord往復未確認はユーザー指示で留保。header linkでトップへ戻す操作は後続Playwright/Emulation timeout、同handle再観測もtimeout。inventoryではtab18存在/account、tab19/20も存在を確認。トップ復帰を成功扱いにせず、3tabをhandoff。次回同browser/handleを再確認し、観測失敗だけを根拠に環境を再作成しない。
+
+添付Phase8全文とspec§48〜52をregistry/search/ranking/cross search/actions/confirmations/extensible architectureの7項目で照合、docs/phase8-gate.md先頭へ最新証拠を反映。機能ゲート検証済みとしてPhase9へ進む。環境依存の実OAuth/認証済みUI、実quota枯渇、全browser/実読み上げをPhase12監査へ追跡。前述専用検証と未確認を区別しVersion1.0未完成。Phaseごとの確定コミットを作成。
+
+次に実行すること: Phase9添付全文とspec§90〜100/118を読み、既存administrators/Installer予約/認証middleware/Logs/configを監査する。Admin権限はserver side、Dashboard/Users/Storage/Presets/Feature Flags/Maintenance/Limits/Logs/Audit/Statistics/Update管理導線を順に実装。Phase9の初期管理者設定を本番操作せず、隔離DBで権限/CSRF/Validation/一般ユーザー拒否を検証。codec警告はPhase7から接続、Updater実動作はPhase10へ。Phase9〜12未着手、Version1.0は未完成。
