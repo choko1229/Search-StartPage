@@ -15,7 +15,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 ## 環境
 
 - Docker: C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
-- 最新両DB検証: search-phase7-20261002。MySQL8083/MariaDB8084、新規Installerと全8Migration往復を検証済み。旧8080/8081も保持。
+- 最新両DB検証: search-phase9-logs-20261003。MySQL8093/MariaDB8094、新規Installerと全12Migration往復を検証済み。旧8083/8084等のDB・保存データも保持。
 - UI: search-phase1-ui、http://127.0.0.1:8082/ 。DBはsearch-test-20260927223223-mysql-1。008_backgroundsまで適用済み。
 - 9/30に停止していた上記コンテナのみ再起動。旧環境のボリュームを保持。他の旧アプリは停止したまま。
 - UI configはコンテナ内/var/www/app/config/config.php。ホストとは共有しない。
@@ -801,3 +801,23 @@ LogRetention: DB90日cutoffとdaily fileの古い日を整理し、境界日file
 Phase9進行中、Version1.0未完成。ログ閲覧・保持は実装済みだが、全エラー分類の実収集は未完了。現実に接続済みのauditはmaintenanceのみ、7type選択肢/生成fixtureを全収集の証拠にしない。PHP errorsは既存file経路のみでDB接続が次作業。匿名Statisticsの無期限データをLogRetentionへ含めない。
 
 次に実行すること: ErrorHandlerを安全なdual file/DB loggerへ接続する。PHP/API/OAuth/Sync/Update/Securityを実経路で分類し、query/body/secret/例外messageを記録しない。DB停止時もfileへ残し、復帰時に重複なくDBへ戻せる耐久処理を設計・実装・検証。全Logs収集と管理監査を完了後、Feature Flags/Limits/Presets/anonymous Statistics/Privacy/管理者・容量操作/Update導線を接続する。全Phase9ゲート、実管理日英/mobileUI/console、残る環境依存を区別して監査する。
+
+## Phase9 エラー収集・DB配送回復（2026-10-03）
+
+前のGoalターンはログ閲覧/保持aa74a0aと両DB検証によりprogress。progress/status/gitを確認して次の収集経路を実装。
+
+実装: 012_log_event_ids（nullable event_idとunique index、列/index単位で再実行可）。ApplicationLoggerがPHP/API/OAuth/Sync/Update/Securityを分類し、非公開storage/log-pendingの原子的queueへ先に保存、DBと日別fileへ配送。event IDによるDB unique/upsertで再試行を重複排除。DB未接続時はfile＋queue、file失敗時はDB＋queueを維持。再配送は元日時/actor/code/categoryを保持し、90日超を復活させない。不正queueは隔離し、隔離/孤立temporaryにも90日期限を適用。file記録の部分書込は検出して追記前の位置へ戻す。fileへの再配送は中断位置によって同event IDの重複行が起こり得るがDBは1件。
+
+ErrorHandler（PHP warning/exception/fatal handler）、Response.send（例外を投げないAPI失敗）、Installerのcatchを接続。Response errorCode metadataを追加し、SYNC_CONFLICT/Maintenanceなど直接Responseも記録する。ユーザーデータを含む応答bodyのdecodeを行わず、大きな同期競合を余分に複製しない。同requestの二重収集を防止。記録は安全なcode/status/class/source basename/line/method/request ID/internal user IDのみ。例外message/stack/query/URL/body/cookies/token/OAuth codeを渡さない。SQLはLogRepositoryへ集約。管理ログ訪問/CLI cleanupでqueueを回収。
+
+検証1: 専用MySQL8091/MariaDB8092へ012適用→再実行0。ApplicationLogger各28成功、最終orphan期限を加え新規8093/8094で29成功。分類6種、秘密除外、DB未接続/file失敗、再配送、DB dedupe、期限超/不正context隔離と清掃を確認。DB停止の単体はnull repository、file故障は注入であり実quota枯渇の証拠ではない。
+
+検証2: 実HTTP両DB各25成功。404 API/OAuth State/Sync Validation/CSRF/JSON不正と直接SYNC_CONFLICTを1回ずつfile＋DBに確認、正常sync writeも維持。両DBPHP警告/例外＋専用開発DB接続不能設定のHTTP各16成功。PHP message/Warning/Stackを画面・fileへ出さず、実PDO接続失敗の503と耐久queue/復帰後DB回収を確認。通常false maintenance snapshotのguest UIは接続不能時も200。秘密の開発設定は元の内容へfinally復元、実DBは稼働を保持（DB process crash試験ではない）。テスト専用PHP previewはpublic/_testへ配置して検証後両環境から除去、本番route未登録。
+
+失敗と補修: 最初のHTTP sync正常試験は空objectを連想arrayへdecodeして[]になり422、試験をobject保持へ修正。先行MySQL試験の中断によりMariaDBへ最新Responseの反映が未実行となり直接409ログが0件、実コンテナfileを確認し再反映して両25成功。DB接続不能試験はPHP workerが直前設定を使用し401を返して失敗。CLI実接続失敗とhealthの503/復帰200を同workerで観測するまで短くpollし、server再起動せず再成功。未反映/未観測を成功扱いにしない。
+
+検証3: 最新専用search-phase9-logs-20261003を新volumesで作成（MySQL8093/MariaDB8094）。空DBの全12 up/down/up＋Web Installer各40成功。導入前queue各4件を導入後CLIで回収。新規後application28/http25/logs54/基盤39/PHP146成功、orphan expiry後application29を再成功。既存8091/92もapplication28/http25/logs54/基盤39/admin64/maintenance62/auth43/sync17/cloud API52/PHP146とCLI cleanupを成功。Docker test runner Parser/git diff --check成功、通常回帰へapplication/httpエラー試験を追加。旧config/storage/users/uploadsを保持。最終orphan patchは8093/94へ反映、8091/92はそれ以前のコード。
+
+Phase9進行中、10〜12未着手、Version1.0未完成。PHP/API/OAuth/Sync/Securityの収集経路は接続・検証済み。Updater分類は単体のみで実Updater未実装、Phase10で実経路検証する。管理auditはmaintenanceだけ、残る管理操作と連動が必要。OS定期cleanup・実管理ブラウザUI/mobile/console・実OAuth等は未確認。
+
+次に実行すること: 最新8093/8094を使いFeature Flags/LimitsのDB設定と監査付き更新API/日英UIを実装する。flagは表示だけでなくserver APIの権限/可否へ接続し、容量制限は既存BackgroundRepositoryのquota/同時uploadを守って動的設定へ接続。Presets/anonymous Statistics/Privacy/管理者・容量操作/Update導線と実UIを残るPhase9ゲートへ接続。最終Phase9条件を監査してからPhase10へ進む。管理UI試験にはtest-mode専用の通常token fixtureを用い、実Discord OAuth成功の証拠と混同しない。

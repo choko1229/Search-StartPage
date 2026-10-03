@@ -6,6 +6,12 @@ final class LogRepository
 {
     public function __construct(private readonly \PDO $pdo) {}
 
+    public function recordApplication(array $entry): void
+    {
+        $query=$this->pdo->prepare('INSERT INTO log_entries(event_id,type,error_code,user_id,context_json,created_at,file_written) VALUES (?,?,?,(SELECT id FROM users WHERE id=?),?,?,?) ON DUPLICATE KEY UPDATE file_written=GREATEST(file_written,VALUES(file_written))');
+        $query->execute([$entry['event_id'],$entry['type'],$entry['error_code'],$entry['user_id'],json_encode($entry['context'],JSON_THROW_ON_ERROR),$entry['created_at'],$entry['file_written'] ? 1 : 0]);
+    }
+
     public function listing(array $filters): array
     {
         $conditions=['created_at>=UTC_TIMESTAMP()-INTERVAL 90 DAY'];

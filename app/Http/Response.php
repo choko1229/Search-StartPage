@@ -5,7 +5,7 @@ namespace App\Http;
 
 final class Response
 {
-    public function __construct(public readonly string $body = '', public readonly int $status = 200, public readonly array $headers = [], private readonly ?\Closure $stream = null)
+    public function __construct(public readonly string $body = '', public readonly int $status = 200, public readonly array $headers = [], private readonly ?\Closure $stream = null,public readonly ?string $errorCode=null)
     {
     }
 
@@ -16,7 +16,7 @@ final class Response
 
     public static function error(string $code, string $message, int $status): self
     {
-        return new self(json_encode(['success' => false, 'error' => ['code' => $code, 'message' => $message]], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE), $status, ['Content-Type' => 'application/json; charset=utf-8']);
+        return new self(json_encode(['success' => false, 'error' => ['code' => $code, 'message' => $message]], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE), $status, ['Content-Type' => 'application/json; charset=utf-8'],errorCode:$code);
     }
 
     public static function redirect(string $path): self
@@ -29,6 +29,7 @@ final class Response
 
     public function send(): void
     {
+        \App\Exceptions\ErrorHandler::logResponse($this);
         http_response_code($this->status);
         $headers = $this->headers + [
             'Content-Type' => 'text/html; charset=utf-8',

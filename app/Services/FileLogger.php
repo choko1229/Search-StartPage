@@ -23,8 +23,26 @@ final class FileLogger
         $timestamp ??= time();
         $entry = json_encode(['at' => gmdate(DATE_ATOM,$timestamp), 'level' => $level, 'code' => $code, 'context' => $safeContext], JSON_THROW_ON_ERROR);
         LogFileLock::run($this->directory,function() use($entry,$timestamp):void {
-            if (is_link($this->directory.'/'.gmdate('Y-m-d',$timestamp).'.jsonl')) throw new \RuntimeException('Log file cannot be a link');
-            if (file_put_contents($this->directory . '/' . gmdate('Y-m-d',$timestamp) . '.jsonl', $entry . "\n", FILE_APPEND | LOCK_EX) === false) throw new \RuntimeException('Log write failed');
+            $path=$this->directory.'/'.gmdate('Y-m-d',$timestamp).'.jsonl';
+            if (is_link($path)) throw new \RuntimeException('Log file cannot be a link');
+            $file=fopen($path,'c+b');
+            if ($file===false) throw new \RuntimeException('Log write failed');
+            $start=null;
+            try {
+                if (!flock($file,LOCK_EX) || fseek($file,0,SEEK_END)!==0) throw new \RuntimeException('Log write failed');
+                $start=ftell($file);
+                if ($start===false) throw new \RuntimeException('Log write failed');
+                $payload=$entry."\n";$offset=0;
+                while ($offset<strlen($payload)) {
+                    $written=fwrite($file,substr($payload,$offset));
+                    if ($written===false || $written===0) throw new \RuntimeException('Log write failed');
+                    $offset+=$written;
+                }
+                if (!fflush($file)) throw new \RuntimeException('Log write failed');
+            } catch (\Throwable $error) {
+                if (is_int($start)) {ftruncate($file,$start);fflush($file);}
+                throw $error;
+            } finally {flock($file,LOCK_UN);fclose($file);}
         });
     }
 }

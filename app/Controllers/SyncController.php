@@ -24,7 +24,7 @@ final class SyncController
     }
     public static function conflict(array $current): Response
     {
-        return new Response(json_encode(['success'=>false,'error'=>['code'=>'SYNC_CONFLICT','message'=>'SYNC_CONFLICT'],'data'=>$current],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),409,['Content-Type'=>'application/json; charset=utf-8']);
+        return new Response(json_encode(['success'=>false,'error'=>['code'=>'SYNC_CONFLICT','message'=>'SYNC_CONFLICT'],'data'=>$current],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),409,['Content-Type'=>'application/json; charset=utf-8'],errorCode:'SYNC_CONFLICT');
     }
     public function resolve(Request $request): Response
     {

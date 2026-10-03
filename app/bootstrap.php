@@ -61,7 +61,7 @@ if ($config->get('installed')) {
             try {$pdo=App\Database\Database::connect($config->get('database'));}
             catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
             $repository=new App\Repositories\LogRepository($pdo);
-            return (new App\Controllers\AdminLogsController($repository,new App\Services\LogRetention($repository,$root.'/storage/logs'),$audit,$view))->handle($request,$auditOnly);
+            return (new App\Controllers\AdminLogsController($repository,new App\Services\LogRetention($repository,$root.'/storage/logs'),$audit,$view,new App\Services\ApplicationLogger($repository,new FileLogger($root.'/storage/logs'),$root.'/storage/log-pending')))->handle($request,$auditOnly);
         };
     };
     foreach (['logs'=>false,'audit-logs'=>true] as $path=>$auditOnly) {

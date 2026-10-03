@@ -24,7 +24,7 @@ final class Maintenance
         $headers=['Retry-After'=>'60'];
         if (str_starts_with($request->path,'/api/')) {
             $response=Response::error('MAINTENANCE',$this->translator->get('maintenance_message'),503);
-            return new Response($response->body,503,$response->headers+$headers);
+            return new Response($response->body,503,$response->headers+$headers,errorCode:'MAINTENANCE');
         }
         return new Response($this->view->render('maintenance',['maintenance_only'=>true]),503,$headers);
     }

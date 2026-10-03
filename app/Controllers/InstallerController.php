@@ -41,9 +41,10 @@ final class InstallerController
                 $this->advance($request, $step);
                 return Response::redirect('/installer');
             } catch (HttpException $exception) {
+                \App\Exceptions\ErrorHandler::logCaught($exception);
                 $error = $exception->errorCode;
             } catch (\Throwable $exception) {
-                $this->logger->exception($exception, bin2hex(random_bytes(8)));
+                if (!\App\Exceptions\ErrorHandler::logCaught($exception)) $this->logger->exception($exception, bin2hex(random_bytes(8)));
                 $error = 'INSTALL_FAILED';
             }
         }
