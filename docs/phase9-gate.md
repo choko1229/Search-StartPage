@@ -52,3 +52,5 @@ DB観測はCLI/testmodeの一時スクリプトでevent_type/source/event_data/�
 検証3: Node site-policy validation/disable/recovery/auth separation、sync-session37、sync-data28、account-data既存21+所有者別pending upload cleanup/capacity合格。製品ソース変更なし。docs/phase9-gate.mdのcloud/account証拠を更新。
 
 次に実行すること: 専用環境でbackground_uploadsとweatherを個別に停止・復旧する実UI、背景操作匿名イベント、停止中の新規変更保持・再送、実モバイルを確認。LogRetention定期実行とUpdate管理/Phase10処理境界の残件を進める。管理者実権限操作は明示承認があれば新規fixtureで検証。Phase9ゲート確定前にPhase10へ進まない。
+
+2026-10-04保存警告補修: 無関係な統計等の更新でsaveSettingsの再試行が枯渇する不具合を修正前Nodeで再現、依存collection限定後に保持/実quota警告回帰成功。実ブラウザ25回保存+更新12回/2tab存在下22回、警告0と別tab反映/reload保持を確認。以前の認証済み同期中の警告と同原因の断定や、異なる設定の同時tab編集の保持はまだ証明していない。

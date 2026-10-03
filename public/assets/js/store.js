@@ -59,7 +59,9 @@ export function setSetting(name, value) {
 }
 export function snapshot() { return structuredClone(state); }
 export function saveSettings(patch,label,extra={}) {
-    return setMany(state=>({settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,label),settings:{...state.settings,...patch},...extra}));
+    // This transform reads only settings and its undo history. Telemetry and sync
+    // status changes must not invalidate a successful settings transaction.
+    return setMany(state=>({settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,label),settings:{...state.settings,...patch},...extra}),[],null,['settings','settingsHistory']);
 }
 export async function backgroundFile(id) {
     if(initialError)throw initialError;
@@ -74,14 +76,16 @@ async function refreshState() {
     }
     for(const name of changed)notify(name);
 }
-export function setMany(values,files=[],conditions=null) {
+// Optional dependencies must include every collection read by the transforms.
+// Callers without an explicit list retain conservative whole-state rebasing.
+export function setMany(values,files=[],conditions=null,dependencies=null) {
     if(initialError)throw initialError;
     if(!database&&(typeof files==='function'?files(snapshot()):files).length)throw new Error('background_files_require_indexeddb');
     if(database)return enqueue(async()=>{
         let patch,before,committedConditions=null;
         try {
         for(let attempt=0;;attempt++) {
-            const inputs=new Map(revisions);
+            const inputs=dependencies===null?new Map(revisions):new Map(dependencies.map(name=>[name,revisions.get(name)||0]));
             const current=snapshot();
             patch=typeof values==='function'?values(current):values;
             const operations=typeof files==='function'?files(current):files;
@@ -90,7 +94,10 @@ export function setMany(values,files=[],conditions=null) {
             await database.write(structuredClone(patch),operations,expected);lastError=null;
             if(expected)committedConditions=Object.fromEntries(Object.entries(expected).map(([name,value])=>[name,Object.hasOwn(patch,name)?patch[name]:value]));
             const dynamic=typeof values==='function'||typeof files==='function';
-            if(!dynamic || (revisions.size===inputs.size&&[...inputs].every(([name,revision])=>revisions.get(name)===revision)))break;
+            const unchanged=dependencies===null
+                ? revisions.size===inputs.size&&[...inputs].every(([name,revision])=>revisions.get(name)===revision)
+                : [...inputs].every(([name,revision])=>(revisions.get(name)||0)===revision);
+            if(!dynamic || unchanged)break;
             if(attempt>=7)throw new Error('storage_changed_during_commit');
         }
         }catch(error){if(conditions)await refreshState();throw error;}

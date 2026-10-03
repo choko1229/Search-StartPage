@@ -5,7 +5,7 @@ import {backgroundRecord} from '../public/assets/js/background-sync-core.js';
 import {syncedDataRemoval} from '../public/assets/js/account-data.js';
 import {uploadIntent,prepareUpload,clearUpload,uploadGuard} from '../public/assets/js/background-upload-intent.js';
 globalThis.window=new EventTarget();
-const records=new Map();let abortNext=false;
+const records=new Map();let abortNext=false,onWriteComplete=null;
 const legacy={favorites:[{id:'legacy',name:'Migrated'}],settings:{theme:'legacy'}};
 globalThis.localStorage={getItem:()=>JSON.stringify(legacy),setItem:()=>{throw new Error('LocalStorage should not be written after migration');}};
 globalThis.BroadcastChannel=class {postMessage(){}close(){}};
@@ -23,7 +23,7 @@ const db={objectStoreNames:{contains:name=>stores.has(name)},createObjectStore(n
             });step(0);return request;
         },
     }),abort:()=>{aborted=true;tx.error??=new Error('aborted');}};
-    setTimeout(()=>{if(aborted)tx.onabort();else{for(const [name,changes] of staged)for(const [key,change] of changes){if(change.deleted)stores.get(name).delete(key);else stores.get(name).set(key,change.value);}tx.oncomplete();}},0);
+    setTimeout(()=>{if(aborted)tx.onabort();else{for(const [name,changes] of staged)for(const [key,change] of changes){if(change.deleted)stores.get(name).delete(key);else stores.get(name).set(key,change.value);}if(mode==='readwrite')onWriteComplete?.(staged);tx.oncomplete();}},0);
     return tx;
 }};
 globalThis.indexedDB={open:()=>{const request={};queueMicrotask(()=>{request.result=db;request.onupgradeneeded();request.onsuccess();});return request;}};
@@ -169,3 +169,42 @@ abortNext=true;await assert.rejects(historyModule.clearHistory(),/quota/);
 assert.deepEqual(records.get('history'),beforeFailure);
 await historyModule.clearHistory();assert.deepEqual(records.get('history'),[]);
 console.log('History: stale-tab append/delete rebase, aborted writes preserve data, clear retry and conflict warning classification passed.');
+
+// Continuous unrelated telemetry edits must not exhaust a settings commit's retries.
+await historyStore.setMany({settings:{theme:'dark'},settingsHistory:null});
+const warningsBefore=storageWarnings;
+let regionCommits=0;
+onWriteComplete=staged=>{
+    if(!staged.get('state')?.has('settingsHistory'))return;
+    historyStore.set('statisticsQueue',[{sequence:++regionCommits}]);
+};
+try {await historyStore.saveSettings({themeRegion:{latitude:35.68,longitude:139.69}},'appearance');}
+finally {onWriteComplete=null;await historyStore.flush();}
+assert.equal(regionCommits,1,'unrelated edits do not retry the committed settings');
+assert.deepEqual(historyStore.setting('themeRegion'),{latitude:35.68,longitude:139.69});
+assert.deepEqual(records.get('settings'),historyStore.get('settings'));
+assert.equal(records.get('settingsHistory').entries.length,1);
+assert.deepEqual(records.get('settingsHistory').entries[0].changes[0].next.value,{latitude:35.68,longitude:139.69});
+assert.equal(storageWarnings,warningsBefore,'successful storage with unrelated activity is not a storage failure');
+assert.equal(records.get('statisticsQueue')[0].sequence,1);
+
+// Actual settings edits during a commit still require rebasing, including absent keys.
+let changedSettings=false;
+onWriteComplete=staged=>{
+    if(!changedSettings&&staged.get('state')?.has('settingsHistory')){
+        changedSettings=true;historyStore.set('settings',{...historyStore.get('settings'),fontSize:27});
+    }
+};
+try {await historyStore.saveSettings({themeRegion:{latitude:0,longitude:0}},'appearance');}
+finally {onWriteComplete=null;await historyStore.flush();}
+assert.equal(historyStore.setting('fontSize'),27);
+assert.deepEqual(historyStore.setting('themeRegion'),{latitude:0,longitude:0});
+assert.deepEqual(records.get('settings'),historyStore.get('settings'));
+const regionReload=await import('../public/assets/js/store.js?region-reload');
+assert.equal(regionReload.setting('fontSize'),27);
+assert.deepEqual(regionReload.setting('themeRegion'),{latitude:0,longitude:0});
+abortNext=true;await assert.rejects(historyStore.saveSettings({themeRegion:null},'appearance'),/quota/);
+assert.deepEqual(historyStore.setting('themeRegion'),{latitude:0,longitude:0});
+assert.equal(records.get('settingsHistory').entries.length,2,'failed save retains committed undo history');
+assert.equal(storageWarnings,warningsBefore+1,'real transaction failure continues to warn');
+console.log('Settings: unrelated activity does not exhaust retries; relevant edits rebase; reload and real quota failure retain settings.');

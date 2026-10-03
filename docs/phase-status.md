@@ -1275,3 +1275,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 旧tab6には開始時に保存警告が残っていたがreloadで消失。今回その原因を解決した証拠にはしない。地域設定/複数tab競合Regressionを次の優先事項として維持。
 
 次に実行すること: 地域保存の一過性警告の再現・原因・保持範囲を確認。Glassのブランドアイコン、読みやすさ、account画面の仕上げを継続。Phase9のEN weather/upload停止、清掃故障、LogRetention定期実行、Update管理の残件を追跡。Phase9進行中、10〜12未着手、Version1.0未完成。管理者実権限操作の明示承認待ちは維持し迂回しない。spec.mdを変更/stageしない。
+
+## Phase9 地域保存と無関係な更新の競合修正（2026-10-04）
+
+前ターン107e719はGlass操作密度の実装/検証による進捗。progress/status/gitから地域保存警告Regressionへ再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+発見/修正: setManyの動的書込みが全collectionのrevision変更で再試行していた。地域保存中に統計queue等が更新され続けると、DBのwriteが成功していても8回でstorage_changed_during_commitとなる。新規IndexedDB試験で修正前に同エラーを再現（exit1）。setManyに任意の依存collection指定を追加し、saveSettingsだけ実際に読むsettings/settingsHistoryを指定。その他の動的file/ACK/sync等は従来の全state確認を維持。関係するsettings変更は引き続き再適用、真のquota/abort警告を抑制しない。Controller/DB/Migration/認証変更なし。
+
+検証1: 最終Node IndexedDB成功。無関係な連続statisticsQueue更新でもsettingsのcommitは1回、地域/履歴/queueを保持し新規警告0。保存中のfontSize27変更も地域0/0と両方保持しreload成功、quota abortで地域を保持し警告+1。既存history stale-tab CAS/clear失敗、file/ACK/upload intent/logout原子性も成功。
+検証2: Node store14/region acquisition/sync-data28/session37/background ACK/session/intents/recovery/statistics queue/onboarding26成功、storeとpreview JS構文成功。両隔離DB policy各29/weather各73/statistics各30成功。新規Migrationなし、全16Installer既存証拠を維持。
+検証3: テスト専用127.0.0.1:8100 originにSEARCH_TEST_MODE限定previewを一時配置。browser2/tab9で実IndexedDB、25回地域保存+無関係な更新12回を実行しPASS/保存警告0。tab10で0/24を読み込み、tab9の手動10/20編集がtab10へ反映、tab10 reload保持。2tab存在下で25回保存+更新22回もPASS/警告0、tab10も最終0/24を表示。両Console warn/error0。画像settings-contention-browser.png保存・目視。OS位置取得/cloud送信なし、通常localhost8099の地域や背景をこの試験では変更していない。専用生成地域はテストoriginに保持。手動配置preview2ファイルはDockerから除去、tab9/10は一時tab。既存Glass tab6はdeliverable継続。
+
+範囲: 今回は無関係な更新による再試行枯渇を証明し修正。以前の認証済みweather操作での一過性警告が必ず同原因だったという証拠ではない。実クラウド同期と地域編集が重なる再検証、異なる設定を同時変更するtab間競合、実ACK故障、多数tab/browserは留保。汎用setManyの全state再試行を指定なしで変更していない。
+
+次に実行すること: 通常設定画面で認証済み同期/地域編集の競合とEN weather/upload停止を確認。設定の異なる項目を別tabから同時編集した際の保持を検証し、欠落があれば条件付き再適用へ補修。Phase9ゲートのLogRetention定期実行/Update管理実処理、清掃故障、管理者UI承認待ちを維持。Glassブランドアイコン/account仕上げも継続。全DoDまでGoal完了にしない。
