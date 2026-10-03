@@ -1329,3 +1329,13 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: 専用www-data実CLIで現在の更新元GitHub APIへ接続しUPDATE_SOURCE_NOT_FOUND（404）/exit1。リリース0件成功として扱わない。原因は非公開/不存在など未確定、更新元とアクセス設定をユーザーへ質問中。秘密はチャットで要求しない。公式公開サンプルoctocat/Hello-Worldで同実clientから0件/selected null/exit0、HTTPS/実JSON取得成功を確認。observerをcontainer /tmpから除去。対象の実認証/実リリース検証の成功には数えない。
 
 次に実行すること: 更新確認を管理者専用画面/API、CSRF付き手動確認、24hcache/管理者トップ通知へ接続し、対象repository回答・サーバー専用Token設定があれば実API再確認。Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackの処理へつなぐまでUpdate Management/Phase10は未完成。通常認証済み地域/同期・EN weather/upload・cleanup故障、管理者UI承認待ち、Glass仕上げ、OAuth/各browser/Extension/全DoD残件も維持。spec.md変更/stageなし、Goalを完了にしない。
+
+## 参考画像のGlass質感とタイル密度の追加調整（2026-10-04）
+
+最新ユーザー添付の参考画像をデザイン基準として再確認。progress/status/gitから再開し、既存の生成夕景・検索構造を維持してglass.cssのみ補修。検索面に淡い斜めの光沢、タイルに上辺の光とgradientを追加。icon/icon-nameの操作ボタンを右上へ配置し、非表示でも占めていた縦余白を除去。card表示の構造、個別タイル色、ユーザーの検索色/不透明度/サイズ/背景設定は保持。操作ボタンのfocus-visible outlineを追加、touchの常時表示ルールも維持。ブランドアイコンとaccount全体は依然未完成。
+
+検証1: Node favorites-layout16/appearance42/search23/preferences18成功。初回に存在しない短い試験名を指定して未実行だったため、rgで実在名を確認後に再成功。
+検証2: 隔離MySQL8099/MariaDB8100へCSSのみ反映、基盤各40成功。DB/Migration/config/認証変更なし、worker維持。git diff --check成功。
+検証3: browser2/tab6でreload、遅れて開いたWizardをあとで続けるで閉じ、ホームを確認。タイル操作メニューを開閉して機能保持。390幅でviewport390/document375/scroll375、横溢れなし。画面幅変更後の列数の画像/DOM差があるため全列数の一致は成功扱いにしない。viewport reset後に通常画面を保存・目視、Console warn/error0。画像glass-reference-polish.png、tab6をdeliverable。専用originの4生成favorites/夕景設定を保持。
+
+次に実行すること: 参考画像に沿ったブランドアイコン・補助操作・accountの仕上げを継続。同時に前記Phase9更新管理の管理者画面/API/24h確認、実同期/地域・EN停止・cleanup故障などゲート残件を進める。対象GitHub repository回答と管理者実権限操作承認は未回答のまま、迂回なし。Phase9進行中、Phase10完了未判定、11〜12/Version1.0未完成。spec.mdを変更/stageしない。

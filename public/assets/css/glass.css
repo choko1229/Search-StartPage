@@ -50,7 +50,7 @@ body .search-tools { align-items: center; gap: .4rem; margin-bottom: .9rem; }
 body .search-tools button { font-size: .8rem; padding: .45rem .75rem; }
 body .search-tools [role=group] { padding: .25rem; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--glass-surface); backdrop-filter: blur(16px); }
 body .search-tools [role=group] button { padding: .35rem .9rem; border-radius: 10px; }
-body .search-box { align-items: center; }
+body .search-box { align-items: center; background-image: linear-gradient(115deg, #ffffff16, #ffffff03 55%, #ffffff0b); }
 body .search-symbol { width: 24px; height: 24px; margin-left: .8rem; flex-shrink: 0; color: var(--search-placeholder, var(--muted)); }
 body #search-execute { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; padding: .6rem; border-radius: 50%; }
 body #search-execute svg { width: 24px; height: 24px; }
@@ -73,7 +73,11 @@ body #search-help { font-size: .72rem; text-align: center; margin-top: .9rem; }
 body .provider-shortcuts { justify-content: center; gap: .6rem; }
 body .provider-shortcuts button { border: 0; background: var(--glass-surface); color: inherit; border-radius: 999px; padding: .4rem .8rem; }
 body #favorites-section { margin-top: 1.8rem; padding-top: 1rem; border-top: 1px solid var(--glass-line); }
-body .favorite-item { border-color: var(--glass-line); border-radius: 18px; background: color-mix(in srgb, var(--panel) 58%, transparent); backdrop-filter: blur(16px); }
+body .favorite-item { border-color: var(--glass-line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 58%, transparent); background-image: linear-gradient(145deg, #ffffff0e, transparent 65%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: inset 0 1px 0 #ffffff18; }
+body #favorites-grid:not([data-display=card]) .favorite-item { padding: .4rem; }
+body #favorites-grid:not([data-display=card]) .favorite-open { padding: .75rem .15rem; gap: .35rem; }
+body #favorites-grid:not([data-display=card]) .favorite-menu-button { position: absolute; top: .15rem; right: .15rem; width: 28px; height: 28px; padding: 0; border-radius: 8px; }
+body .favorite-menu-button:focus-visible, body .favorite-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 body .favorite-item:hover, body .favorite-item:focus-within { background: var(--glass-surface); box-shadow: 0 8px 24px #0002; }
 body .favorite-name { font-weight: 500; font-size: .8rem; }
 body #favorite-add, body #folder-manage { background: transparent; color: inherit; border-color: var(--glass-line); padding: .4rem .7rem; font-size: .8rem; }

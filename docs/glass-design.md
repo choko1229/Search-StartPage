@@ -17,3 +17,5 @@
 残る仕上げ: ブランドアイコンの見た目、操作の密度/明暗別コントラスト、認証済みaccount・管理画面全体の実表示、各browser。完成デザイン・Version1.0完成にはしない。Phase9のweather/upload停止・復旧検証など元の機能残件も継続する。
 
 2026-10-04追加: 検索アイコン/矢印、補助設定のFavoriteカテゴリ集約、下線tab、半透明tileとhover/focus menuを反映。JA/ENとcard/filter動作、mobile390/scroll375、Console0を確認。最新画像はglass-refined-desktop-ja.pngとglass-refined-mobile-ja.png。ブランドアイコンなど残る仕上げは未完。
+
+2026-10-04追加: 検索/タイルに控えめな光沢を追加し、icon/icon-nameタイルの操作menuを右上へ配置して余白を縮小。cardの構造や明示設定は維持。Node4組/基盤両40/実ホーム操作と390幅の横溢れなし・Console0を確認。最新画像glass-reference-polish.png。参考画像への完全一致やブランドアイコン/account完成とは扱わない。
