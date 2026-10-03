@@ -6,6 +6,7 @@ import {syncUser} from './sync-api.js';
 import {recordSettings} from './settings-history.js';
 import {inspectBackgroundFile} from './background-file-core.js';
 import {initializeBackgroundSync} from './background-sync.js';
+import {backgroundRuleEditor} from './background-rule-editor.js';
 
 export function initializeBackground() {
     const panel=document.getElementById('settings-background'),settingsDialog=document.getElementById('search-settings');
@@ -32,8 +33,7 @@ export function initializeBackground() {
     field('fit','background_fit','select','cover',{choices:[['cover','fit_cover'],['contain','fit_contain'],['fill','fit_fill']]});
     for(const [key,label,value] of [['fixed','background_fixed',true],['autoplay','background_autoplay',true],['loop','background_loop',true],['mute','background_mute',true],['paused','background_pause',false],['cloudSync','background_cloud_sync',false]]){const input=field(key,label,'checkbox','');input.checked=value;}
     field('fallback','background_mobile_fallback','text','',{maxlength:'2048'});
-    const timeRule=field('timeRule','background_time_rule','checkbox','');timeRule.checked=false;
-    field('timeStart','background_time_start','time','08:00');field('timeEnd','background_time_end','time','18:00');
+    const rules=backgroundRuleEditor(form,()=>{form.dataset.pending='true';});
     const defaults=Object.fromEntries(Object.entries(fields).map(([key,input])=>[key,input.type==='checkbox'?input.checked:input.value]));
     const add=node('button',t('background_add'),{type:'submit'}),clear=node('button',t('cancel'),{type:'button',class:'secondary'});form.append(add,clear);
     const switching=node('select',undefined,{'aria-label':t('background_switch')});for(const [value,label] of [['manual','background_manual'],['random','background_random'],['rules','background_rules']])switching.append(node('option',t(label),{value}));
@@ -41,14 +41,14 @@ export function initializeBackground() {
     for(const [label,input] of [['background_switch',switching],['background_interval',interval]]){const wrapper=node('label',t(label),{class:'preference'});wrapper.append(input);panel.append(wrapper);}
     switching.addEventListener('change',()=>saveSettings({backgroundSwitch:switching.value},'background').catch(()=>{error.textContent=t('storage_unavailable');}));
     interval.addEventListener('change',()=>{const seconds=Number(interval.value);if(Number.isInteger(seconds)&&seconds>=10&&seconds<=86400)saveSettings({backgroundInterval:seconds},'background').catch(()=>{error.textContent=t('storage_unavailable');});});
-    function resetForm(){editingId=null;for(const [key,value] of Object.entries(defaults)){if(fields[key].type==='checkbox')fields[key].checked=value;else fields[key].value=value;}form.dataset.pending='false';error.textContent='';}
+    function resetForm(){editingId=null;for(const [key,value] of Object.entries(defaults)){if(fields[key].type==='checkbox')fields[key].checked=value;else fields[key].value=value;}rules.set(null);form.dataset.pending='false';error.textContent='';}
     clear.addEventListener('click',resetForm);settingsDialog.addEventListener('settings-discard',resetForm);
     form.addEventListener('submit',async event=>{
         event.preventDefault();if(saving)return;const values=Object.fromEntries(new FormData(form));for(const key of ['fixed','autoplay','loop','mute','paused','cloudSync'])values[key]=fields[key].checked;
         delete values.file;
-        if(timeRule.checked)values.rule={type:'time',start:fields.timeStart.value,end:fields.timeEnd.value};
         saving=true;add.disabled=true;
         try{
+            values.rule=rules.value();
             const id=editingId || crypto.randomUUID(),previous=storedBackgrounds().find(item=>item?.id===id),files=[];
             if(values.sourceType==='upload') {
                 const file=fields.file.files?.[0];
@@ -60,7 +60,7 @@ export function initializeBackground() {
             if(values.sourceType!=='upload'){for(const key of ['fileId','fileVersion','fileRevision','syncedFileVersion'])delete combined[key];combined.fileSize=0;}
             const row=normalizeBackground(combined);if(!row)throw new Error('background_invalid');
             await setMany(state=>{const patch={backgroundMode:'library',backgroundSelected:row.id};return {settings:{...state.settings,...patch},settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,'background'),backgrounds:[...(Array.isArray(state.backgrounds)?state.backgrounds:[]).filter(item=>item?.id!==row.id),row]};},files);resetForm();
-        }catch(failure){error.textContent=t(['INVALID_UPLOAD','INVALID_UPLOAD_NAME','UNSUPPORTED_BACKGROUND_FORMAT','BACKGROUND_TOO_LARGE','BACKGROUND_MIME_MISMATCH','background_invalid'].includes(failure.message)?failure.message:'storage_unavailable');}finally{saving=false;add.disabled=false;}
+        }catch(failure){error.textContent=t(['INVALID_UPLOAD','INVALID_UPLOAD_NAME','UNSUPPORTED_BACKGROUND_FORMAT','BACKGROUND_TOO_LARGE','BACKGROUND_MIME_MISMATCH','BACKGROUND_RULE_INVALID','background_invalid'].includes(failure.message)?failure.message:'storage_unavailable');}finally{saving=false;add.disabled=false;}
     });
     function renderLibrary(){
         library.replaceChildren();for(const item of [...backgroundPresets,...storedBackgrounds()]){
@@ -70,7 +70,7 @@ export function initializeBackground() {
             button.disabled=row.deleted===true;button.addEventListener('click',()=>saveSettings({backgroundMode:'library',backgroundSelected:row.id},'background').catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(button);
             wrapper.append(node('small',`${t(row.cloudSync?'background_sync_on':'background_local_only')}${row.fileId?' · '+(row.fileSize/1048576).toFixed(2)+' MiB':''}`));
             if(!row.id.startsWith('preset-')){
-                if(row.deleted!==true){const edit=node('button',t('edit_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_edit')}: ${row.name}`});edit.textContent=t('background_edit');edit.addEventListener('click',()=>{editingId=row.id;for(const [key,input] of Object.entries(fields)){const value=key==='timeRule'?Boolean(row.rule?.type==='time'):key==='timeStart'?row.rule?.start:key==='timeEnd'?row.rule?.end:row[key];if(input.type==='checkbox')input.checked=value??defaults[key];else input.value=input.type==='file'?'':String(value??defaults[key]);}form.dataset.pending='true';fields.name.focus();});wrapper.append(edit);}
+                if(row.deleted!==true){const edit=node('button',t('edit_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_edit')}: ${row.name}`});edit.textContent=t('background_edit');edit.addEventListener('click',()=>{editingId=row.id;for(const [key,input] of Object.entries(fields)){const value=row[key];if(input.type==='checkbox')input.checked=value??defaults[key];else input.value=input.type==='file'?'':String(value??defaults[key]);}try{rules.set(row.rule??null);}catch{error.textContent=t('BACKGROUND_RULE_INVALID');return;}form.dataset.pending='true';fields.name.focus();});wrapper.append(edit);}
                 const archive=node('button',t(row.deleted?'background_restore':'background_archive'),{type:'button',class:'secondary','aria-label':`${t(row.deleted?'background_restore':'background_archive')}: ${row.name}`});archive.addEventListener('click',()=>setMany(state=>({backgrounds:(state.backgrounds || []).map(item=>item.id===row.id?{...item,deleted:row.deleted!==true}:item)})).catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(archive);
             }
             library.append(wrapper);

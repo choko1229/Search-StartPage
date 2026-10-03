@@ -67,6 +67,12 @@ dialog [data-close] { float: right; }
  .background-library {display:flex;flex-wrap:wrap;gap:.5rem;margin-block:1rem;}
  .background-editor {display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;}
  .background-editor label {display:grid;gap:.3rem;}
+ .background-rule-editor {grid-column:1/-1;min-width:0;}
+ .background-rule-node {min-width:0;margin-block:.75rem;padding:.65rem;display:grid;gap:.6rem;border:1px solid var(--border);border-radius:.5rem;}
+ .background-rule-node input,.background-rule-node select {min-width:0;max-width:100%;}
+ .background-rule-actions,.background-rule-checks {display:flex;flex-wrap:wrap;gap:.5rem;}
+ .background-rule-checks label {display:flex;align-items:center;gap:.3rem;}
+ .background-rule-editor:has(fieldset:disabled) {opacity:.7;}
  html,body,.panel,.search-box,dialog,.favorite-item {transition:background-color var(--theme-duration,.75s),color var(--theme-duration,.75s),border-color var(--theme-duration,.75s);}
  button,.button {color:var(--button-text,white);}
  button.secondary {color:var(--accent);}

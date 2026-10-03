@@ -33,6 +33,12 @@ $migrator = new Migrator($pdo, $root . '/database/migrations');
 $expectedMigrations = array_map('basename', glob($root . '/database/migrations/*.php'));
 sort($expectedMigrations);
 $check($migrator->migrate() === $expectedMigrations, 'initial migration');
+$check(in_array('009_background_upload_receipts.php',$expectedMigrations,true), 'upload receipt migration included');
+$check((int)$pdo->query("SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'background_upload_receipts'")->fetchColumn()===1,'upload receipt owner foreign key');
+try {
+    $pdo->prepare('INSERT INTO background_upload_receipts (user_id,request_id,fingerprint,response_json,created_at) VALUES (?,?,?,?,UTC_TIMESTAMP())')->execute([999,str_repeat('a',64),str_repeat('b',64),'{}']);
+    throw new RuntimeException('Receipt accepted missing user');
+}catch(PDOException $error){$check($error->getCode()==='23000','upload receipt rejects missing owner');}
 $check($migrator->migrate() === [], 'migration idempotency');
 $check((int) $pdo->query("SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'administrators'")->fetchColumn() === 2, 'administrator foreign keys');
 try {
@@ -122,6 +128,7 @@ $check($status === 200 && json_decode($body, true)['data']['status'] === 'ok', '
 [$status, $body] = $request('GET', '/');
 $check($status === 200 && !str_contains($body, '<script>'), 'home view escapes stored site name');
 $check($migrator->migrate() === [], 'post-install migration regression');
+$check((int)$pdo->query('SELECT COUNT(*) FROM migrations')->fetchColumn()===count($expectedMigrations),'installer applied every migration');
 $check($pdo->query('SELECT discord_id FROM installation_claims')->fetchColumn() === '123456789012345678', 'reserved administrator identity');
 foreach (['/config/config.php', '/storage/logs/test', '/app/bootstrap.php', '/.git/config'] as $path) {
     [$status, $body] = $request('GET', $path);

@@ -568,3 +568,17 @@ Failures: session試験の全体write件数は初回Localの残項目処理も�
 app/public/testsは3環境へ反映済み（公開fixtureは8083のみ）。送信記録は原本の追加コピーを保持するため一時的に端末容量が増えるが、保存できないときは通信しない。巨大500MiB実環境での容量/通信検証、ブラウザ実quota枯渇、認証済み実UIは未確認。Phase7未完了、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 全9Migrationを新規隔離MySQL/MariaDB Installerとup/down/upで確認。その後背景競合ルール共有、仕様全11条件の編集UI・天気/位置取得と手動地域の共通設定・動画手動再生へ進む。巨大動画実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃/Admin警告・Phase7完了条件監査も残る。実OAuthはユーザー指示の成功前提を維持し、未確認を最終監査へ留保。
+
+## Phase 7 全9Migrationの新規Installerと全条件編集（2026-10-03）
+
+新規専用project search-phase7-installer-20261003（MySQL8085/MariaDB8086）を作成。独立したDB/config/storageボリュームで既存環境を保持。integration.phpに009の存在・owner FK・不存在owner拒否・Installerの全Migration件数照合を追加。両DBで全9Migration初回up/再実行0件/逆順downで空schema/Web Installerから再up/再実行0件を含む39項目成功。InstallerのCSRF/セットアップ鍵/Session再生成/HTML Escape/秘密値非露出/非公開パス404/再インストール拒否も成功。設定値・秘密値は記録せずコンテナ内のみ。
+
+background-rule-core/editorを追加し製品background.jsの時間だけの編集欄を置換。Time/Day/Date/Period/Weather/Temperature/Season/Random/Login State/Device/Screen Size全11種類の専用入力欄、AND/OR入れ子グループの追加/削除、条件ON/OFF、既存単一条件のグループ編集、保存/再編集/取消を実装。保存前に暦日・範囲・型・未知フィールド・空グループ・最大depth12/nodes100/32KiBを検証。サーバー既存BackgroundInputによる検証は維持。元の複合条件を時間UIで黙って削除する問題も解消。通常背景metadata/ruleへ保存するため既存ファイル・所有権・Cloud Sync保持を維持。新規DB/API/Migration変更は今回なし。
+
+検証1: 全JS単体22ファイル成功。新規rule単体で全11デフォルト条件の一致、入れ子AND/OR、具体性優先、暦日/大小範囲/不正値・未知キー・depth/nodes/サイズ上限とdraftコピーを確認。全追加JS構文確認成功。
+検証2: 新規両DB Installer/Migration各39、rule検証各22、基盤39/翻訳key一致、PHP構文各103成功。今回の新規環境は通常remember実HTTP試験をまだ再実行していない（前回8083/4のAPI55/JS実HTTP6グループとは区別）。
+検証3: 製品UI8083で全11種類の入力欄を表示。screen幅1920〜320の保存拒否、正しい320〜1920とAND(screen,OR(weather rain,day weekdays+Saturday))の保存→reload→再編集で値/入れ子を保持。グループ削除で条件3→1、取消と再編集で保存済み3条件へ復帰。Englishでも保存済みScreen size/Weather/Day of week/AND/ORを確認。390px幅（document375/scroll375/form341/rules341、各scroll341）で横はみ出しなし、console warn/error0。画像.test-output/phase7-background-rules-mobile.png（Git除外）。IABタブ14保持、通常表示に戻し言語JA・選択背景Local upload retainedへ復帰。新規検証背景Rules verificationは同期OFFで保持し既存データは除去していない。実OAuth/認証済みUI検証ではない。
+
+public/langは既存UI8082・8083/4・新規8085/6へ反映。新規test/integration修正は新規8085/6へ反映済み。最新の全Migration証拠は全9件へ更新、旧環境の設定/ボリュームを維持。今回の実装もPhase7途中のコミットで完了判定ではない。
+
+次に実行すること: Weather IntegrationとBrowser Geolocation/Manual Locationの地域共通設定・ログイン時地域同期を接続（天気はUIに表示せず条件判定専用）。現在条件入力/検証は完成したが、製品描画contextへ実weather/temperatureをまだ与えていない。動画の手動再生、背景競合解決の保存ルール共有（現在checkpointだけ）、巨大動画実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、Phase7機能ゲート照合を継続。管理画面の圧縮不足警告はPhase9で接続。Phase7未完了、8〜12未着手、Version1.0未完成。実OAuthはユーザーの成功前提指示を維持し未確認留保。
