@@ -1215,3 +1215,19 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 残る確認: 実端末のACK保存失敗、完全network offline、多数tabstress、実Extension、backgroundfeature/syncイベント、大規模統計、weather/upload/account停止実UI。DB障害と実2タブが通ってもこれらを成功扱いにしない。docs/phase9-gate.md更新。
 
 次に実行すること: 残るPhase9機能停止・復旧の実UIと背景イベントを専用環境で確認。90日ログ定期実行とUpdate Management/Phase10実処理の接続を仕様に従って進める。管理者実UIは明示承認が来れば専用fixtureで検証・清掃。Phase9ゲート確認まで次Phaseへ進まない。
+
+## Phase9 クラウド同期停止・アカウント復旧（2026-10-04）
+
+直前ターンは状況報告のみで実装進捗なし。progress/status/gitから再開。中断した専用8099のfixtureを最初にcleanupして退避設定を復元し、新規通常prepareで再検証。Phase9進行中、Phase10〜12未着手、Version1.0未完成。管理者権限の実UI操作は承認待ちで再試行していない。
+
+検証1: browser2/tab4 localhost8099の生成ユーザー、通常Auth/AdminMiddleware。基準の同期成功を確認後、tab5管理policyでcloud_syncだけ無効化・JA保存。手動同期で管理者停止理由を表示、JA accountでも同じ理由と従来の最終同期を確認。EN切替後のaccountにも停止理由。EN policyで同じflagを有効化・Save、手動同期Synced、EN account Synced/最終同期時刻更新を確認。Console warn/error0。端末の新規変更を停止中に作成する試験は今回未実行。実Discord OAuth成功の証拠にはしない。
+
+画面: phase9-sync-disabled-en.pngを保存・目視確認。viewport390指定後もDOM innerWidth1280/document1265で、モバイル成功には数えない。phase9-sync-restored-en.pngは描画が崩れた画像で復旧表示の視覚証拠に採用しない。復旧状態はDOMのSynced/最終同期更新で確認。viewport reset済み。実モバイルの再確認を残す。
+
+清掃: fixture cleanupでpolicy/presets復元、生成user/token/device/非公開fixture除去。手動previewとhost短期keyも除去。account reloadでDiscord設定を必要とする未ログイン画面へ戻ることを確認。ユーザーの通常データやspec.mdは変更なし。
+
+検証2: 清掃後の隔離MySQL8099/MariaDB8100でadmin-policy各29、sync各17合格。CSRF/権限/Validation/CAS/停止復旧/所有者分離を回帰。Migrationのrepeat安全性もpolicy試験で合格。新規Migration/PHP変更なし、直前全16Installer40/PHP180の証拠を維持。
+
+検証3: Node site-policy validation/disable/recovery/auth separation、sync-session37、sync-data28、account-data既存21+所有者別pending upload cleanup/capacity合格。製品ソース変更なし。docs/phase9-gate.mdのcloud/account証拠を更新。
+
+次に実行すること: 専用環境でbackground_uploadsとweatherを個別に停止・復旧する実UI、背景操作匿名イベント、停止中の新規変更保持・再送、実モバイルを確認。LogRetention定期実行とUpdate管理/Phase10処理境界の残件を進める。管理者実権限操作は明示承認があれば新規fixtureで検証。Phase9ゲート確定前にPhase10へ進まない。
