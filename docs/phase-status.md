@@ -1157,3 +1157,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: 両DBMigration016各6成功。up/down/repeat/up-after-downと元設定の完全復元を確認。全16の空DBInstaller/down/upは未実行で、全15Installer40の既存証拠とは区別する。回帰は各admin64/auth43/policy29/presets36/statistics admin48/基盤39/PHP180成功。Docker runnerへ3試験追加。今回Docker起動の通常権限ではアクセス拒否となったが、承認された実行権限で既存専用環境を確認して検証成功、再作成なし。実画面の付与解除/mobile/Consoleは未実行。
 
 次に実行すること: docs/admin-ui-testing.mdの専用短期fixtureを使い、生成した専用対象ユーザーで日英の管理者付与/解除・最後の管理者拒否・390px・Consoleを実画面検証。fixture/preview/keyは最後に清掃する。続いて独立した新規環境で全16Installer往復、容量管理操作とUpdate導線、EN policy Save/統計期間と残る機能停止/匿名統計実端末検証。Phase9ゲート前にPhase10へ進まない。実OAuth/全browserなどの未確認を成功扱いにしない。
+
+## Phase9 管理者画面表示・全16新規Installer（2026-10-04）
+
+前ターンは管理者処理c8148cb/両29・13・6/回帰によりprogress。progress/status/gitから日英実画面と全16Installerへ再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+変更: admin-ui-fixture prepare rolesで新規生成の一般ユーザーDisposable role targetを追加。準備前に既存fixture ID/有効管理者を拒否しcleanupで対象ID/Discord IDを照合して削除。通常prepareの挙動を維持。docs/admin-roles.mdとadmin-ui-testing.md更新。
+
+検証1: browser2新tab26/localhost8097で短期fixtureの通常Auth/AdminMiddlewareを使いJA dashboard→users実遷移。JA/EN users表示、390px/content375、Console warn/error0、画像両言語保存・目視確認。言語Applyはhomeへ移動するため表示済みusers URLへ戻りEN画面を再確認。権限付与・最後の管理者解除のクリックは、自動承認レビューが専用テストでも対象/権限/範囲の明示承認不足として拒否。両操作とも未実行で成功扱いにしない。対象localhost8097の生成ユーザーと管理者fixtureだけでの操作承認を質問中。迂回せずfixture/policy/presets復元・preview/key削除、tab26 reloadでPlease sign inを確認、viewportreset/handoff。承認後は新規prepareで再試験。
+
+検証2: 新規search-phase9-roles-20261004を独立DB/config/storage volumesでbuild。MySQL8099/MariaDB8100で空DB全16up/repeat/down/Web Installer再up各40成功。以前の全15証拠を最新全16で補完。プロセス12765正常終了、既存環境/volumes保持。秘密値は出力せずランダムenvのみ。圧縮codecなしの基本image、以前の圧縮証拠と区別。
+
+検証3: 新規両DBで更新fixture prepare roles/cleanup、管理者29/競合13/016Migration6/admin64/presets36/statistics admin48/auth43/sync17/基盤39/PHP180成功。プロセス45300正常終了。git diff --check成功。実OAuth/全browser/Extension/大規模統計/EN policy Save/統計期間など既存留保を維持。
+
+次に実行すること: 管理者実画面の権限変更は明示承認待ち。承認が来ればdocs/admin-ui-testing.mdから短期fixtureを準備し日英付与/解除/最後の管理者拒否、reload保持/監査を確認して清掃。承認待ちでも独立した容量管理操作・Update導線、EN policy Save/統計期間操作と未確認の機能停止/匿名統計実端末収集を進める。Phase9全条件のゲート確認までPhase10へ進まない。Goal全体は継続可能でblockedにしない。

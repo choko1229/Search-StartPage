@@ -20,4 +20,4 @@ Migration016は `site_settings.admin_roles` に変更の通し版を作る。Rep
 
 `tests/admin-roles.php`、`tests/admin-role-concurrency.php`、`tests/admin-role-migration.php` はCLIとSEARCH_TEST_MODE=1を要求し、開始時に有効な管理者がいれば拒否する。専用の空の開発環境でのみ実行する。競合検証の子プロセス入力はDocker Linuxの `/dev/null` を使用する。生成したユーザーだけをfinallyで削除し、監査は保持する。
 
-日英フォームのHTML応答は検証済み。実ブラウザの付与・解除・最後の管理者の拒否・モバイル・Console確認と全16Migrationの新規Installer往復は未確認。実Discord OAuth成功の代替証明にはしない。
+日英フォームのHTML応答と実ブラウザ表示、390px幅/content375、Console0を検証済み。新規独立MySQL/MariaDB環境で全16Migrationのup/repeat/down/Web Installer再up各40項目を確認した。実ブラウザの付与・解除・最後の管理者の拒否は、自動承認レビューが明示承認不足としてクリックを拒否したため未実行。専用対象と範囲を明示してユーザーへ承認を質問中。実Discord OAuth成功の代替証明にはしない。
