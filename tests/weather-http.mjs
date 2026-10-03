@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {WeatherContext} from '../public/assets/js/weather-context.js';
 import {selectBackground} from '../public/assets/js/background-core.js';
 const base=process.argv[2];
-if(!['http://127.0.0.1:8085','http://127.0.0.1:8086'].includes(base))throw new Error('Dedicated test ports required');
+if(!['http://127.0.0.1:8083','http://127.0.0.1:8084','http://127.0.0.1:8085','http://127.0.0.1:8086'].includes(base))throw new Error('Dedicated test ports required');
 let passed=0;
 const check=value=>{assert.ok(value);passed++;};
 const csrf=await fetch(base+'/api/csrf');

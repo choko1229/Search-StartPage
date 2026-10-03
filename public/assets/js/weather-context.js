@@ -12,7 +12,7 @@ export function needsWeather(rows) {
     return rows.some(row=>{count=0;return row?.deleted!==true && visit(row?.rule);});
 }
 export class WeatherContext {
-    constructor({fetcher=globalThis.fetch,clock=()=>Date.now(),changed=()=>{}}={}) {
+    constructor({fetcher=(...args)=>globalThis.fetch(...args),clock=()=>Date.now(),changed=()=>{}}={}) {
         Object.assign(this,{fetcher,clock,changed,key:null,cached:null,pending:null,retryAt:0,controller:null,generation:0});
     }
     read(value,needed=true) {

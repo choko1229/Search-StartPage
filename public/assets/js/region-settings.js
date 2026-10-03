@@ -1,4 +1,4 @@
-import {setting,setSetting} from './store.js';
+import {setting,saveSettings} from './store.js';
 import {t,node} from './i18n.js';
 import {weatherRegion} from './weather-context.js';
 
@@ -18,7 +18,7 @@ export function regionSettings(panel) {
     const read=()=>{if(dirty)return;const value=setting('themeRegion',null);for(const key of Object.keys(inputs))inputs[key].value=value?.[key]??'';};
     const stop=()=>{generation++;busy=false;locate.disabled=false;};
     const persist=async(value,expected=generation)=>{
-        try{await setSetting('themeRegion',value);if(expected===generation){dirty=false;group.dataset.pending='false';read();status.textContent=t(value?'region_saved':'region_cleared');}}
+        try{await saveSettings({themeRegion:value},'appearance');if(expected===generation){dirty=false;group.dataset.pending='false';read();status.textContent=t(value?'region_saved':'region_cleared');}}
         catch{if(expected===generation){dirty=true;group.dataset.pending='true';status.textContent=t('storage_unavailable');}}
     };
     const save=()=>{

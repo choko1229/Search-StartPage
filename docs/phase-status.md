@@ -620,3 +620,19 @@ background-playback.jsと検索画面の再生/一時停止ボタンを追加。
 public/assets/langは8082〜8086へ反映済み。背景設定/元Blob/ユーザーデータ/ボリュームを保持。Phase7途中コミット、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 天気AND気温の製品実画面切替、位置取得UIの生成fixtureによる保存/拒否/解除中の旧応答拒否を確認（実OS位置許可と区別）。動画のEN・Loop OFF終端・表示復帰/モバイル代替を実ブラウザで追加検証。その後背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather設定付き新規Installer、Phase7ゲート監査へ進む。Admin圧縮不足警告はPhase9、実OAuth/認証済みUIは未確認留保を継続。
+
+## Phase 7 実天気の背景切替とブラウザ通信の補修（2026-10-03）
+
+製品8083のUIでWeather condition verification（同期OFF/単色#17875d）を追加。AND(全6天気カテゴリ, 気温−100〜70, 未ログイン)の3条件を保存・再編集で確認。手動選択はLocal upload retainedにして条件切替へ変更し、地域未設定では検証背景にならないことを確認。公開都市の手動地域を入力しても最初は検証色にならずRegressionを検出。
+
+原因: WeatherContext既定fetchをthis.fetcherとして呼ぶとnative browser fetchのreceiverがWindowでなくなり失敗する。注入fetchとNodeの実HTTP試験はこの条件を再現していなかった。既定値をglobalThis.fetchを呼ぶwrapperへ修正し、native相当のreceiver要求モデルを専用単体へ追加。両DBの実HTTPが成功しても実画面成功とは限らない証拠として記録する。デバッグ中のperformance APIはCUAのread-only scopeで未対応と分かり、その方法を中止。認証/CSRF/ブラウザ制約を緩和せず製品コードを修正した。
+
+地域設定もsetSettingがPromiseを返さないためawaitしても永続化の完了/失敗を確認できない問題を発見。saveSettings({themeRegion},appearance)へ切替え、設定と履歴を同じ原子的保存として待つ。保存完了後だけ成功表示し、失敗時のdraft保持を有効にする。weather HTTP試験の許可先に既存の隔離8083/8084を追加（通常8082は引き続き対象外）。DB/API/Migration変更なし。
+
+検証1: 修正後の実画面で地域あり→rgb(23,135,93)の検証背景、地域解除→元の別条件背景へ復帰を確認。気象データのmain表示なし、console warn/error0。画像.test-output/phase7-weather-background.png（Git除外）。最初の証拠画像は未完了onboarding modalで覆われたため「あとで続ける」で閉じ、通常画面を撮り直した。UI操作は現在地取得を行わず公開都市だけ。
+検証2: 全JS単体25ファイル・weather-context/region-settings構文成功。既定fetch receiverがglobalThisであることとcached取得を確認。既存原子的store試験を含む回帰成功。実ブラウザquota失敗/地域UIの保存失敗操作は今回未実施、保存処理の既存原子性証拠と区別。
+検証3: 実HTTP weather各14を8083/8084/8085/8086で成功（公開都市の実取得/製品JS選択/CSRF/Validation）。新規MySQL/MariaDB基盤39成功。PHP/SQL変更なし、直前PHP構文107・全9Migration新規Installer往復の証拠維持。git diff --check成功。
+
+修正JSは8082〜8086へ反映済み。通常JAトップ/地域未設定/手動切替/Local upload retainedへ戻しimage naturalWidth1を確認。検証背景は同期OFFのまま「保管」し復元可能、既存背景・ユーザーデータは保持。タブ14をhandoff保持。今回もPhase7途中の保存、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 位置取得UIの生成fixtureによる保存/拒否/解除中の旧応答拒否と永続化失敗を確認し、実OS許可とは区別。動画EN・Loop OFF終端・表示復帰/モバイル代替を実ブラウザで追加検証。その後背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。Admin圧縮不足警告はPhase9、実OAuth/認証済みUIは未確認留保継続。

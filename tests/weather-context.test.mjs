@@ -43,3 +43,10 @@ const document=syncDocument(state,{web:[],ai:[]});assert.deepEqual(document.sett
 const checkpoint={userId:'42',document};const values=syncValues(state,document,checkpoint,now);
 assert.deepEqual(values.settings.themeRegion,weatherRegion(region));assert.ok(values.syncOwnership.settings.includes('themeRegion'));
 console.log('Weather context: region, rule selection, cache, offline retry, owner-independent request, stale response, and shared sync passed.');
+const originalFetch=globalThis.fetch;
+try {
+    // Use a current, valid response while exercising the default native-fetch wrapper.
+    globalThis.fetch=async function(url){assert.equal(this,globalThis);return {status:200,json:async()=>url==='/api/csrf'?{data:{csrf_token:'test-token'}}:{success:true,data:{weather:'rain',temperature:12,observedAt:Math.floor(Date.now()/1000),expiresAt:Math.floor(Date.now()/1000)+900}}};};
+    const bound=new WeatherContext();
+    bound.read(region);await bound.pending;assert.equal(bound.cached?.weather,'rain');
+} finally {globalThis.fetch=originalFetch;}
