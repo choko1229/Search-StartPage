@@ -15,7 +15,22 @@ if($mode==='cleanup'){
         $presets->update($fixture['presets'],$presets->read()['version'],$fixture['user_id'],new App\Services\PresetState($root.'/storage/presets'));
     }
     if(isset($fixture['role_target']))$pdo->prepare('DELETE FROM users WHERE id=? AND discord_id=?')->execute([$fixture['role_target'],'999999999999999962']);
-    $pdo->prepare('DELETE FROM users WHERE id=? AND discord_id=?')->execute([$fixture['user_id'],'999999999999999961']);
+    // Remove only files referenced by the disposable identity, under the same
+    // owner lock used for upload publication. Never scan or purge storage.
+    $storage=new App\Services\BackgroundUpload($root);
+    $storage->withOwnerLock((int)$fixture['user_id'],function()use($pdo,$fixture,$storage):void{
+        $owner=(int)$fixture['user_id'];
+        $identity=$pdo->prepare('SELECT id FROM users WHERE id=? AND discord_id=?');
+        $identity->execute([$owner,'999999999999999961']);
+        if($identity->fetchColumn()===false)throw new RuntimeException('Disposable identity no longer matches');
+        $files=(new App\Repositories\BackgroundRepository($pdo))->list($owner);
+        foreach(array_unique(array_filter(array_column($files,'file_path'))) as $filename){
+            try{$file=$storage->existingPath($owner,$filename);}
+            catch(App\Http\HttpException $error){if($error->errorCode==='NOT_FOUND')continue;throw $error;}
+            if(!unlink($file))throw new RuntimeException('Disposable upload cleanup failed');
+        }
+        $pdo->prepare('DELETE FROM users WHERE id=? AND discord_id=?')->execute([$owner,'999999999999999961']);
+    });
     unlink($path);echo "Admin UI fixture cleaned and saved settings restored.\n";exit;
 }
 if($mode!=='prepare'||is_file($path))throw new RuntimeException('Specify prepare, or clean the existing fixture');

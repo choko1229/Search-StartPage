@@ -15,3 +15,4 @@ CLIはWeb実行ユーザーで起動する（このDocker環境では`exec --use
 終了時に必ず `php tests/admin-ui-fixture.php cleanup` を実行する。退避したpolicyとプリセットを復元し、生成ユーザーと関連token/deviceを削除し、非公開fixtureを除去する。手動配置したpreviewとローカルのキー一時ファイルも除去する。管理画面を再読込し、ログイン要求へ戻ることを確認する。追加した監査記録は保持する。新しいprepareは既存fixtureがあると拒否する。
 
 2026-10-04: 両DBでprepare/cleanupとPHP構文成功。実MySQL管理policyのJA保存/再読込/復元、JA/EN表示・390px幅、監査前後値とファイル保存済み表示、Console0を確認。127.0.0.1でのEN保存は認証要求となり未成功、localhostに分けてJA復元を再成功。EN保存・全管理画面の網羅・実OAuthは未確認。
+2026-10-04: cleanupは固定生成identityを再照合し、所有者lockと安全なexistingPathを使ってDB参照upload本体だけを除去する。storage全体や他userを走査しない。実画像の停止中保存→復旧送信/容量超過表示を確認、清掃後ログイン要求へ復帰。

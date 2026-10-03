@@ -1247,3 +1247,19 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: 専用MySQL8099/MariaDB8100へassets/View/langを反映、変更PHP4ファイル構文成功、基盤各40成功（旧39+placeholder Regression）。Migrationなし、直前全16Installer証拠を維持。git diff --check確認。spec.md変更・stageなし。
 
 次に実行すること: 参考画像に向けたブランドアイコン/操作密度/明暗の読みやすさと認証済みaccountの見た目を仕上げる。同時に元のPhase9 weather/upload停止・復旧、背景匿名イベント、停止中変更保持・再送を継続。LogRetention定期実行/Update管理残件もゲートに残る。管理者実権限操作は明示承認待ちで迂回しない。デザイン変更だけでPhase9/Version1.0を完了にしない。
+
+## Phase9 背景アップロード・天気停止/復旧の実画面（2026-10-04）
+
+前ターンe3bfc1fはGlass外観実装と検証による進捗。progress/status/git/Phase9ゲートから元の機能停止検証へ再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+検証1: localhost8099専用通常Auth fixture、browser2/tab7管理policyでbackground_uploadsだけOFF、cloud_sync ON維持。tab8背景form/file chooserでworkspaceの生成夕景PNGを選択、cloudSync ONで新規Upload policy recoveryを端末保存（2.28MiB）。手動syncで管理者停止理由、再ON/手動syncで同期成功、dashboardとstorageで1件/2394813bytesを確認。停止中の新規fileが消えず復帰後送信。quotaを100に下げた実Storageでも1件/2394813保持、超過説明を表示。JA画像phase9-upload-recovery-storage-jaを保存・目視。EN upload停止UIは未確認。
+
+検証2: weatherだけOFF、現在地要求なしで公開地点の生成テスト座標35.68/139.69を手動保存。生成gradientのweather条件を保存しrules切替でJA天気停止理由を確認。ON後reload、理由解除、同専用accessログからPOST weather応答だけを抽出し403×3→200×3を確認。実取得内容/条件一致する天気結果やEN停止UIの網羅は今回未確認。CLI一時observerはevent_type/source/event_data/countだけを取得、feature background2確認（生成背景2件保存）、sync49等。識別子/query/URL/生ログ非表示、observer除去。
+
+発見: 地域操作中、メインに一度storage-unavailable表示が出た。地域には後で保存成功、reload後も2背景保持、Console warn/error0。これを正常扱いにせず一過性の警告の原因と保持範囲を次の優先Regression確認にする。旧複数プレビューtabと同期処理が同じoriginにあるが、原因はまだ未確定。
+
+清掃補修: admin-ui-fixture cleanupが生成upload本体を残すため、固定生成Discord ID/ownerを再照合しBackgroundUploadのowner lock/existingPath安全検証でDB参照filenameだけをunlinkしてからuserを削除。storage走査/別user/未参照file削除なし。cleanupでpolicy/presets復元、今回の参照画像/生成user/token/device/fixture/preview/hostkey除去。最後tab7 reloadでログイン要求確認。端末内の生成背景/既存favoriteは保持。失敗ファイル削除・競合清掃の故障注入は未実行。
+
+検証3: 両DBへ更新fixture反映、構文、通常prepare/cleanup成功。policy各29/background API各56/weather各73/statistics各30成功。実行session57679をpollしexit0。Node weather-context disable/recovery、background transport/session/upload intents/recovery/ACK、statistics privacy/queue成功。新規Migrationなし、直前全16Installer/PHP180と基盤40の証拠を維持。git diff --check確認。
+
+次に実行すること: 地域設定の一過性保存警告を複数tab/同期の競合で再現し、実データ保持と原因を調べて修正。必要なら安全なエラー分類の試験を追加する。EN weather/upload停止表示、生成背景の所有者切替/清掃故障を確認。Glassブランドアイコン/密度/明暗/accountとLogRetention定期実行・Update管理もPhase9残件として継続。管理者実権限変更は明示承認待ちで迂回なし。全DoDまでGoal完了にしない。
