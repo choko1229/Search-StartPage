@@ -12,7 +12,8 @@ use App\Auth\Auth;
 final class AdminController
 {
     public function __construct(private readonly AdminRepository $repository, private readonly View $view,
-        private readonly AdminSettingsRepository $settings,private readonly Auth $auth,private readonly AdminAuditLogger $audit) {}
+        private readonly AdminSettingsRepository $settings,private readonly Auth $auth,private readonly AdminAuditLogger $audit,
+        private readonly \App\Repositories\AdminRoleRepository $roles) {}
 
     private function overview(): array
     {
@@ -37,7 +38,8 @@ final class AdminController
             if (!is_string($value) || !preg_match('/^[1-9][0-9]{0,6}$/D',$value) || (int)$value<$min || (int)$value>$max) throw new HttpException(422,'INVALID_INPUT');
             $numbers[$key]=(int)$value;
         }
-        return $this->repository->users(trim($search),$numbers['page'],$numbers['page_size'],$storage);
+        $version=$this->roles->version();
+        return $this->repository->users(trim($search),$numbers['page'],$numbers['page_size'],$storage)+['role_version'=>$version];
     }
     public function users(Request $request): Response { return Response::json($this->listing($request,false)); }
     public function storage(Request $request): Response { return Response::json($this->listing($request,true)); }
@@ -51,6 +53,18 @@ final class AdminController
     {
         $this->audit->flush();
         return new Response($this->view->render('admin-maintenance',$this->settings->maintenance()));
+    }
+    public function updateRole(Request $request):Response
+    {
+        $target=$request->body['user_id']??null;$enabled=$request->body['admin_flag']??null;$expected=$request->body['expected_admin_flag']??null;$version=$request->body['version']??null;
+        if(!$request->isApi()){
+            foreach([$target,$version] as $value)if(!is_string($value)||!preg_match('/^[1-9][0-9]{0,15}$/D',$value))throw new HttpException(422,'INVALID_INPUT');
+            foreach([$enabled,$expected] as $value)if(!in_array($value,['0','1'],true))throw new HttpException(422,'INVALID_INPUT');
+            $target=(int)$target;$version=(int)$version;$enabled=$enabled==='1';$expected=$expected==='1';
+        }
+        if(!is_int($target)||$target<1||$target>9007199254740990||!is_int($version)||$version<1||$version>=9007199254740990||!is_bool($enabled)||!is_bool($expected))throw new HttpException(422,'INVALID_INPUT');
+        $result=$this->roles->update($target,$enabled,$expected,$version,(int)$this->auth->requireUser()['id']);$this->audit->flush();
+        return $request->isApi()?Response::json($result):Response::redirect('/admin/users');
     }
     public function maintenance(Request $request): Response { return Response::json($this->settings->maintenance()); }
     public function updateMaintenance(Request $request): Response

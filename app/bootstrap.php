@@ -48,15 +48,15 @@ if ($config->get('installed')) {
             catch (PDOException) { throw new App\Http\HttpException(503, 'DATABASE_UNAVAILABLE'); }
             $auth = new App\Auth\Auth($config, new App\Repositories\AuthRepository($pdo));
             $auth->restore();
-            $adminContext = [$auth, new App\Repositories\AdminRepository($pdo),new App\Repositories\AdminSettingsRepository($pdo,$maintenanceSignal),new App\Services\AdminAuditLogger($pdo,new FileLogger(dirname(__DIR__).'/storage/logs'))];
+            $adminContext = [$auth, new App\Repositories\AdminRepository($pdo),new App\Repositories\AdminSettingsRepository($pdo,$maintenanceSignal),new App\Services\AdminAuditLogger($pdo,new FileLogger(dirname(__DIR__).'/storage/logs')),$pdo];
         }
         return $adminContext;
     };
     $adminMiddleware = new App\Middleware\AdminMiddleware($resolveAdmin);
-    $adminHandler = static function (string $method) use ($resolveAdmin, $view): Closure {
-        return static function (Request $request) use ($resolveAdmin, $view, $method): App\Http\Response {
-            [$auth, $repository,$settings,$audit] = $resolveAdmin();
-            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit))->$method($request);
+    $adminHandler = static function (string $method) use ($resolveAdmin, $view,$config): Closure {
+        return static function (Request $request) use ($resolveAdmin, $view, $method,$config): App\Http\Response {
+            [$auth, $repository,$settings,$audit,$pdo] = $resolveAdmin();
+            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit,new App\Repositories\AdminRoleRepository($pdo)))->$method($request);
         };
     };
     $router->add('GET', '/admin', $adminHandler('page'), [$adminMiddleware]);
@@ -65,6 +65,7 @@ if ($config->get('installed')) {
     $router->add('GET', '/admin/storage', $adminHandler('storagePage'), [$adminMiddleware]);
     $router->add('GET', '/api/admin/users', $adminHandler('users'), [$adminMiddleware]);
     $router->add('GET', '/api/admin/storage', $adminHandler('storage'), [$adminMiddleware]);
+    foreach(['/admin/users/role','/api/admin/users/role'] as $path)$router->add('POST',$path,$adminHandler('updateRole'),[$adminMiddleware,new Csrf()]);
     $router->add('GET','/admin/maintenance',$adminHandler('maintenancePage'),[$adminMiddleware]);
     $router->add('POST','/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
     $router->add('GET','/api/admin/maintenance',$adminHandler('maintenance'),[$adminMiddleware]);

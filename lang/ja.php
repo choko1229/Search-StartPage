@@ -229,4 +229,7 @@ return [
     'presets_help'=>'独自の検索先一覧を保存していない端末に初期値として適用されます。保存済みの端末・クラウド一覧は維持されます。変更の反映には再読込が必要です。各分類に有効な項目を最低1件残し、IDとPrefixは分類をまたいで重複させないでください。各分類50件まで。空欄の項目に入力して保存すると追加でき、次の空欄が表示されます。URLには{query}を使います。AIではコピー案内も利用できます。並び順の小さい項目から表示されます。',
     'presets_new'=>'プリセットを追加','presets_id'=>'固定ID','presets_name'=>'名前','presets_url'=>'URLテンプレート','presets_prefix'=>'Prefix','presets_icon'=>'アイコン文字','presets_sort_order'=>'並び順','presets_enabled'=>'有効化','presets_copy'=>'検索文のコピー案内','presets_remove'=>'初期値から削除',
     'provider_preset_choose'=>'追加できるプリセット','provider_preset_add'=>'プリセットを追加',
+    'admin_role_grant'=>'管理者権限を付与','admin_role_revoke'=>'管理者権限を解除',
+    'LAST_ADMIN_REQUIRED'=>'管理者を最低1人残してください。別のアカウントに権限を付与してから解除できます。',
+    'USER_NOT_FOUND'=>'このアカウントは存在しません。',
 ];

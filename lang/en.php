@@ -229,4 +229,7 @@ return [
     'presets_help'=>'These defaults apply to devices that have not saved their own provider list. Existing local or cloud lists remain intact. Reload to receive changes. Each group needs at least one enabled entry. Prefixes and IDs must be unique across both groups. Up to 50 entries per group. Fill in the blank entry to add a provider; save to add another. URL templates use {query}; AI providers may instead offer copying. Entries with smaller order values appear first.',
     'presets_new'=>'Add a preset','presets_id'=>'Stable ID','presets_name'=>'Name','presets_url'=>'URL template','presets_prefix'=>'Prefix','presets_icon'=>'Icon text','presets_sort_order'=>'Order','presets_enabled'=>'Enabled','presets_copy'=>'Offer query copying','presets_remove'=>'Remove from defaults',
     'provider_preset_choose'=>'Available presets','provider_preset_add'=>'Add preset',
+    'admin_role_grant'=>'Grant administrator access','admin_role_revoke'=>'Revoke administrator access',
+    'LAST_ADMIN_REQUIRED'=>'Keep at least one administrator. Grant access to another account before revoking this one.',
+    'USER_NOT_FOUND'=>'This account no longer exists.',
 ];

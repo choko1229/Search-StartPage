@@ -23,6 +23,14 @@ $pageLink=static fn(int $page):string=>$path.'?'.http_build_query(['q'=>$data['s
 <dt><?= $e($t->get('admin_count_backgrounds')) ?></dt><dd><?= $e($user['background_count']) ?></dd>
 <dt><?= $e($t->get('admin_count_background_bytes')) ?></dt><dd><?= $e($user['background_bytes']) ?></dd>
 </dl>
+<?php if(!$data['storage']): ?>
+<form method="post" action="/admin/users/role">
+<input type="hidden" name="_csrf" value="<?= $e(App\Auth\Session::csrf()) ?>">
+<input type="hidden" name="user_id" value="<?= $e($user['id']) ?>"><input type="hidden" name="version" value="<?= $e($data['role_version']) ?>">
+<input type="hidden" name="expected_admin_flag" value="<?= $e($user['admin_flag']) ?>"><input type="hidden" name="admin_flag" value="<?= $user['admin_flag']===1?'0':'1' ?>">
+<button type="submit"><?= $e($t->get($user['admin_flag']===1?'admin_role_revoke':'admin_role_grant')) ?></button>
+</form>
+<?php endif; ?>
 </article>
 <?php endforeach; ?>
 <nav aria-label="<?= $e($t->get('admin_pages')) ?>">

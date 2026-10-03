@@ -947,3 +947,16 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 清掃: MySQL fixtureのpolicy/presets復元、専用user/token/device/fixture/手動public preview/host key除去。実tab24 reloadでログイン要求に戻ることを確認。viewportreset。tab24 JA presetログイン要求/tab25 ENホームと既存18/19/20/21/23をhandoff。tab22エラーの復帰は未確認。管理実OAuth/全browser/Extension/cloud経由のpreset実端末共有、EN統計期間操作などの留保を維持。
 
 次に実行すること: specとPhase9仕様を確認し、管理者追加/解除・最後の管理者保護・同時変更時の権限確認・DB/file監査・日英users UIを実装して両DBと実画面で検証。続いて容量管理操作とUpdate導線、未確認のEN管理policy Save/統計期間操作、weather/upload/account機能停止と匿名統計実端末収集。Phase9ゲート前にPhase10へ進まない。
+## Phase9 管理者付与・解除と同時操作保護（2026-10-04）
+
+直前のGoalターンは状態報告のみでno progress。progress/status/git/spec90〜92を再確認し、作業中の管理者権限処理を再検証してDocker runnerとMigration専用試験を追加した。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+実装: Migration016のadmin_roles版、AdminRoleRepository、POST /admin/users/role・/api/admin/users/role、日英usersフォーム。server admin/CSRF/厳密型/対象存在確認、一覧role_versionとexpected_admin_flagによる409、全変更を共通行ロックで直列化、待機後に現在の操作者権限を再確認。最後の管理者解除409、他の管理者がいれば自己解除可能。DB変更/版/ADMIN_ROLE_CHANGED監査を同一transaction、file outbox。no-opは版/監査を増やさずCreated By/Atは再付与でも保持。詳細docs/admin-roles.md。
+
+検証1: 専用MySQL8097/MariaDB8098で管理者HTTP/DB各29成功。guest401/user403/CSRF403/Validation422/target404/stale409/最後の管理者409、付与解除、既存loginの即時権限反映、日英HTML/HTML303、actor/before/after/version/file監査を確認。生成ユーザーのみfinally削除、監査保持。
+
+検証2: 両DB別プロセス競合各13成功。実ロック待機中の子プロセスを確認し、同時自己解除は一方のみ成功して管理者1人を維持。待機中に権限を失った操作者はADMIN_REQUIREDで拒否、残る管理者を解除できない。
+
+検証3: 両DBMigration016各6成功。up/down/repeat/up-after-downと元設定の完全復元を確認。全16の空DBInstaller/down/upは未実行で、全15Installer40の既存証拠とは区別する。回帰は各admin64/auth43/policy29/presets36/statistics admin48/基盤39/PHP180成功。Docker runnerへ3試験追加。今回Docker起動の通常権限ではアクセス拒否となったが、承認された実行権限で既存専用環境を確認して検証成功、再作成なし。実画面の付与解除/mobile/Consoleは未実行。
+
+次に実行すること: docs/admin-ui-testing.mdの専用短期fixtureを使い、生成した専用対象ユーザーで日英の管理者付与/解除・最後の管理者拒否・390px・Consoleを実画面検証。fixture/preview/keyは最後に清掃する。続いて独立した新規環境で全16Installer往復、容量管理操作とUpdate導線、EN policy Save/統計期間と残る機能停止/匿名統計実端末検証。Phase9ゲート前にPhase10へ進まない。実OAuth/全browserなどの未確認を成功扱いにしない。
