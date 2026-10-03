@@ -573,3 +573,17 @@ docs/phase7-gate.mdでWizard持越しを確認済みへ更新、docs/spec-audit.
 Phase7最終ゲート監査中、Phase8〜12未着手、Version1.0未完成。実OAuth/認証済みUI/実OS位置許可/非表示動画復帰/巨大FFmpeg変換/実ブラウザquota枯渇は留保。先頭Phase一覧を最新状態に合わせ、過去記録と現状の混同を解消。
 
 次に実行すること: docs/phase7-gate.mdと添付Phase7完了条件を照合し、未処理の実装がないことを確認して機能ゲート判定。留保項目をPhase12の個別監査へ追跡。Phase8はspec§48〜52のRegistry/Search/Ranking/Commands/Confirmationsを仕様通り実装する。Phase7の確定前にPhase8へ進まない。
+
+## Phase 7 添付仕様のライブラリ補修（2026-10-03）
+
+添付Phase7全文（Library multiple backgrounds/thumbnail/favorite/sort、完了条件9項目）を再照合し、既存ライブラリのサムネイル・お気に入り・並び替え不足を確認。Phase7完了判定を保留して補修した。背景サムネイルは色/gradient/image/video、動画は自動再生せずmuted metadata。ローカルBlobは製品IndexedDBから取得、render世代が変わった遅延応答を捨て、生成URLは再描画/pagehideで解放。bfcache復帰は再描画。失敗時は背景色を保持。背景favorite booleanを既存settings_jsonに保存し同期投影へ追加、SQL/Migration追加なし。並び順は保存順/名前/お気に入り優先、設定保存/Undo/カテゴリreset対象へ接続。JA/EN翻訳。
+
+検証1: 全JS28単体成功。新library8で並び替え/入力不変/不正media除外/boolean厳密正規化/同期payload保持を確認。変更JS構文、settings history19も成功。BackgroundInput PHP構文と翻訳key一致を含む基盤39を背景両DBと新規Installer両DBで成功。
+
+検証2: 隔離8083/8084の背景実API各56成功（新favorite文字列422を含む）。製品BackgroundSyncSession/SyncSession実HTTP2端末各8グループ成功、新favorite trueを他端末で受信→falseへ解除→元端末で受信を確認。従来receipt/同時upload/CSRF/owner/Range/409/オフライン/保存ルール共有を維持。モデル端末＋実APIであり実OAuth/認証済みブラウザ共有とは区別。fixture認証情報と専用アカウントはfinally清掃。
+
+検証3: 製品8083の実JA UIでLocal video upload verificationのお気に入り登録→お気に入り優先で先頭、動画サムネイルreadyState4/paused true、既存画像naturalWidth1を確認。reload後favorite trueとsort favoriteを維持、名前順で順序変更、ENでもFavorite background/Favorites first操作、warn/error0。390pxでdocument375/scroll375、カード各160px、横はみ出しなし。動画未読込時は色fallbackからデコード後表示へ移る。画像.test-output/phase7-library-en.pngとphase7-library-mobile.pngを保存・目視確認。通常JA/Local upload retainedへ保持、viewport reset/tab16 handoff。今回ゲスト、実OS/OAuth未確認。
+
+app/public/langを8082/8083/8084/8089/8090へ反映。DB/config/storage/既存背景を保持。9Migration/Installer各40の直前証拠を維持、今回新Migrationなし/再Installerなし。git diff --check成功。新PHP設定は既存JSONで扱う。Phase7機能ゲートはまだ監査中、Phase8〜12未着手、Version1.0未完成。
+
+次に実行すること: 添付Phase7完了9項目とライブラリ補修をdocs/phase7-gate.mdで最終照合し、機能ゲートを確定する。未確認の実OAuth/認証済みUI/実OS位置許可/非表示動画復帰/巨大FFmpeg変換/実ブラウザquota枯渇をPhase12監査へ個別追跡。残る実装不足がなければPhase8 spec§48〜52と添付Phase8のRegistry/Search/Ranking/Commands/Confirmationsへ進む。

@@ -24,7 +24,7 @@ final class BackgroundInput
         foreach (['position'=>['center','top','bottom','left','right'],'fit'=>['cover','contain','fill']] as $key=>$values) {
             $value = $input->$key ?? $values[0]; if (!in_array($value,$values,true)) self::invalid(); $settings[$key]=$value;
         }
-        foreach (['fixed'=>true,'autoplay'=>true,'loop'=>true,'mute'=>true,'paused'=>false] as $key=>$default) {
+        foreach (['fixed'=>true,'autoplay'=>true,'loop'=>true,'mute'=>true,'paused'=>false,'favorite'=>false] as $key=>$default) {
             $value=property_exists($input,$key)?$input->$key:$default; if(!is_bool($value))self::invalid(); $settings[$key]=$value;
         }
         $settings['fallback'] = self::url($input->fallback ?? '', true);

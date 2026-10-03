@@ -39,8 +39,11 @@ function device(cookies,rows=[]){
 }
 const png=new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aNC8AAAAASUVORK5CYII=','base64'));
 const a=device(fixture[0].devices[0],[{id:'http-url',name:'URL',type:'image',sourceType:'url',url:'https://example.test/image.png',cloudSync:true},{id:'http-file',name:'File',type:'image',sourceType:'upload',fileId:'http-file',fileVersion:1,fileSize:png.length,cloudSync:true}]);
+a.state.backgrounds[0].favorite=true;
 a.files.set('http-file',new Blob([png],{type:'image/png'}));assert.equal(await a.run(),true);assert.equal(a.uploads,1);
 const b=device(fixture[0].devices[1]);assert.equal(await b.run(),true);assert.equal(b.state.backgrounds.length,2);assert.deepEqual(new Uint8Array(await b.files.get('http-file').arrayBuffer()),png);
+assert.equal(b.state.backgrounds.find(row=>row.id==='http-url').favorite,true);
+b.state.backgrounds.find(row=>row.id==='http-url').favorite=false;assert.equal(await b.run(),true);assert.equal(await a.run(),true);assert.equal(a.state.backgrounds.find(row=>row.id==='http-url').favorite,false);
 a.state.backgrounds.find(row=>row.id==='http-url').name='Device A';assert.equal(await a.run(),true);b.state.backgrounds.find(row=>row.id==='http-url').blur=12;assert.equal(await b.run(),true);
 let remote=await context.run(a,readBackgrounds);assert.equal(remote.data.items.find(row=>row.id==='http-url').name,'Device A');assert.equal(remote.data.items.find(row=>row.id==='http-url').blur,12);
 b.state.backgrounds.find(row=>row.id==='http-url').name='Device B';

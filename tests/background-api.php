@@ -31,6 +31,7 @@ try {
     [$status]=$request('POST','/api/backgrounds/url',['user_id'=>$other,'item'=>['name'=>'Bad','url'=>'https://example.test/image.png']],$csrf);$check($status===403,'owner hint cannot select another account');
     [$status]=$request('POST','/api/backgrounds/url',['item'=>['name'=>'Bad','url'=>'javascript:alert(1)']],$csrf);$check($status===422,'unsafe URL denied');
     [$status]=$request('POST','/api/backgrounds/url',['item'=>['name'=>'Bad','url'=>'https://example.test/image.png','cloudSync'=>null]],$csrf);$check($status===422,'invalid sync flag cannot become enabled by default');
+    [$status]=$request('POST','/api/backgrounds/url',['item'=>['name'=>'Bad','url'=>'https://example.test/image.png','favorite'=>'true']],$csrf);$check($status===422,'favorite must be boolean');
     [$status]=$request('POST','/api/backgrounds/url',['item'=>['name'=>'Bad','url'=>'https://example.test/image.png','rule'=>['type'=>'date','date'=>'2026-02-30']]],$csrf);$check($status===422,'invalid calendar date rejected');
     [$status,$json]=$request('POST','/api/backgrounds/url',['item'=>['id'=>'shared-id','name'=>'URL','url'=>'https://example.test/image.png','rule'=>['operator'=>'and','conditions'=>[['type'=>'login','value'=>true],['type'=>'time','start'=>'18:00','end'=>'06:00']]]]],$csrf);
     $check($status===201&&$json['data']['item']['version']===1,'URL background and rule created');

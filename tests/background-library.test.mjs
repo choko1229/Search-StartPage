@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {libraryBackgrounds} from '../public/assets/js/background-library-core.js';
+import {backgroundRecord,backgroundPayload} from '../public/assets/js/background-sync-core.js';
+const rows=[{id:'z',name:'Zulu',type:'solid',favorite:true,cloudSync:true},{id:'b',name:'Bravo',type:'solid'},{id:'a',name:'Alpha',type:'solid',deleted:true}];
+assert.deepEqual(libraryBackgrounds(rows).map(r=>r.id),['z','b','a']);
+assert.deepEqual(libraryBackgrounds(rows,'name').map(r=>r.id),['a','b','z']);
+assert.deepEqual(libraryBackgrounds(rows,'favorite').map(r=>r.id),['z','a','b']);
+assert.deepEqual(rows.map(r=>r.id),['z','b','a']);
+assert.equal(libraryBackgrounds([null,{id:'bad',name:'Bad',type:'image',url:'javascript:1'}]).length,0);
+assert.equal(libraryBackgrounds([{...rows[0],favorite:'true'}])[0].favorite,false);
+assert.equal(backgroundPayload(backgroundRecord(rows[0])).favorite,true);
+assert.equal(backgroundPayload(backgroundRecord(rows[1])).favorite,false);
+console.log('8 background library assertions passed.');

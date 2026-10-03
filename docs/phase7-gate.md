@@ -24,3 +24,7 @@
 仕様は永久削除ボタンを背景の必須操作として明記していない。保管は復元可能でfile/容量を保持する。孤立回収は保管背景のfileを消す代替操作にしない。
 
 生成MP4の実ブラウザfile選択からIndexedDB保存・再読込まで確認済み。次は添付Phase別完了条件を照合し、Phase 7の実装と検証範囲を確定する。環境依存の未確認事項はPhase 12監査で追跡し、主要未処理を残したままPhase 7を完了扱いにしない。
+
+## 添付Phase7の追加照合
+
+添付Library要件のthumbnail/favorite/sortは2026-10-03監査で不足を発見し補修。色・gradient・実画像/動画（autoplayなし）のサムネイル、背景favorite boolean、保存順/名前/お気に入り優先を実装。DB既存settings_json、background sync appearanceへfavoriteを追加。両DBAPI56/実2端末8group（favorite登録・解除の往復を追加）と全JS28、新library8、JA/EN/reload/390px実画面を確認。並び順はUndo/resetカテゴリ対象。既存の実OAuth等の留保は継続。添付完了条件9項目の最終判定を次回行う。

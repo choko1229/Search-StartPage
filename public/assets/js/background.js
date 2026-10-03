@@ -9,11 +9,20 @@ import {initializeBackgroundSync} from './background-sync.js';
 import {backgroundRuleEditor} from './background-rule-editor.js';
 import {WeatherContext,needsWeather} from './weather-context.js';
 import {BackgroundPlayback} from './background-playback.js';
+import {libraryBackgrounds} from './background-library-core.js';
 
 export function initializeBackground() {
     const panel=document.getElementById('settings-background'),settingsDialog=document.getElementById('search-settings');
     const layer=node('div',undefined,{class:'background-layer','aria-hidden':'true'}),media=node('div',undefined,{class:'background-media'}),overlay=node('div',undefined,{class:'background-overlay'});layer.append(media,overlay);document.body.prepend(layer);
     const library=node('div',undefined,{class:'background-library'});panel.append(node('h4',t('background_library')),library);
+    const librarySort=node('select',undefined,{'aria-label':t('background_library_sort')});
+    for(const [value,label] of [['saved','background_sort_saved'],['name','background_sort_name'],['favorite','background_sort_favorite']])librarySort.append(node('option',t(label),{value}));
+    const sortLabel=node('label',t('background_library_sort'),{class:'preference'});sortLabel.append(librarySort);library.before(sortLabel);
+    librarySort.addEventListener('change',()=>saveSettings({backgroundLibrarySort:librarySort.value},'background').catch(()=>{error.textContent=t('storage_unavailable');}));
+    let libraryGeneration=0;const thumbnailUrls=new Set();
+    function clearThumbnails(){libraryGeneration++;for(const url of thumbnailUrls)URL.revokeObjectURL(url);thumbnailUrls.clear();}
+    window.addEventListener('pagehide',clearThumbnails);
+    window.addEventListener('pageshow',event=>{if(event.persisted)renderLibrary();});
     const form=node('form',undefined,{class:'background-editor','aria-label':t('background_editor')}),error=node('p','',{role:'alert'});panel.append(form,error);
     const fields={};
     let editingId=null,saving=false;
@@ -65,13 +74,22 @@ export function initializeBackground() {
         }catch(failure){error.textContent=t(['INVALID_UPLOAD','INVALID_UPLOAD_NAME','UNSUPPORTED_BACKGROUND_FORMAT','BACKGROUND_TOO_LARGE','BACKGROUND_MIME_MISMATCH','BACKGROUND_RULE_INVALID','background_invalid'].includes(failure.message)?failure.message:'storage_unavailable');}finally{saving=false;add.disabled=false;}
     });
     function renderLibrary(){
-        library.replaceChildren();for(const item of [...backgroundPresets,...storedBackgrounds()]){
+        clearThumbnails();const generation=libraryGeneration;
+        librarySort.value=['saved','name','favorite'].includes(setting('backgroundLibrarySort','saved'))?setting('backgroundLibrarySort','saved'):'saved';
+        library.replaceChildren();for(const item of libraryBackgrounds([...backgroundPresets,...storedBackgrounds()],librarySort.value)){
             const row=normalizeBackground(item);if(!row)continue;
             const wrapper=node('div',undefined,{class:'background-entry'});
+            const thumbnail=node('div',undefined,{class:'background-thumbnail','aria-hidden':'true'});thumbnail.style.background=row.type==='gradient'?`linear-gradient(${row.angle}deg,${row.color},${row.colorEnd})`:row.color;wrapper.append(thumbnail);
+            const attachThumbnail=url=>{if(generation!==libraryGeneration||!wrapper.isConnected)return;const preview=node(row.type==='video'?'video':'img',undefined,{src:url,...row.type==='video'?{preload:'metadata',playsinline:''}:{alt:'',loading:'lazy'}});preview.style.objectFit=row.fit;preview.style.objectPosition=row.position;if(row.type==='video')preview.muted=true;preview.addEventListener('error',()=>preview.remove());thumbnail.append(preview);};
+            if(['image','video'].includes(row.type)){
+                if(row.fileId)backgroundFile(row.fileId).then(blob=>{if(generation!==libraryGeneration||!wrapper.isConnected||!(blob instanceof Blob))return;const url=URL.createObjectURL(blob);thumbnailUrls.add(url);attachThumbnail(url);}).catch(()=>{});
+                else queueMicrotask(()=>attachThumbnail(row.url));
+            }
             const button=node('button',row.id.startsWith('preset-')?t(row.id):row.name,{type:'button',class:'secondary','aria-pressed':String(setting('backgroundSelected','')===row.id)});
             button.disabled=row.deleted===true;button.addEventListener('click',()=>saveSettings({backgroundMode:'library',backgroundSelected:row.id},'background').catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(button);
             wrapper.append(node('small',`${t(row.cloudSync?'background_sync_on':'background_local_only')}${row.fileId?' · '+(row.fileSize/1048576).toFixed(2)+' MiB':''}`));
             if(!row.id.startsWith('preset-')){
+                const favorite=node('button',t('background_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_favorite')}: ${row.name}`,'aria-pressed':String(row.favorite)});favorite.addEventListener('click',()=>setMany(state=>({backgrounds:(state.backgrounds || []).map(item=>item.id===row.id?{...item,favorite:item.favorite!==true}:item)})).catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(favorite);
                 if(row.deleted!==true){const edit=node('button',t('edit_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_edit')}: ${row.name}`});edit.textContent=t('background_edit');edit.addEventListener('click',()=>{editingId=row.id;for(const [key,input] of Object.entries(fields)){const value=row[key];if(input.type==='checkbox')input.checked=value??defaults[key];else input.value=input.type==='file'?'':String(value??defaults[key]);}try{rules.set(row.rule??null);}catch{error.textContent=t('BACKGROUND_RULE_INVALID');return;}form.dataset.pending='true';fields.name.focus();});wrapper.append(edit);}
                 const archive=node('button',t(row.deleted?'background_restore':'background_archive'),{type:'button',class:'secondary','aria-label':`${t(row.deleted?'background_restore':'background_archive')}: ${row.name}`});archive.addEventListener('click',()=>setMany(state=>({backgrounds:(state.backgrounds || []).map(item=>item.id===row.id?{...item,deleted:row.deleted!==true}:item)})).catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(archive);
             }

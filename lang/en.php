@@ -181,4 +181,5 @@ return [
     'region_shared_help'=>'This region is shared by the solar theme and weather background conditions. Coordinates are saved to two decimal places and included in signed-in settings sync. When you use weather conditions, this region is sent to the weather provider. Location is requested only when you press the button.',
     'region_weather_source'=>'Weather data provided by',
     'background_play_video'=>'Play background video','background_pause_video'=>'Pause background video',
+    'background_library_sort'=>'Background order','background_sort_saved'=>'Saved order','background_sort_name'=>'Name','background_sort_favorite'=>'Favorites first','background_favorite'=>'Favorite background',
 ];

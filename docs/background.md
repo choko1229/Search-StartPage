@@ -91,3 +91,5 @@ JS createBackgroundの第5引数requestIdで指定可能。製品sessionでの�
 アップロードの受取りから圧縮・DB保存・finally清掃までowner別の私有ロックで保護する。回収処理は同じロックを非待機で取得し、使用中のownerを見送る。プロセス停止でロックはOSが解放するため、残存候補は後続の実行で回収できる。ロックファイルは残し、保持中に別のlockへ差し替える競合を避ける。私有ancestor/owner/lockのsymlinkを拒否し、候補のsymlinkをたどらない。管理者がファイルシステムを外から並行改変する運用は避ける。
 
 大容量の入力境界はtests/background-large-http.php、実圧縮とDB quotaはtests/background-compressed-quota.php、認証付きAPIの画像/動画圧縮はtests/background-compressed-http.php、回収はtests/background-cleanup.phpで専用DBと生成データを使って検証する。全試験はSEARCH_TEST_MODE=1のCLI専用で、本番DBで実行しない。
+
+背景ライブラリにはサムネイルを表示します。動画プレビューは自動再生しません。保存した背景は「背景のお気に入り」で登録・解除でき、Cloud Sync ONの背景はこの状態も同期します。「背景の並び順」は保存順、名前順、お気に入り優先から選べます。並び順は設定のUndoとカテゴリ初期化に対応します。プレビューを取得できない場合も背景色を表示し、編集を続けられます。

@@ -1,6 +1,6 @@
 import {normalizeBackground} from './background-core.js';
 import {mergeSync,resolveSync,equal} from './sync-core.js';
-const appearance=['color','colorEnd','angle','blur','brightness','overlay','overlayColor','position','scale','fit','fixed','autoplay','loop','mute','speed','paused','fallback'];
+const appearance=['color','colorEnd','angle','blur','brightness','overlay','overlayColor','position','scale','fit','fixed','autoplay','loop','mute','speed','paused','fallback','favorite'];
 const forbidden=new Set(['constructor','prototype','__proto__']);
 export function backgroundRecord(value,cloud=false) {
     const row=normalizeBackground(value);
