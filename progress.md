@@ -1106,3 +1106,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 清掃/範囲: SEARCH_TEST_MODE限定の手動preview2ファイルを専用containerから除去しtest ! -e両方成功。tab11/12は一時tab。Glass tab6 deliverable維持。生成設定は専用test originに保持、通常localhost8099の地域/背景をこの試験では変更していない。通知抑止は検証用だけで製品コードへ入れていない。通常認証済みcloud同期と同時地域保存、実Extension/各browser/大量tabstress/実ACK故障は別の未確認項目。汎用set(name,value)やその他任意setMany全ての別tab競合をこの試験だけで成功扱いにしない。
 
 次に実行すること: Phase9ゲートから通常認証済み同期/地域編集とEN weather/upload停止検証を進める。LogRetention定期実行とUpdate Managementを実処理につなぐ不足を進め、Phase10処理との境界を解決してから次Phaseへ進む。生成upload cleanup故障、管理者UIの権限操作は明示承認待ちのまま迂回なし。Glassブランド/account仕上げも継続。spec.md変更/stageなし、全DoDまでGoal完了にしない。
+
+## Phase9 ログ定期整理worker（2026-10-04）
+
+前ターン4aa24abは別tab設定保持の実装・検証により進捗。progress/status/git/Phase9ゲート/spec98から定期整理不足へ再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+実装: 手動CLIの処理をLogMaintenanceへ共通化、bin/cleanup-logs.phpを同serviceへ接続。LogScheduleとbin/log-maintenance.phpで起動時/24hごとの整理と失敗時1h再試行、storage専用flockの二重起動拒否、リンク拒否、安全なJSON結果/汎用エラーを追加。定期workerはfile/DB90日整理と監査/未配送ログ再送を既存serviceで実行する。production最小interval/retry60、短間隔/有限cyclesはSEARCH_TEST_MODEのみ。Docker overlayのlogs-mysql/mariadbはwww-data/config readonly/共有専用storage/未公開port/restart unless-stopped。Migrationなし、Controller SQL/Secret/frontend変更なし。
+
+検証1: 両DBで新PHP6ファイル構文成功。LogScheduleの正常interval86400/失敗retry3600/復旧、3cycle、引数拒否、最後失敗exit1、例外secret marker非露出成功。unitのwaitは記録用置換であり実1h待機の証明にしない。
+検証2: 両DBの専用www-dataでtests/log-maintenance.php、実PHP子process2cycle/1秒間隔成功。生成91日前DB行/日付file除去、当日行/統計件数保持、別processの既存lockによる二重起動拒否/汎用エラーを確認。生成DB行をfinallyで清掃。実行session27399はpollでexit0を確認済み。
+検証3: 隔離project search-phase9-roles-20261004にoverlay2workerをbuild/up。両inspect running=true/user www-data/restart unless-stopped、初回JSON success/next_run_in86400/recovery件数のみを確認。既存app/DB/volumeを再作成していない。両DB application-log29/statistics30/admin72成功、Secret省略/故障再送/監査/容量/CSRF回帰。workerは継続稼働の専用環境サービスとして保持、Docker停止中は走らない。既存Glassプレビュー環境は保持。git diff --check確認。
+
+範囲: 開発環境の自動整理を実際に設定した。Windowsタスク/Codex automation/本番ホスト配置は行っていない。実DB停止からworkerの1h再試行を待つ試験、worker自動再起動の故障注入は未実行。手動CLIと既存保持仕様を維持し、定期workerの実Updater category発生経路は依然Phase10処理待ち。
+
+次に実行すること: Phase9の通常認証済み同期/地域編集とEN weather/upload停止、upload清掃故障を検証。Update Management導線と仕様104〜109の実処理の不足を解決し、Phase9ゲートの境界を確認して次Phaseへ進む。管理者実権限変更は明示承認待ちを維持。Glassブランド/account仕上げ、実OAuth/各browser/Extension/最終DoDも継続。全条件までGoal完了にしない。

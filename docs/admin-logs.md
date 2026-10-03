@@ -13,7 +13,17 @@ API:
 
 ログは90日保持します。DBの期限切れ記録は削除し、日別ファイルの境界日については記録日時を確認して古い行だけを除去します。整理とファイル書き込みは同じロックを使用します。ログ以外のファイルやリンク先を削除しません。
 
-ログ画面を開くと保持期間の整理と未配送監査の再試行が行われます。アクセスがない日も保持期限を適用するため、サーバー上ではアプリと同じ実行ユーザーで `php bin/cleanup-logs.php` を毎日実行するよう、cronなどの定期実行へ登録してください。このコマンドはWebから実行できません。今回の開発環境ではコマンドの動作を確認しており、OSの定期実行設定はまだ行っていません。
+ログ画面を開くと保持期間の整理と未配送監査の再試行が行われます。アクセスがない日にも整理するため、アプリと同じ実行ユーザーで `php bin/log-maintenance.php` を常駐させられます。起動時と24時間ごとに実行し、失敗時は1時間後に再試行します。出力は成功/失敗、日時、件数だけで、例外の詳細や認証情報は出しません。storageの専用ロックで同じアプリの二重起動を拒否します。Webからは実行できません。
+
+Dockerの専用テスト構成は、設定済みの専用DB用環境変数を読み込んだ上で次のoverlayを追加します。workerにWebポートはなく、configは読み取り専用、storageはアプリと同じ専用volumeです。
+
+```sh
+docker compose -f compose.yaml -f docker/log-maintenance.compose.yaml --profile log-maintenance up -d --build logs-mysql logs-mariadb
+```
+
+稼働と成功/失敗は `docker compose -f compose.yaml -f docker/log-maintenance.compose.yaml logs logs-mysql logs-mariadb` で確認します。停止は同じ構成の `stop logs-mysql logs-mariadb` を使います。`unless-stopped`でDocker起動時にも再開しますが、Docker自体が停止している間は実行されません。2026-10-04の隔離MySQL/MariaDB環境では両workerの稼働と初回成功、短い間隔での実2回実行を確認しています。本番ホストへの配置やWindowsタスクの登録はしていません。
+
+通常のサーバーで既存の定期実行機能を使う場合は、`php bin/cleanup-logs.php` を毎日実行する方法も維持しています。常駐workerでは `--interval=86400 --retry=3600` を指定でき、通常環境の最短間隔は60秒です。有限回数の `--cycles` と60秒未満の間隔は `SEARCH_TEST_MODE=1` に限定します。実際のDB故障を起こしてworkerの1時間後の再試行まで待つ試験は未実行で、失敗/復旧のタイミングはLogScheduleの検証です。
 
 監査ファイルの配送が失敗しても、設定とDB監査の保存は維持します。ファイル配送は再試行され、監査IDで同じ操作を識別できます。配送直後のプロセス中断などでファイルに重複行ができる場合がありますが、管理画面のDB記録は1件です。
 

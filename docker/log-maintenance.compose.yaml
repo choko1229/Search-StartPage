@@ -1,0 +1,30 @@
+# Overlay for the disposable test stack. No web ports or database credentials.
+services:
+  logs-mysql:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    profiles: [log-maintenance]
+    user: www-data
+    init: true
+    restart: unless-stopped
+    command: [php, bin/log-maintenance.php]
+    depends_on:
+      mysql: {condition: service_healthy}
+    volumes:
+      - mysql-config:/var/www/app/config:ro
+      - mysql-storage:/var/www/app/storage
+  logs-mariadb:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    profiles: [log-maintenance]
+    user: www-data
+    init: true
+    restart: unless-stopped
+    command: [php, bin/log-maintenance.php]
+    depends_on:
+      mariadb: {condition: service_healthy}
+    volumes:
+      - mariadb-config:/var/www/app/config:ro
+      - mariadb-storage:/var/www/app/storage

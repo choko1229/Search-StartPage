@@ -11,7 +11,7 @@
 | Presets | 両DB36、日英実追加/編集/削除/reload/390px、ユーザー明示追加と独自一覧保持、全15/16Installer | cache破損/実DB障害/大量同時編集、実Extensionとcloud共有は未確認 |
 | Feature Flags / Limits | 両DB policy29、サーバー停止/権限/CSRF/CAS、日英管理UI、JA保存とEN容量保存。実クラウド同期停止・再開、JA/EN account停止理由、EN account復旧。JA upload停止中に端末保存→再開でクラウド1件到着。JA weather停止理由→再開後POST200/理由解除 | weather/uploadのEN停止実UI、地域保存中の一過性保存警告の原因、全browserは残る |
 | Maintenance | サーバー全面停止・管理者通常利用・API保護の既存検証、日英画面 | 全ブラウザ検証とUpdaterとの連携は未確認 |
-| Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLIの既存検証 | OS定期実行未設定、実Updater categoryの発生経路は未実装 |
+| Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBで24時間workerを起動し稼働/初回成功、実2cycle/期限整理/統計保持/二重起動拒否、失敗再試行の時系列試験 | 本番ホストは未配置、実DB障害からworker再試行を待つ試験と実Updater categoryの発生経路は未実装 |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |
 | Statistics 実操作 | localhost専用DBへWeb/AI/favorite/Palette操作を保存。通常UIから生成背景2件保存に対応するfeature background2を観測 | 実Discord認証の同期、実外部preset分類、未配信イベントの端末上のACK確認は未確認 |
 | Update Management | VERSIONは0.1.0-dev、仕様§104〜109の処理順と保護対象を確認 | 管理画面導線、GitHub Releases確認/各channel/通知/Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackは未実装。表示だけで完了にしない |
