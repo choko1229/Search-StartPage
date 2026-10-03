@@ -1187,3 +1187,15 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 清掃: fixtureでpolicy/presetsを元へ復元、生成user/token/device/非公開fixture/手動preview/host key除去。tab27 reloadでPlease sign inを確認、viewportreset/handoff。実OAuth/全browser/Extension/匿名統計全実端末収集など残る留保は維持。容量管理はDB管理背景bytesで、一時・未参照ファイルやfilesystem空き容量の測定とは区別。
 
 次に実行すること: Phase9のUpdate Management導線をPhase10仕様に照合し、Phase9ゲートの全条件を一覧で監査。残るweather/upload/account停止の実UIと匿名統計search/AI/favorite/背景/Palette送信・失敗再送/複数タブの実検証を進める。管理者権限操作の承認が来れば生成対象だけで実画面検証して清掃する。Phase9ゲート確定前にPhase10へ進まない。Goal継続、Version1.0未完成。
+
+## Phase9 実検索・AI・お気に入り・Paletteの匿名統計（2026-10-04）
+
+前ターンは6953a58/容量修正と両72/日英Storage/EN保存・統計期間によりprogress。progress/status/git/spec104〜109/添付Phase9から再開。Update Managementは現在未実装で、表示だけで完成にする案は採用しない。docs/phase9-gate.mdに条件・証拠・未達を一覧化。Phase9進行中、10〜12未着手、Version1.0未完成。管理者実権限変更は明示承認待ち、拒否後再試行なし。
+
+検証1: browser2新tab28/127.0.0.1:8099専用origin、通常製品UIから生成Web/AI検索先各1件を追加。URLは同じ127.0.0.1:8099だけ。生成queryで検索/AI実行し同一tab遷移と履歴保存、生成favoriteを保存してopen、Paletteの履歴openコマンド成功。最初Wizardに遮られた操作は未成功、同tab状態からあとで続ける後に成功。画像phase9-statistics-live-history保存・目視、Console warn/error0。tab28は生成favorite/検索先/履歴を保持したホームへhandoff。実OAuth証拠にしない。
+
+検証2: 専用DBのtestmodeCLI一時観測を使い、端末/eventIDなしでevent_type/source/event_data/件数のみ取得。初期visit1→検索後visit2/search custom1/settings1→最終visit4/search custom1/ai_search custom1/favorite_open1/feature settings2/favorites1/command_palette1、7集計区分計11イベントを確認。匿名データにはquery/URL/独自provider名なし。一時CLIをコンテナから除去。生成端末/イベントは専用環境へ保持、通常データを削除していない。実ACK保存完了や故障再送は観測していない。
+
+検証3: 両DBstatistics API各30とNode statistics privacy/offline/reload retry/ACK failure/batching/source/in-flight edits再成功。追加Migration/製品コード変更なし、全16Installer40/PHP180などの直前証拠を維持。git diff --checkを確認する。実DBイベントだけで大規模性能/実Extension/cloud共有/背景/同期/通信障害/ACK失敗/複数tab競合を成功扱いにしない。
+
+次に実行すること: docs/phase9-gate.mdから残るweather/upload/account機能停止・復旧の実UIと背景イベント、実故障再送/複数tabを確認。Update管理は仕様104〜109を満たす実処理へ接続する必要あり、Phase9導線とPhase10実処理の境界を明確にし仮ボタンで完成扱いにしない。LogRetentionのOS定期実行未設定も追跡。承認が来れば専用生成対象の管理者実UIを再prepareして検証・清掃する。Phase9ゲート確定まで次Phaseへ進まない。
