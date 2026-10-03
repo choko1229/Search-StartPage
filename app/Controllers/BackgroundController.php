@@ -45,7 +45,12 @@ final class BackgroundController
     }
     public function upload(Request $request,array $params=[]): Response
     {
-        $user=$this->owner($request);$raw=$request->input('item');
+        $user=$this->owner($request);
+        return $this->storage->withOwnerLock($user,fn()=> $this->uploadLocked($request,$params,$user));
+    }
+    private function uploadLocked(Request $request,array $params,int $user): Response
+    {
+        $raw=$request->input('item');
         if(strlen($raw)>65536)throw new HttpException(422,'INVALID_BACKGROUND');
         try{$input=json_decode($raw,false,24,JSON_THROW_ON_ERROR);}catch(\JsonException){throw new HttpException(422,'INVALID_BACKGROUND');}
         if(!is_object($input))throw new HttpException(422,'INVALID_BACKGROUND');

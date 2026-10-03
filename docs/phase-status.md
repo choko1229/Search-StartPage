@@ -708,3 +708,19 @@ tests/background-compressed-quota.phpも作成済み。実PNG encoderから得�
 今回新規tests3ファイルと前回巨大HTTP結果・最新再開記録を途中コミットする。Phase7はまだ未完了、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 耐久的孤立ファイル清掃を実装する。現状HTTP finallyと置換後unlinkは確認済みだが、プロセス停止・unlink失敗・owner削除で残る私有ファイルの後続回復は未実装。DB参照中（保管済み/同期OFF含む）や通信中stagingを削除しない仕組み、安全なパス/シンボリックリンク拒否、両DB+実filesystem検証を追加。その後weather付き新規Installer、Phase7ゲート監査。実OS位置許可/動画非表示復帰/実OAuth/認証済み実UIは未確認留保、Admin圧縮不足警告はPhase9。
+
+## Phase 7 耐久的な孤立ファイル回収（2026-10-03）
+
+BackgroundCleanupとbin/cleanup-backgrounds.phpを実装。既定dry-run、--applyでDB非参照かつ24時間以上経過した正規生成ファイルだけ回収。参照は保管済み/Cloud Sync OFFも含む。アカウント削除後の参照消失も対象。未知名/新しいstaging/symlinkは削除せず、storage ancestor/lockのsymlinkは503で拒否。DB読み取りに失敗したownerは削除に進まない。CLI応答は件数だけ、失敗時generic error、設定/秘密/パス/stack traceを表示しない。unlink失敗はfailed件数を返し残存fileを後続runで再検査。DB/Migration変更なし。
+
+BackgroundUpload::withOwnerLockを追加、製品Controllerのupload受取り前から圧縮・DB保存・finally清掃までowner別flockを保持。collectorは同じlockの非待機取得でbusy ownerを見送る。終了/プロセス停止でOSがlock解放し後続runが回復。lock fileは0600、symlink/hardlink拒否、inode照合。privileged maintenanceが新規作成するlockの所有者は親owner directoryへ合わせ、root-owned lockで次のPHP worker uploadを阻害しない。ControllerにSQLなし、View変更なし、認証/CSRF/owner/receipt/DBquota維持。
+
+検証1: 専用DB/ランダムtmp領域のbackground-cleanup.phpで両DB各15成功。dry-run、古いorphan回収、active/archive/sync-off保持、recent/未知名/外部symlink保持、DBquota不変、再実行0、PHPworker lock所有者保持、別PHPプロセスによる実lock保護→proc_terminate後回収、owner削除後3file回収、owner symlinkをたどらない、lock/ancestor symlink拒否を確認。fixture identity ...966とtmp領域はfinallyで除去。DB障害/実unlink失敗の専用試験は今回未実施（fail-closed制御と区別）。運用CLI --applyを通常検証storage全体へは実行せず、専用tmpで実回収した。
+
+検証2: MySQL8083/MariaDB8084で既存背景API各55と製品JS実HTTP2端末各8グループ再成功。特に同時upload番号のreceipt再利用、ACK/応答喪失回復、置換と409、CSRF/owner/MIME/Range/公開情報非露出を維持。codec付き両DBの製品圧縮HTTP各15も再成功、lock追加による画像/動画保存・clear/置換のRegressionなし。テストremember認証であり実Discord UIではない。
+
+検証3: 変更PHP5ファイルの構文/両DB基盤各39（翻訳一致含む）成功。実運用と同じwww-dataユーザーで両DBのCLI --dry-runを実行、全件数0/exit0（削除なし）。git diff --check成功。今回JS変更なし、直前全26JS単体の証拠維持。新規UI操作なし。全9Migrationの直前証拠を維持、今回DB変更/再往復なし。
+
+appは8082〜8086とcodec両DBへ反映。maintenance binは8082〜8086へ反映済み。docs/background.mdに毎日PHP workerと同じOSユーザーで実行する運用手順を追加。ホストの定期実行やCodex automationは自動登録していない。config/ユーザーファイル/既存DBvolumeを保持。今回もPhase7途中保存、8〜12未着手、Version1.0未完成。
+
+次に実行すること: weather設定付き新規Installerと全9Migrationを新しい隔離MySQL/MariaDBで再検証し、Phase7仕様/機能ゲートの不足を照合する。永久削除の仕様、実動画Upload/巨大圧縮/ブラウザ容量失敗の証拠範囲、ローカルとCloudの所有権・条件・JA/EN/responsiveを監査。実OS位置許可/動画非表示復帰/実OAuth/認証済み実UIは未確認留保、Admin圧縮不足警告はPhase9。

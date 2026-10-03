@@ -98,4 +98,27 @@ final class BackgroundUpload
         if(!is_file($path)||is_link($path))throw new HttpException(404,'NOT_FOUND');
         return $path;
     }
+
+    /** Upload publication and orphan collection share this process-safe lock. */
+    public function withOwnerLock(int $userId,callable $operation,bool $blocking=true): mixed
+    {
+        if($userId<1)throw new HttpException(401,'AUTHENTICATION_REQUIRED');
+        $path=$this->ownerDirectory($userId).'/.background-upload.lock';
+        if(is_link($path))throw new HttpException(503,'BACKGROUND_STORAGE_UNAVAILABLE');
+        $handle=@fopen($path,'c+b');
+        if($handle===false)throw new HttpException(503,'BACKGROUND_STORAGE_UNAVAILABLE');
+        try {
+            $opened=fstat($handle);$named=lstat($path);
+            if(!$opened||!$named||$opened['ino']!==$named['ino']||$opened['nlink']!==1)throw new HttpException(503,'BACKGROUND_STORAGE_UNAVAILABLE');
+            // A privileged maintenance run must not leave a root-owned lock
+            // that the PHP worker cannot reopen on the next upload.
+            if(PHP_OS_FAMILY!=='Windows'&&$opened['uid']!==fileowner(dirname($path))&&!@chown($path,fileowner(dirname($path))))throw new HttpException(503,'BACKGROUND_STORAGE_UNAVAILABLE');
+            if(!@chmod($path,0600))throw new HttpException(503,'BACKGROUND_STORAGE_UNAVAILABLE');
+            if(!flock($handle,LOCK_EX|($blocking?0:LOCK_NB))) {
+                if(!$blocking)return null;
+                throw new HttpException(503,'BACKGROUND_STORAGE_UNAVAILABLE');
+            }
+            try{return $operation();}finally{flock($handle,LOCK_UN);}
+        }finally{fclose($handle);}
+    }
 }

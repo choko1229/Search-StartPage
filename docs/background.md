@@ -35,7 +35,7 @@ FFmpegはshellを介さない引数配列、検査済み形式のdemuxer固定�
 
 ## 背景DB/APIの接続（最新・2026-10-02）
 
-前記の「Upload API未接続」は今回の変更で解消。008_backgroundsのbackgrounds/background_rulesを追加、所有者row lockによる圧縮後容量と項目versionのCAS。config backgrounds.max_bytes=0は合計制限なし、個別上限は保持。永久削除/孤立再清掃は未実装。
+前記の「Upload API未接続」は今回の変更で解消。008_backgroundsのbackgrounds/background_rulesを追加、所有者row lockによる圧縮後容量と項目versionのCAS。config backgrounds.max_bytes=0は合計制限なし、個別上限は保持。復元可能な保管はファイルを保持する。孤立再清掃は末尾の運用手順を参照。
 
 | Method | Path | 入出力 |
 |---|---|---|
@@ -81,3 +81,13 @@ JS createBackgroundの第5引数requestIdで指定可能。製品sessionでの�
 背景編集の「背景の切替条件を使う」で11種類すべての条件を設定できる。グループごとのAND/ORと入れ子、条件/グループの追加・削除に対応。暦日や逆転した範囲、空グループ、不正な型は保存前に拒否し、サーバーのBackgroundInputでも検査する。最大深さ12、100ノード、32KiB。既存単一Time条件も編集可能で、既存複合条件を保存時に消さない。無効化して保存するとrule:nullで条件を解除する。
 
 時間・曜日・日付・期間・天気・気温・季節・確率・ログイン状態・端末・画面サイズを日本語/Englishで入力。データ構造は既存ruleのまま、APIやDBに新しいschemaは追加しない。天気/気温の実取得、地域設定・同期、動画手動再生、競合解決ルールの端末間共有は残る。新規隔離両DBで全9MigrationとWeb Installer39項目、ruleサーバー検証22/基盤39/構文103、全JS22単体、実製品UIで入れ子の保存・再読込・取消と390pxの表示を確認。Phase7未完了。
+
+## 中断後に残ったファイルの回収
+
+`php bin/cleanup-backgrounds.php` は削除せず候補件数を返す。実際に回収するときは `php bin/cleanup-backgrounds.php --apply` を使用する。PHPアプリと同じOSユーザーで実行し、運用サーバーの定期実行機能で毎日実行する。現在の開発環境に定期実行を自動登録するものではない。実行結果はcandidates/deleted/busy_owners/failedの件数だけで、秘密値・私有パスは出力しない。failedがある場合は終了コード1、次回に再試行できる。
+
+対象は私有背景保存領域の正規所有者ディレクトリにある、サーバー生成形式のファイル名だけ。DBに参照がなく24時間以上経過したファイルを回収する。保管済み・Cloud Sync OFFの背景もDB参照がある限り保持し、容量は変更しない。アカウント削除で参照を失ったファイルも同じ方法で回収できる。新しい一時ファイル・未知のファイル名・シンボリックリンクは削除しない。DB照合に失敗したownerは削除へ進まず、設定/接続エラーはCLIで一般的なエラーだけを返す。
+
+アップロードの受取りから圧縮・DB保存・finally清掃までowner別の私有ロックで保護する。回収処理は同じロックを非待機で取得し、使用中のownerを見送る。プロセス停止でロックはOSが解放するため、残存候補は後続の実行で回収できる。ロックファイルは残し、保持中に別のlockへ差し替える競合を避ける。私有ancestor/owner/lockのsymlinkを拒否し、候補のsymlinkをたどらない。管理者がファイルシステムを外から並行改変する運用は避ける。
+
+大容量の入力境界はtests/background-large-http.php、実圧縮とDB quotaはtests/background-compressed-quota.php、認証付きAPIの画像/動画圧縮はtests/background-compressed-http.php、回収はtests/background-cleanup.phpで専用DBと生成データを使って検証する。全試験はSEARCH_TEST_MODE=1のCLI専用で、本番DBで実行しない。
