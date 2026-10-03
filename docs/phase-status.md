@@ -1231,3 +1231,19 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: Node site-policy validation/disable/recovery/auth separation、sync-session37、sync-data28、account-data既存21+所有者別pending upload cleanup/capacity合格。製品ソース変更なし。docs/phase9-gate.mdのcloud/account証拠を更新。
 
 次に実行すること: 専用環境でbackground_uploadsとweatherを個別に停止・復旧する実UI、背景操作匿名イベント、停止中の新規変更保持・再送、実モバイルを確認。LogRetention定期実行とUpdate管理/Phase10処理境界の残件を進める。管理者実権限操作は明示承認があれば新規fixtureで検証。Phase9ゲート確定前にPhase10へ進まない。
+
+## ユーザー指定のGlassデザイン反映（2026-10-04）
+
+前ターンの848f8a8は同期停止・復旧の実証により進捗。直前のデザイン回答だけでは実装進捗なし。progress/status/git/spec56から再開し、最新のユーザー指定「背景を生かした透明感」と参考画像を優先して外観を補修。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+実装: glass.cssを共通layoutへ追加。palette連動の半透明面、検索バー内Web/AI切替、主役の挨拶/控えめなサイト見出し、settings/account/tile共通surface、背景未設定時のheader透明化。明示された検索/表示設定を維持。image_genで文字/UIなしの夕景を新規生成してassets/backgrounds/terrace-dusk.pngへ保存、通常background presetに追加。参考画像の外側の説明やbrowser枠はアプリへ追加しない。詳しいprompt/対象/制限はdocs/glass-design.md。
+
+発見/修正: langのsearch_placeholderがcolor labelと重複して検索案内を上書き。設定labelをsearch_placeholder_colorへ分離し、両言語とappearanceの参照を補修。PHP回帰を追加。
+
+検証1: browser2 localhost8099の専用origin、Dark/中央/Large/角丸36/夕景を通常UIで選択しreload保持。JA/EN、実Web/AI切替、4生成favorite追加、設定開閉、Console0。既存user settings/背景は削除なし。mobile実測390/document375/search343、dialog390/content373。初回幅指定のDOM1280は成功とせず後続実DOM390/画像で確認。viewport reset、新規desktop1280/document1265。desktop/mobile/settings画像を保存・目視。tab6新規desktopプレビューをdeliverable。実Discord証拠にしない。
+
+検証2: Node appearance42/background41/library8/search23/preferences18/onboarding成功、JS構文成功。初回存在しないtest名は未実行、実在ファイルから再成功。新presetによりonboarding固定リスト/type期待が失敗したため新しい選択肢へ追従後に成功。
+
+検証3: 専用MySQL8099/MariaDB8100へassets/View/langを反映、変更PHP4ファイル構文成功、基盤各40成功（旧39+placeholder Regression）。Migrationなし、直前全16Installer証拠を維持。git diff --check確認。spec.md変更・stageなし。
+
+次に実行すること: 参考画像に向けたブランドアイコン/操作密度/明暗の読みやすさと認証済みaccountの見た目を仕上げる。同時に元のPhase9 weather/upload停止・復旧、背景匿名イベント、停止中変更保持・再送を継続。LogRetention定期実行/Update管理残件もゲートに残る。管理者実権限操作は明示承認待ちで迂回しない。デザイン変更だけでPhase9/Version1.0を完了にしない。

@@ -44,6 +44,7 @@ $root = dirname(__DIR__);
 $ja = require $root . '/lang/ja.php';
 $en = require $root . '/lang/en.php';
 $check(array_keys($ja) === array_keys($en), 'translation key parity');
+$check($ja['search_placeholder'] !== $ja['search_placeholder_color'] && $en['search_placeholder'] !== $en['search_placeholder_color'], 'search prompt differs from color setting label');
 $check((new Translator($root, '../../config/config'))->locale === 'en', 'locale traversal rejected');
 
 $router = new Router();

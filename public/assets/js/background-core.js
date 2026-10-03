@@ -50,6 +50,7 @@ export function selectBackground(items,settings,context={}) {
     return rows.find(item=>item.id===settings.backgroundSelected) || rows[0];
 }
 export const backgroundPresets=[
+    {id:'preset-terrace-dusk',name:'Terrace at dusk',type:'image',sourceType:'url',url:'/assets/backgrounds/terrace-dusk.png',overlay:.22,overlayColor:'#080e20',localOnly:true},
     {id:'preset-night',name:'Night',type:'gradient',color:'#101723',colorEnd:'#304fc3',angle:135,localOnly:true},
     {id:'preset-forest',name:'Forest',type:'gradient',color:'#11251d',colorEnd:'#557862',angle:90,localOnly:true},
     {id:'preset-dawn',name:'Dawn',type:'gradient',color:'#923b60',colorEnd:'#fff1f4',angle:20,localOnly:true},

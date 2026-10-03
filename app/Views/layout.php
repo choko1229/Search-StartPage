@@ -11,6 +11,7 @@ use App\Auth\Session;
     <meta name="color-scheme" content="light dark">
     <title><?= $e($data['site_name'] ?? $t->get('app_name')) ?></title>
     <link rel="stylesheet" href="/assets/css/core.css">
+    <link rel="stylesheet" href="/assets/css/glass.css">
     <link rel="icon" href="/assets/icons/search.svg" type="image/svg+xml">
 </head>
 <body>

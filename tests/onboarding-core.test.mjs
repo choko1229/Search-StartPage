@@ -19,11 +19,12 @@ assert.throws(()=>onboardingPatch('favorites',{favoriteDisplay:'auto',webKey:'Co
 assert.throws(()=>onboardingPatch('favorites',{favoriteDisplay:'auto',webKey:'Control+K',aiKey:'Alt+Enter'}));
 const background={id:'image',name:'Saved image',type:'image',url:'https://example.test/image.png'};
 const choices=onboardingBackgrounds([background,{...background,id:'archive',deleted:true},{...background,id:'unsafe',url:'javascript:alert(1)'},background,{...background,id:'preset-night'}]);
-assert.deepEqual(choices.map(row=>row.id),['preset-night','preset-forest','preset-dawn','image']);
-assert.equal(onboardingBackgrounds(null).length,3);
+assert.deepEqual(choices.map(row=>row.id),['preset-terrace-dusk','preset-night','preset-forest','preset-dawn','image']);
+assert.equal(onboardingBackgrounds(null).length,4);
 assert.deepEqual(onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'image'},{backgrounds:choices.map(row=>row.id)}),{backgroundMode:'library',backgroundSelected:'image',backgroundSwitch:'manual'});
 assert.deepEqual(onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'preset-forest'},{backgrounds:choices.map(row=>row.id)}),{backgroundMode:'library',backgroundSelected:'preset-forest',backgroundSwitch:'manual'});
 assert.throws(()=>onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'archive'},{backgrounds:choices.map(row=>row.id)}),/INVALID_INPUT/);
 assert.throws(()=>onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'missing'}),/INVALID_INPUT/);
-assert.equal(choices[0].type,'gradient');assert.equal(background.url,'https://example.test/image.png');
+assert.equal(choices[0].type,'image');assert.equal(choices[0].url,'/assets/backgrounds/terrace-dusk.png');
+assert.equal(choices.find(row=>row.id==='preset-night').type,'gradient');assert.equal(background.url,'https://example.test/image.png');
 console.log('26 onboarding assertions passed.');

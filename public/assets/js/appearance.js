@@ -72,7 +72,7 @@ export function initializeAppearance() {
     field(searchDesign,'searchWidth','search_width','number',700,{min:'320',max:'900',step:'1'});
     field(searchDesign,'searchHeight','search_height','select','standard',{choices:[['compact','height_compact'],['standard','height_standard'],['large','height_large']]});
     for(const [key,label,fallback,min,max,step] of [['searchOpacity','search_opacity',.7,0,1,.05],['searchBlur','search_blur',12,0,40,1],['searchBorderWidth','search_border_width',1,0,8,1],['searchRadius','search_radius',16,0,60,1]])field(searchDesign,key,label,'number',fallback,{min:String(min),max:String(max),step:String(step)});
-    for(const [key,label,paletteKey] of [['searchBackground','search_background','panel'],['searchBorder','search_border','border'],['searchText','search_text','text'],['searchPlaceholder','search_placeholder','muted']])field(searchDesign,key,label,'color',()=>themePalette(get('settings',{}),new Date(),os.matches)[paletteKey]);
+    for(const [key,label,paletteKey] of [['searchBackground','search_background','panel'],['searchBorder','search_border','border'],['searchText','search_text','text'],['searchPlaceholder','search_placeholder_color','muted']])field(searchDesign,key,label,'color',()=>themePalette(get('settings',{}),new Date(),os.matches)[paletteKey]);
     field(searchDesign,'searchShadow','search_shadow','checkbox',true);
     for(const [key,label,fallback] of [['greetingEnabled','greeting_enabled',true],['clockEnabled','clock_enabled',false],['dateEnabled','date_enabled',false],['clockSeconds','clock_seconds',false],['dateWeekday','date_weekday',true]])field(general,key,label,'checkbox',fallback);
     field(general,'greetingMessage','greeting_message','text','',{maxlength:'200'});
@@ -132,10 +132,13 @@ export function initializeAppearance() {
         }
         date.style.setProperty('--display-offset',setting('clockEnabled',false) && clock.dataset.position===date.dataset.position?`calc(${clock.style.fontSize} * ${bounded(settings.lineHeight,1.6,1,2.5)})`:'0px');
         const headerStyle=headerPreferences(settings,palette);header.classList.add('custom-header');header.dataset.position=headerStyle.position;header.dataset.alignment=headerStyle.alignment;
-        header.style.fontSize=headerStyle.size;header.style.opacity=headerStyle.opacity;header.style.backgroundColor=headerStyle.background;header.style.backdropFilter=`blur(${headerStyle.blur})`;
+        header.style.fontSize=headerStyle.size;header.style.opacity=headerStyle.opacity;
+        header.style.backgroundColor=settings.headerBackground ? headerStyle.background : 'transparent';
+        header.style.backdropFilter=`blur(${headerStyle.blur})`;
         for(const [index,item] of headerStyle.order.entries()){const element=header.querySelector(`[data-header-item=${item}]`);if(element){element.hidden=!headerStyle.visible[item];element.style.order=index;}}
         document.body.classList.toggle('header-at-bottom',headerStyle.position==='bottom');renderHeaderItems();
         root.style.color=palette.text;root.style.backgroundColor=settings.backgroundMode==='solid'?color(settings.backgroundColor,palette.background):palette.background;
+        root.dataset.backgroundMode=settings.backgroundMode || 'theme';
         root.style.setProperty('--button-text',palette.background);root.style.colorScheme=['dark','forest'].includes(settings.theme) || palette.background===palettes.dark.background?'dark':'light';
         root.style.setProperty('--theme-duration',`${reduced.matches?0:bounded(settings.themeTransition,0.75,0,5)}s`);
         root.style.fontSize=`${bounded(settings.fontSize,16,10,32)}px`;root.style.fontWeight=bounded(settings.fontWeight,400,100,900);root.style.lineHeight=bounded(settings.lineHeight,1.6,1,2.5);root.style.letterSpacing=`${bounded(settings.letterSpacing,0,-2,6)}px`;

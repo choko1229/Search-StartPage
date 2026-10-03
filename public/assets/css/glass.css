@@ -1,0 +1,107 @@
+/* Shared surfaces derive from the current palette; explicit search/widget settings
+   continue to control their own color, opacity, dimensions and placement. */
+:root {
+    --glass-surface: color-mix(in srgb, var(--panel) 78%, transparent);
+    --glass-line: color-mix(in srgb, var(--border) 65%, transparent);
+    --glass-shadow: 0 20px 70px #07152512, inset 0 1px 0 #ffffff28;
+}
+html[data-background-mode=theme] {
+    background-image: radial-gradient(ellipse at 10% 5%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 55%),
+        radial-gradient(ellipse at 90% 85%, color-mix(in srgb, var(--muted) 10%, transparent), transparent 60%);
+    background-attachment: fixed;
+}
+body { min-height: 100dvh; }
+body .site-header { gap: .65rem; padding: 1rem clamp(1rem, 4vw, 3rem); }
+body .site-header > a { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: .4rem .75rem; text-decoration: none; border-radius: 12px; }
+body .site-header > a:hover { background: color-mix(in srgb, var(--panel) 50%, transparent); }
+body .site-header .brand { font-size: .9rem; letter-spacing: -.02em; }
+body .language-form { margin-left: .5rem; gap: .4rem; }
+body .language-form select, body .language-form button { padding: .4rem .6rem; font-size: .8rem; }
+body .language-form label { color: var(--muted); }
+body button, body .button { border-radius: 12px; font-weight: 550; }
+body button.secondary { background: var(--glass-surface); border-color: var(--glass-line); }
+body input, body select { border-radius: 10px; }
+body button:disabled { opacity: .45; cursor: default; }
+body .panel, body dialog {
+    background: var(--glass-surface);
+    border-color: var(--glass-line);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+body .panel { border-radius: 24px; }
+body .panel h1 { letter-spacing: -.04em; margin-bottom: 1.25rem; }
+body .panel > h2 { font-size: 1.1rem; margin-top: 2rem; }
+body .panel article.panel { padding: 1.25rem; border-radius: 16px; margin-block: 1rem; box-shadow: none; }
+body .panel article h3 { margin-top: 0; font-size: 1rem; }
+body .panel article p { font-size: .85rem; color: var(--muted); }
+body .panel article form { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; }
+body .panel article form label { display: grid; gap: .35rem; flex: 1 1 200px; }
+body .panel dl { padding-block: 1rem; border-block: 1px solid var(--glass-line); }
+body .panel dt { font-size: .8rem; color: var(--muted); font-weight: 500; }
+body .panel dd { font-variant-numeric: tabular-nums; }
+body footer { position: relative; z-index: 1; text-align: center; padding: 1.5rem; font-size: .75rem; }
+body footer a { color: var(--muted); text-decoration: none; }
+body footer a:hover { text-decoration: underline; }
+body .search-home > .eyebrow, body .search-home > h1 { text-align: center; }
+body .search-home > h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.045em; }
+body .search-home > .eyebrow { font-weight: 500; letter-spacing: .08em; color: var(--muted); margin-bottom: .5rem; }
+body .search-tools { align-items: center; gap: .4rem; margin-bottom: .9rem; }
+body .search-tools button { font-size: .8rem; padding: .45rem .75rem; }
+body .search-tools [role=group] { padding: .25rem; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--glass-surface); backdrop-filter: blur(16px); }
+body .search-tools [role=group] button { padding: .35rem .9rem; border-radius: 10px; }
+body .search-box { align-items: center; }
+body .search-box select { background: transparent; border-right: 1px solid var(--glass-line); border-radius: 0; padding-inline: .75rem; }
+body .search-box textarea { align-self: stretch; padding-inline: .65rem; }
+body .search-mode-switch { display: flex; align-items: center; flex-shrink: 0; padding: .2rem; border-radius: 999px; background: color-mix(in srgb, var(--muted) 12%, transparent); }
+body .search-mode-switch button { padding: .3rem .8rem; font-size: .8rem; border-radius: 999px; }
+body .search-mode-switch [aria-pressed=false] { background: transparent; color: var(--muted); }
+body .search-box select { border-right: 0; border-left: 1px solid var(--glass-line); max-width: 135px; font-size: .8rem; }
+body .search-home .home-display .greeting { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 500; letter-spacing: .035em; margin-bottom: .45rem; text-shadow: 0 2px 20px #0003; }
+body .search-home .home-display:empty { display: none; }
+body .search-home .search-tools { justify-content: flex-end; margin-block: .6rem; }
+body .search-home .search-tools button { background: transparent; border-color: transparent; color: var(--muted); padding-block: .2rem; }
+body .search-home .search-tools button:hover { color: var(--accent); }
+body .search-home > .eyebrow { text-transform: none; letter-spacing: .02em; margin-bottom: 1.8rem; }
+body .site-header:not(.custom-header) .brand { margin-right: auto; }
+body .custom-header[data-alignment=right] [data-header-item=brand] { margin-right: auto; }
+body #search-help { font-size: .72rem; text-align: center; margin-top: .9rem; }
+body .provider-shortcuts { justify-content: center; gap: .6rem; }
+body .provider-shortcuts button { border: 0; background: var(--glass-surface); color: inherit; border-radius: 999px; padding: .4rem .8rem; }
+body #favorites-section { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-line); }
+body .favorite-item { border-color: var(--glass-line); border-radius: 18px; background: var(--glass-surface); backdrop-filter: blur(16px); }
+body .favorites-toolbar button, body .favorites-toolbar input, body .favorites-toolbar select { font-size: .8rem; }
+body #favorites-section > details { font-size: .8rem; margin-bottom: 1rem; color: var(--muted); }
+body #favorites-section > details summary { cursor: pointer; }
+body #folder-tabs button { font-size: .8rem; border-radius: 999px; }
+body dialog { border-radius: 24px; padding: 1.5rem; }
+body dialog::backdrop { background: #07152566; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+body dialog h2 { font-size: 1.25rem; letter-spacing: -.03em; margin-bottom: 1rem; }
+body dialog [data-close] { width: 36px; height: 36px; padding: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+body .settings-sidebar { padding-right: 1rem; border-right: 1px solid var(--glass-line); }
+body .settings-sidebar button { border: 0; background: transparent; color: var(--muted); font-size: .85rem; padding: .65rem .8rem; }
+body .settings-sidebar [aria-pressed=true] { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+body .settings-content h3 { font-size: 1rem; margin-top: .5rem; }
+body .settings-content h4 { font-size: .85rem; color: var(--muted); }
+body .settings-content fieldset { border: 1px solid var(--glass-line); border-radius: 16px; padding: 1rem; }
+body .settings-content legend { font-size: .85rem; padding-inline: .4rem; }
+body .settings-content .preference { font-size: .85rem; padding-block: .25rem; }
+@supports not (backdrop-filter: blur(1px)) {
+    body .panel, body dialog, body .favorite-item { background: var(--panel); }
+}
+@media (max-width: 600px) {
+    body .site-header { flex-direction: row; flex-wrap: wrap; }
+    body .site-header > a { font-size: .8rem; padding-inline: .5rem; }
+    body .language-form { margin-left: 0; }
+    body .panel { border-radius: 20px; padding: 1.25rem; }
+    body .search-tools { flex-wrap: wrap; }
+    body .search-tools button { padding-inline: .6rem; }
+    body .search-box textarea { flex: 1 1 100%; }
+    body .search-box .search-mode-switch { margin-left: .35rem; }
+    body .search-box select { flex: 1; max-width: none; }
+    body #favorites-section { margin-top: 2rem; }
+    body #search-settings { border-radius: 0; padding: 1rem; }
+    body .settings-sidebar { border-right: 0; border-bottom: 1px solid var(--glass-line); padding-right: 0; }
+    body .settings-sidebar button { padding: .5rem .7rem; }
+    body dialog:not(.sync-dialog):not(.onboarding) { border-radius: 0; }
+}

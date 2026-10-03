@@ -2,20 +2,20 @@
 <link rel="stylesheet" href="/assets/css/search.css">
 <section class="search-home" aria-labelledby="search-title">
     <p class="eyebrow"><?= $e($t->get('search_tagline')) ?></p>
-    <h1 id="search-title"><?= $e($data['site_name']) ?></h1>
+    <h1 id="search-title" class="sr-only"><?= $e($data['site_name']) ?></h1>
     <div class="search-tools">
-        <div role="group" aria-label="<?= $e($t->get('search_mode')) ?>">
-            <button type="button" id="mode-web" aria-pressed="true"><?= $e($t->get('web_mode')) ?></button>
-            <button type="button" id="mode-ai" aria-pressed="false"><?= $e($t->get('ai_mode')) ?></button>
-        </div>
         <button type="button" id="history-open" class="secondary"><?= $e($t->get('history')) ?></button>
         <button type="button" id="search-settings-open" class="secondary"><?= $e($t->get('search_settings')) ?></button>
     </div>
     <div class="search-box">
         <label class="sr-only" for="provider"><?= $e($t->get('provider')) ?></label>
-        <select id="provider"></select>
         <label class="sr-only" for="query"><?= $e($t->get('search_input')) ?></label>
         <textarea id="query" rows="1" maxlength="12000" placeholder="<?= $e($t->get('search_placeholder')) ?>" role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false" aria-describedby="search-help ai-hint"></textarea>
+        <div class="search-mode-switch" role="group" aria-label="<?= $e($t->get('search_mode')) ?>">
+            <button type="button" id="mode-web" aria-pressed="true"><?= $e($t->get('web_mode')) ?></button>
+            <button type="button" id="mode-ai" aria-pressed="false"><?= $e($t->get('ai_mode')) ?></button>
+        </div>
+        <select id="provider"></select>
         <button type="button" id="search-execute"><?= $e($t->get('search')) ?></button>
     </div>
     <p id="ai-hint" hidden><?= $e($t->get('ai_recommend')) ?></p>
