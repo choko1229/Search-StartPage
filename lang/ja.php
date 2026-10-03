@@ -2,6 +2,13 @@
 declare(strict_types=1);
 
 return [
+    'privacy_policy'=>'プライバシーポリシー',
+    'privacy_storage_title'=>'端末内のデータ','privacy_storage_text'=>'設定・お気に入り・履歴・背景ファイルは端末内に保存します。クラウド同期を有効にした項目は、ログイン中のアカウントのサーバー領域にも保存します。履歴保存と同期の設定は設定画面で変更できます。',
+    'privacy_cookies_title'=>'必要なCookieとログインCookie','privacy_cookies_text'=>'画面の言語、セッション、CSRF対策に必要なCookieを利用します。ログインCookieは端末の認証に使い、通常のアクセスで期限を延長します。ログアウトや端末の解除で認証を失効できます。Cookie同意バナーは表示しません。',
+    'privacy_account_title'=>'Discordアカウント','privacy_account_text'=>'Discordログインでアカウントを識別するため、Discord ID、ユーザー名、表示名、アバター情報を保存します。これらの直接識別子を匿名統計イベントに含めません。端末一覧とログアウトはアカウント画面で利用できます。',
+    'privacy_statistics_title'=>'匿名の利用統計','privacy_statistics_text'=>'サービス改善のため、訪問、Web検索、AI検索、お気に入りを開く操作、機能利用を集計します。端末内のランダムな統計用ID、操作種別、既定の検索先分類、Web・拡張機能の区分、日時を利用します。検索語、お気に入りURL、独自の検索先名、Discord ID、IPアドレスは統計イベントに保存しません。統計は無期限で保存し、収集をOFFにする設定はありません。通信に失敗したイベントは端末で保持し、再送します。',
+    'privacy_external_title'=>'外部サービス','privacy_external_text'=>'選んだ検索先・AIサービスへ検索内容を送ります。外部候補を有効にすると入力中の検索語を候補提供元へ送ります。サイト情報取得では入力したURLのサイトへ接続します。天気・地域連動では設定した地域情報を天気提供元へ送ります。これらの提供元でも、それぞれのプライバシーポリシーが適用されます。',
+    'privacy_logs_title'=>'安全な運用記録','privacy_logs_text'=>'障害・セキュリティ・管理操作の記録をファイルとDBに90日間保存します。必要に応じ内部ユーザーIDを記録しますが、検索語、リクエスト本文、認証情報、OAuth Secretはアプリケーションログに保存しません。匿名統計はこの90日削除の対象ではありません。',
     'FEATURE_DISABLED'=>'この機能は現在無効です。','admin_policy'=>'機能切替・制限','admin_flags'=>'機能切替','admin_limits'=>'制限',
     'policy_enabled'=>'有効','policy_disabled'=>'無効','policy_cloud_sync'=>'クラウド同期','policy_background_uploads'=>'クラウド背景アップロード',
     'policy_weather'=>'天気','policy_external_suggestions'=>'外部検索候補','policy_favorite_metadata'=>'お気に入りのサイト情報取得',

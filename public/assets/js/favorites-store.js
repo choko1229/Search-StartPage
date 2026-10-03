@@ -1,6 +1,7 @@
 import {get, set, setting,flush} from './store.js';
 import {safeUrl} from './search-core.js';
 import {normalizeFavorite, shortcutKey, favoriteShortcuts} from './favorites-core.js';
+import {recordStatistic} from './statistics.js';
 export const favorites = () => {const rows = get('favorites', []); return (Array.isArray(rows) ? rows : []).filter(item => item && typeof item.name === 'string' && safeUrl(item.url));};
 export const folders = () => {const rows = get('favorite-folders', []); return Array.isArray(rows) ? rows : [];};
 export function saveFavorite(value, id) {
@@ -13,6 +14,7 @@ export function saveFavorite(value, id) {
             || (favoriteShortcuts(items).has(key) && favoriteShortcuts(items).get(key).id !== id)) throw new Error('shortcut_conflict');
     }
     set('favorites', id ? items.map(item => item.id === id ? favorite : item) : [...items, favorite]);
+    void recordStatistic('feature',{feature:'favorites'});
     return favorite;
 }
 export function patchFavorite(id, values) {set('favorites', favorites().map(item => item.id === id ? {...item, ...values, updatedAt: Date.now()} : item));}
@@ -23,6 +25,7 @@ export function duplicateFavorite(id, suffix) {
 }
 export async function openFavorite(item) {
     if (setting('favoriteStats', true)) patchFavorite(item.id, {usageCount:(item.usageCount || 0)+1,lastAccess:Date.now()});
+    await recordStatistic('favorite_open');
     try {await flush();}catch {window.dispatchEvent(new CustomEvent('storage-unavailable'));}
     window.location.assign(item.url);
 }

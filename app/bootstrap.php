@@ -74,6 +74,10 @@ if ($config->get('installed')) {
         $router->add('POST',$path,$policyHandler('update'),[$adminMiddleware,new Csrf()]);
     }
     $router->add('GET','/api/site-policy',static fn(Request $request):App\Http\Response=>App\Http\Response::json(['flags'=>$resolvePolicy()['flags']]));
+    $router->add('POST','/api/statistics/event',static function(Request $request)use($config):App\Http\Response {
+        try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+        return (new App\Controllers\StatisticsController(new App\Repositories\StatisticsRepository($pdo)))->event($request);
+    },[new Csrf()]);
     $logHandler=static function(bool $auditOnly) use($resolveAdmin,$config,$view,$root):Closure {
         return static function(Request $request) use($resolveAdmin,$config,$view,$root,$auditOnly):App\Http\Response {
             [,,,$audit]=$resolveAdmin();
@@ -171,6 +175,7 @@ if ($config->get('installed')) {
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
 $router->add('GET', '/', $core->home(...), [$optionalAuth]);
+$router->add('GET','/privacy',$core->privacy(...));
 $router->add('GET', '/api/health', $core->health(...));
 $router->add('GET', '/api/csrf', $core->csrf(...), [$optionalAuth]);
 $router->add('GET', '/api/search/suggest', (new App\Controllers\SearchController())->suggest(...), [$optionalAuth]);

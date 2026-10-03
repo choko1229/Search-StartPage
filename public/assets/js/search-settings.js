@@ -1,4 +1,5 @@
 import {t, node} from './i18n.js';
+import {recordStatistic} from './statistics.js';
 import {setting, setSetting} from './store.js';
 import {providers, saveProviders} from './providers.js';
 import {validProvider} from './search-core.js';
@@ -98,6 +99,6 @@ export function initializeSettings(refresh) {
     });
     form.addEventListener('reset', () => {form.elements.id.value = ''; error.textContent = '';});
     kind.addEventListener('change', () => {form.reset(); render();});
-    document.getElementById('search-settings-open').addEventListener('click', () => {render();dialog.style.removeProperty('width');dialog.style.removeProperty('height'); dialog.showModal();});
+    document.getElementById('search-settings-open').addEventListener('click', () => {render();dialog.style.removeProperty('width');dialog.style.removeProperty('height'); dialog.showModal();void recordStatistic('feature',{feature:'settings'});});
     dialog.addEventListener('refresh-settings',render);
 }

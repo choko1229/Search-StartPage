@@ -10,6 +10,7 @@ import {backgroundRuleEditor} from './background-rule-editor.js';
 import {WeatherContext,needsWeather} from './weather-context.js';
 import {BackgroundPlayback} from './background-playback.js';
 import {libraryBackgrounds} from './background-library-core.js';
+import {recordStatistic} from './statistics.js';
 
 export function initializeBackground() {
     const panel=document.getElementById('settings-background'),settingsDialog=document.getElementById('search-settings');
@@ -70,7 +71,7 @@ export function initializeBackground() {
             const combined={...previous,...values,id,localOnly:!values.cloudSync,rule:values.rule??null};
             if(values.sourceType!=='upload'){for(const key of ['fileId','fileVersion','fileRevision','syncedFileVersion'])delete combined[key];combined.fileSize=0;}
             const row=normalizeBackground(combined);if(!row)throw new Error('background_invalid');
-            await setMany(state=>{const patch={backgroundMode:'library',backgroundSelected:row.id};return {settings:{...state.settings,...patch},settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,'background'),backgrounds:[...(Array.isArray(state.backgrounds)?state.backgrounds:[]).filter(item=>item?.id!==row.id),row]};},files);resetForm();
+            await setMany(state=>{const patch={backgroundMode:'library',backgroundSelected:row.id};return {settings:{...state.settings,...patch},settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,'background'),backgrounds:[...(Array.isArray(state.backgrounds)?state.backgrounds:[]).filter(item=>item?.id!==row.id),row]};},files);resetForm();void recordStatistic('feature',{feature:'background'});
         }catch(failure){error.textContent=t(['INVALID_UPLOAD','INVALID_UPLOAD_NAME','UNSUPPORTED_BACKGROUND_FORMAT','BACKGROUND_TOO_LARGE','BACKGROUND_MIME_MISMATCH','BACKGROUND_RULE_INVALID','background_invalid'].includes(failure.message)?failure.message:'storage_unavailable');}finally{saving=false;add.disabled=false;}
     });
     function renderLibrary(){

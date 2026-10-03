@@ -875,3 +875,23 @@ JA/EN mobile画像.test-output/phase9-admin-policy-mobile-ja.png/-en.pngを保�
 未確認: EN管理Save、他管理画面全体/リンク遷移、実天気停止/背景upload/認証済みaccount状態、実OAuth/全browser/OScleanup。Phase9進行中、10〜12未着手、Version1.0未完成。全13Installerと管理policy表示/JA保存の未確認を解消したが全Phase9完成ではない。
 
 次に実行すること: spec92/94〜96/118と添付Phase9を再確認し、残るPresets、匿名Statistics/Privacy（直接Discord IDなし・無期限・期間/graph・必須イベント）、管理者追加/解除/最後の管理者保護、容量操作、Update導線を実装。管理UIはlocalhostで新fixture準備しEN Save/他管理page/リンクを継続検証、既存guest127環境とはCookie分離。Phase9ゲート確定前にPhase10へ進まない。
+
+## Phase9 匿名統計の収集・Privacy（2026-10-04）
+
+前のGoalターンは全13Installer/管理UI/c0238edによりprogress。progress/status/git/spec94〜96/117/118と添付Phase9全文を確認。ユーザー途中の状態質問へ回答し実装を継続。
+
+実装: 014_statistics（statistics_events、anonymous_id/event_id uniqueとdate/actor/type/source indexes、ユーザーFK/直接識別子なし）。StatisticsInput/Repository/Controller、POST /api/statistics/event（guest可/CSRF必須/余分field拒否/100件最大/許可categoryのみ/全件validation→DB transaction/dedup）。DB無期限、90日LogRetention対象外。時刻は発生時Unix秒、未来5分まで。源web/extensionは分類入力、実Extensionは未実装。
+
+JS: statistics-coreのsafe schemaと20件batch/再送/ACK保留、statistics.jsの製品store条件付queue/競合retry/60秒通信retry。匿名IDは端末ランダム、クラウド同期・account対応表なし。query/url/custom provider name/DiscordID/IPを送らず、未知providerはcustom分類。Web visit/search/AI/favorite open/settings open/background save/成功Palette/syncを接続。個人favoriteStats OFFでも匿名イベントを収集。統計保存に失敗しても検索/編集を止めない（その場合の計測成功は保証しない）。OFF設定なし。
+
+Privacy: CoreController/ViewとGET /privacy、通常layout footer導線、JA/ENでRequired/Login Cookie、端末/クラウド、Discord account情報、匿名統計無期限とOFFなし、外部サービス、90日logsを説明。Maintenance footerは隠す。docs/statistics.mdを追加。
+
+検証1: 専用MySQL8095/MariaDB8096で014適用、再実行0、実HTTP各30成功。guest/CSRF、5event分類、web/extension入力、secret fields/SQL provider/未知source/type/日時拒否、100件境界、全件検証後write、lostresponse dedup、1970offlineevent保存と90日log整理でstats保持、直接ID列なし、JA/EN privacy200を確認。専用anonymous fixture行はfinally削除。全14新規Installer/down/upはまだ未実行、前回全13の証拠と区別。
+
+検証2: Node statistics queueの秘密除外/自動custom分類/offline/再読込/ACK保存失敗/20+5batch/同期文書にIDなし/Extension source/通信中追加保持成功。favorites回帰、sync-data28、CommandExecutor回帰成功。変更8JS構文成功。両DB基盤39/auth43/maintenance62/policy29/PHP163成功。tests/docker.ps1へ統計試験を追加、Parser/git diff --check成功。codec/config/storage/既存DBvolume保持。
+
+検証3: 実browser2新tab23/localhost8095 home→settings開閉→footer Privacy EN実遷移→JA表示。DB実件数0→visit1→最終visit2/feature1、各distinct匿名端末数1を確認（ID値は出力しない）。最初のfooter clickは遅れて開いたWizardが阻止、同tab AXでContinue later後に実遷移成功。EN390px scrollWidth375<=390、JA/ENモバイル画像.test-output/phase9-privacy-mobile-ja.png/-en.png保存、JA画像目視確認。Console warn/error0、viewportreset。tab23 JA/privacyと既存18〜22をhandoff。実ブラウザのsearch/AI/favorite/背景/Palette/sync匿名イベント・故障再送・別タブ競合は未検証で、unit/APIを代替証明にしない。
+
+Phase9進行中、10〜12未着手、Version1.0未完成。匿名収集基盤とPrivacyを追加したが、集計/期間/graph/全指標は未実装。
+
+次に実行すること: spec94と添付Phase9の全指標を列挙し、StatisticsRepositoryの集計とGET /api/admin/statistics・/admin/statistics、期間/グラフ/DAU/WAU/MAU/NewUsers/Retention/各provider/source/featureを実装。実利用人数と匿名端末数の区別をUIで説明する。Presets/管理者追加解除/最後の管理者保護/容量操作/Update導線、全14Installer/統計実端末検証と管理EN Save/リンクの留保を継続。Phase9ゲート前にPhase10へ進まない。

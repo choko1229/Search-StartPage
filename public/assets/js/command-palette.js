@@ -3,6 +3,7 @@ import {CommandExecutor} from './command-executor.js';
 import {registerProductCommands} from './palette-product-commands.js';
 import {get,setting,setMany} from './store.js';
 import {t,node} from './i18n.js';
+import {recordStatistic} from './statistics.js';
 
 export const paletteCommands=new CommandRegistry();
 export function initializeCommandPalette(actions) {
@@ -37,6 +38,7 @@ export function initializeCommandPalette(actions) {
         if(running)return;running=true;status.textContent='';
         try {
             const outcome=await executor.execute(command.id);if(!outcome.executed){input.focus();return;}
+            await recordStatistic('feature',{feature:'command_palette'});
             try{await setMany(state=>({commandUsage:commandUsageAfter(state.commandUsage,command.id)}));}catch{window.dispatchEvent(new CustomEvent('storage-unavailable'));}
             shut();if(typeof outcome.value==='function')await outcome.value();
         }catch{status.textContent=t('palette_failed');input.focus();}finally{running=false;}

@@ -33,5 +33,6 @@ use App\Auth\Session;
         </form>
     </header><?php endif; ?>
     <main id="main" tabindex="-1"><?= $content ?></main>
+    <?php if(empty($data['maintenance_only'])): ?><footer><a href="/privacy"><?= $e($t->get('privacy_policy')) ?></a></footer><?php endif; ?>
 </body>
 </html>

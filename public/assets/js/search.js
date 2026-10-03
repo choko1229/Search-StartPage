@@ -14,6 +14,8 @@ import {initializeCommandPalette} from './command-palette.js';
 import './favorites.js';
 import './sync.js';
 import {favorites, openFavorite} from './favorites-store.js';
+import {initializeStatistics,recordStatistic} from './statistics.js';
+initializeStatistics();
 const input = document.getElementById('query');
 const select = document.getElementById('provider');
 const list = document.getElementById('suggestions');
@@ -83,7 +85,7 @@ function execute(query, target, id, usePrefix = true) {
     const provider = providers(target).find(item => item.id === id) ?? current(target);
     if (!provider) return;
     const url = queryUrl(provider, query); if (!url) return;
-    const go = () => {record(query, provider.id, target); recordProvider(provider.id); remember(target, provider.id); setSetting('lastMode', target); navigate(url);};
+    const go = async () => {record(query, provider.id, target); recordProvider(provider.id); remember(target, provider.id); setSetting('lastMode', target);await recordStatistic(target==='ai'?'ai_search':'search',{provider:provider.id});navigate(url);};
     if (provider.copy) {
         document.getElementById('copy-query').value = query;
         pendingAi = go; document.getElementById('ai-copy-dialog').showModal();

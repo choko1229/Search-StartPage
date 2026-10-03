@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {StatisticsQueue,statisticsData,safeStatisticsEvent} from '../public/assets/js/statistics-core.js';
+import {syncDocument} from '../public/assets/js/sync-data.js';
+let state=null,counter=0,sent=[],fail=false,ackFail=false;
+const random=()=>String(++counter).padStart(32,'a');
+const io={read:()=>structuredClone(state),write:async update=>{if(ackFail)throw new Error('storage');state=update(structuredClone(state));},send:async events=>{
+    sent.push(structuredClone(events));if(fail)throw new Error('offline');return {status:200,data:{accepted:events.map(row=>row.event_id)}};
+}};
+const queue=new StatisticsQueue(io,{random,clock:()=>1700000000});
+assert.deepEqual(statisticsData('search',{provider:'private-custom-name',query:'secret',url:'https://private.test'}),{provider:'custom'});
+assert.deepEqual(statisticsData('favorite_open',{url:'https://private.test'}),{});
+assert.throws(()=>statisticsData('feature',{feature:'private'}),/INVALID_STATISTICS/);
+await queue.add('visit');const anonymous=state.anonymousId;
+await queue.add('search',{provider:'google',query:'secret'});await queue.add('ai_search',{provider:'private'});
+assert.equal(state.anonymousId,anonymous);assert.equal(state.events.length,3);
+assert.equal(JSON.stringify(state).includes('secret'),false);
+fail=true;await assert.rejects(queue.flush(),/offline/);assert.equal(state.events.length,3);assert.equal(queue.busy,false);
+fail=false;ackFail=true;await assert.rejects(queue.flush(),/storage/);assert.equal(state.events.length,3);
+ackFail=false;const resumed=new StatisticsQueue(io,{random,clock:()=>1700000000});await resumed.flush();assert.equal(state.events.length,0);
+assert.deepEqual(sent[0],sent[2]);
+for(let n=0;n<25;n++)await queue.add('favorite_open');
+await queue.flush();assert.deepEqual(sent.slice(-2).map(batch=>batch.length),[20,5]);
+await queue.add('feature',{feature:'command_palette'});
+const bad={...state.events[0],event_data:{query:'private'}};assert.equal(safeStatisticsEvent(bad,1700000000),false);
+state.events.push(bad);await queue.flush();assert.equal(sent.at(-1).length,1);assert.equal(JSON.stringify(sent).includes('private'),false);
+const synced=syncDocument({statistics:state,settings:{syncEnabled:true}},{web:[],ai:[]});assert.equal(JSON.stringify(synced).includes(anonymous),false);
+const extension=new StatisticsQueue(io,{source:'extension',random,clock:()=>1700000000});await extension.add('visit');assert.equal(state.events.at(-1).source,'extension');
+// A local edit arriving while transport is pending survives the acknowledgement.
+io.send=async events=>{await queue.add('search',{provider:'bing'});io.send=async rows=>({status:200,data:{accepted:rows.map(row=>row.event_id)}});return {status:200,data:{accepted:events.map(row=>row.event_id)}};};
+await queue.flush();assert.equal(state.events.length,0);
+console.log('Statistics privacy, offline/reload retry, ACK failure, batching, source and in-flight edits passed.');

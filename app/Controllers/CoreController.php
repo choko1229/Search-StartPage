@@ -37,6 +37,10 @@ final class CoreController
         }
         return Response::json(['status' => 'ok']);
     }
+    public function privacy(Request $request):Response
+    {
+        return new Response($this->view->render('privacy'));
+    }
 
     public function csrf(Request $request): Response
     {
