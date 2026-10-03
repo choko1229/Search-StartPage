@@ -67,3 +67,11 @@ APIメタにfileRevision（非公開乱数保存名のSHA256、保存名/パス�
 POST uploadおよびPOST {id}/uploadは任意のX-Background-Request（64桁小文字hex）を受け付ける。認証owner・送信番号を009_background_upload_receiptsに記録し、経路/期待version/item原文/原本bytesが同じなら元のitem/version/warningとreplayed:trueを返す。その後の現在の背景は変更しない。番号の別内容への流用は409、形式不正は422。owner hint/CSRF/アップロード検査は維持。応答記録と背景保存は同一transaction、並列要求はowner lock後に再照合。一時候補は再送時も清掃。番号なしの既存呼出は通常CASのまま。
 
 JS createBackgroundの第5引数requestIdで指定可能。製品sessionでの送信前intent永続化・再読み込み後回復は次の作業であり、まだ番号を製品sessionから送っていない。記録の自動期限削除なし、ユーザー削除時cascade。全9Migrationの新規Installer全体確認は未実行。今回の両DB実HTTP50/009往復/基盤39/全JS21ファイル・PHP構文は成功。
+
+## 耐久的な送信記録による回復（2026-10-03）
+
+製品sessionが送信前にowner別intentと原本コピーをIDBで原子的に保存し、X-Background-Requestを送るよう接続済み。ACK保存と送信用コピー除去も原子的。GET /api/backgrounds/receipts/{requestId}で保存結果を本人だけが取得でき、サーバー成功後の応答喪失・ACK保存失敗でも原本を再送せず回復する。GETにCSRF変更操作はなく、Auth/read owner hintを保持。他ownerは404、hint不一致403。receipt番号は64桁小文字hex、元のitem/version/warningだけを返し私有保存名は返さない。
+
+未送信のままOFF/保管/ソース変更されたintentは取消。すでにACKされた背景は初回同期が全体では途中でも通常3-way mergeへ切り替え、後続のCloud編集を保持する。元のBlobとは別キーのコピーなので後からのファイル置換を上書きしない。条件付きIDB transactionは他タブのintentを上書きせずabort。ログアウト同期データ清掃と容量表示もowner別intentに対応。
+
+両DB背景API55、製品JS実HTTP2端末6グループ（再送なし回復と同時要求含む）、全JS21単体、専用実IndexedDBのintent reload/不正putと条件競合abort/ACK除去を確認。専用保存画面は認証済み製品画面の検証ではない。実500MiB/実quota枯渇・全9新規Installer/全Migration往復は未確認。Phase7未完了。

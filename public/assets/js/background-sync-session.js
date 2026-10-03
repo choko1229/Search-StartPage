@@ -1,10 +1,38 @@
 import {backgroundDocuments,backgroundRecord,backgroundPayload,mergeBackgrounds,resolveBackgrounds} from './background-sync-core.js';
 import {equal} from './sync-core.js';
+import {uploadIntent,validateUploadIntent} from './background-upload-intent.js';
 
 // Persistence, authentication, transport and dialogs are adapters shared by Web
 // and Extension. Each successful item has its own durable acknowledgement.
 export class BackgroundSyncSession {
     constructor(io){this.io=io;this.busy=false;this.paused=false;}
+    async transfer(intent,current) {
+        const owner=intent.userId;validateUploadIntent(intent,owner);
+        if(!await current())return false;
+        let response=await this.io.receipt(intent.requestId,owner);
+        if(!await current())return false;
+        if(response.status===404) {
+            const local=this.io.local().find(row=>row.id===intent.target.id),record=local?backgroundRecord(local):null;
+            // An unsent upload cancelled or replaced during interruption must
+            // not be transmitted merely because its old intent survived.
+            if(!record||!record.cloudSync||record.deleted||local.cloudOwner!==undefined&&String(local.cloudOwner)!==owner||!equal(record.source,intent.target.source)){
+                await this.io.abandon(intent);return false;
+            }
+            const file=await this.io.file(intent.fileKey);validateUploadIntent(intent,owner,file);
+            if(!(file instanceof Blob))throw new Error('BACKGROUND_UPLOAD_INTENT_FILE_INVALID');
+            if(!await current())return false;
+            response=await this.io.create(intent.payload,owner,file,intent.version,intent.requestId);
+        }
+        if(!await current())return false;
+        if(response.status===409){await this.io.abandon(intent);return false;}
+        if(![200,201].includes(response.status)) {
+            if([400,404,413,422].includes(response.status))await this.io.abandon(intent);
+            throw new Error('background_sync_failed');
+        }
+        await this.io.accept({userId:owner,before:intent.before,target:intent.target,acknowledged:response.data.item,
+            rules:intent.rules,retainSentOriginal:true,intent});
+        return true;
+    }
     async run() {
         if(this.busy||this.paused)return false;
         this.busy=true;
@@ -12,6 +40,8 @@ export class BackgroundSyncSession {
             const user=await this.io.user();if(!user){this.io.status('signed_out');return false;}
             const owner=String(user.id),current=()=>this.io.current(owner);
             if(!await current())return false;
+            const pending=this.io.pending(owner);
+            if(pending){validateUploadIntent(pending,owner);await this.transfer(pending,current);if(!await current())return false;}
             let cloudRows=await this.io.read(owner),checkpoint=this.io.checkpoint(owner),conflicts=0;
             if(!checkpoint) {
                 const documents=backgroundDocuments(this.io.local(),cloudRows,null,owner);
@@ -42,6 +72,21 @@ export class BackgroundSyncSession {
                         target=resolveBackgrounds(documents.previous,documents.local,documents.cloud,answer.choices,rules);selectedRules=answer.rules||{};
                     }
                 }
+                if(checkpoint.pendingInitial) {
+                    // Initial preference applies only until an item has its
+                    // first ACK. Thereafter later cloud/local edits use the
+                    // normal merge, even if other initial items remain.
+                    const ids=Object.keys(documents.previous);
+                    const subset=value=>Object.fromEntries(ids.filter(id=>Object.hasOwn(value,id)).map(id=>[id,value[id]]));
+                    const left=subset(documents.local),right=subset(documents.cloud);
+                    let merged=mergeBackgrounds(documents.previous,left,right,rules),resolved=merged.data;
+                    if(merged.conflicts.length){
+                        const answer=await this.io.conflicts(merged.conflicts);
+                        if(!answer){this.paused=true;this.io.status('conflict');return false;}
+                        resolved=resolveBackgrounds(documents.previous,left,right,answer.choices,rules);selectedRules={...selectedRules,...answer.rules};
+                    }
+                    for(const id of ids)delete target[id];Object.assign(target,resolved);
+                }
                 let progressed=false;
                 for(const id of new Set([...Object.keys(target),...Object.keys(documents.cloud)])) {
                     const remote=cloudRows.find(row=>row.id===id),cloud=documents.cloud[id],before=documents.local[id];
@@ -61,10 +106,12 @@ export class BackgroundSyncSession {
                         if(sendingFile) {
                             const file=await this.io.file(id);if(!(file instanceof Blob))throw new Error('BACKGROUND_FILE_MISSING');
                             if(!desired.source[0].revision?.startsWith('local:'))desired={...desired,source:[{...desired.source[0],revision:'local:'+id+':'+localRow.fileVersion}]};
-                            const response=await this.io.create(backgroundPayload(desired),owner,file,remote?.version??null);
-                            if(response.status===409){cloudRows=await this.io.read(owner);if(++conflicts>=3)throw new Error('sync_retry_exhausted');progressed=true;break;}
-                            if(![200,201].includes(response.status))throw new Error('background_sync_failed');
-                            acknowledged=response.data.item;retainSentOriginal=true;
+                            const intent=uploadIntent({userId:owner,before,target:desired,version:remote?.version??null,rules:selectedRules},file);
+                            await this.io.prepare(intent,file);
+                            const accepted=await this.transfer(intent,current);if(!await current())return false;
+                            cloudRows=await this.io.read(owner);
+                            if(!accepted){if(++conflicts>=3)throw new Error('sync_retry_exhausted');}else conflicts=0;
+                            progressed=true;break;
                         }else {
                             const response=remote?await this.io.update(backgroundPayload(desired),remote.version,owner):await this.io.create(backgroundPayload(desired),owner);
                             if(response.status===409){cloudRows=await this.io.read(owner);if(++conflicts>=3)throw new Error('sync_retry_exhausted');progressed=true;break;}

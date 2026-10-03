@@ -552,3 +552,19 @@ public/tests/Controllerは3環境へ反映（前回store fallbackも反映済み
 app/009/JS transportは3環境へ反映、通常開発UI8082も009を適用済み。専用API試験ユーザー/既知uploadは終了時除去。receiptはユーザー削除時cascade、現状自動期限削除なし。Phase7途中の保存で完了コミットではない。
 
 次に実行すること: BackgroundSyncSession/Web adapterへ送信前の耐久的intent（同じ番号・元のpayload/version・原本Blob）を原子的保存し、ACK/intent除去も一体にする。ACK保存失敗/通信応答喪失/再読み込み後は同じ送信を回復し、編集中の新しいBlobを旧intentで上書きしない。今回の番号引数は製品sessionからまだ渡していないため、端末の再起動後の再送抑止全体は未完成。競合409のintent扱い、account切替/ログアウト清掃、同時再送専用試験も追加する。その後ルール共有・全条件編集/天気/地域/手動再生、巨大動画/実圧縮+DB容量・耐久的孤立清掃へ続く。Phase7未完了、8〜12未着手、Version1.0未完成、実OAuth留保は継続。
+
+## Phase 7 端末送信記録と再送なしの中断回復（2026-10-03）
+
+background-upload-intent.jsを追加し、製品BackgroundSyncSession/Web adapterへ接続。送信番号・owner・元payload/version・before/target・選択ルールと原本Blobの別コピーをIDB同一transactionで保存してから通信する。intentはowner別のbackgroundUploadIntents、Blobはランダムな別キーで通常背景と分離。ACKの背景メタ/ファイル/checkpoint/所有権保存とintent/送信用コピー除去も同一transaction。保存失敗/応答喪失/再読み込みで同じintentから再開。GET /api/backgrounds/receipts/{requestId}は認証ownerとread hintを照合し、保存済みならファイル本体を再送せず元ACKだけ回復。未送信のままOFF/保管/別ファイル/URLへ変更されたintentは送らず除去。owner変化時はそのownerの記録を保持し、他ownerのintentを利用しない。ログアウト同期データ削除は該当ownerの送信用コピーも原子的に除去、他ownerと未ACKの通常ローカル背景は保持。容量表示に送信用コピーも加算。
+
+store-database.write/setManyに期待state条件を追加。IDB readwrite transaction内でintent集合を比較し、不一致なら全書込みをabort。別タブの記録を上書きしない。保存中編集の再計算では一度commitした条件を引き継ぎ、条件付き失敗後はDB状態を再取得して次回回復に利用。Broadcast読込の通知はstate全項目更新後に行う。
+
+検証1: JS単体21ファイル/全JS構文成功。sessionでACK容量失敗→新session回復、応答喪失、後からの原本置換保持、送信前保存失敗で通信なし、未送信OFF取消、owner変化保持、後続クラウド編集を確認。IndexedDBモデルでprepare/ACK quota rollback、reload、条件不一致時Blob保持、保存中設定編集再計算を確認。accountのowner別intent清掃/容量も成功。
+検証2: MySQL8/MariaDB10.11で背景API55（receipt本人200/不存在404/他owner404/guest401/hint403）、製品JS実HTTP2端末6グループ成功。通常remember Cookie、応答喪失/ACK失敗後の再開で実upload回数を増やさず、後続クラウド名前/version2を保持、同じ番号の並列upload2要求はversion1/同じfileRevisionを返す。client state/Blob永続化はモデルであり、実認証ブラウザとは区別。専用fixture秘密値/ユーザー/既知uploadはfinally除去。3環境PHP構文MySQL105/MariaDB102/UI102、両DB基盤39/Migration再実行0件成功。SQL schemaは009のまま、全9新規Installer/全Migration往復はまだ未実行。
+検証3: 専用8083画面とbackground-upload-verificationという独立DBで原本68bytes+送信用68bytes/intent保存→reload保持、不正ACK putと古い条件の双方で全state/Blob不変、ACK確定→reload後原本68bytes/intentなし/送信用0/確定記録ありを確認。console warn/error0、画像.test-output/phase7-upload-intent-ack.png（Git除外）、IABタブ13保持。実quota枯渇ではなくDataCloneError/条件競合でabortを確認。実OAuth/認証済み製品UIの証拠ではない。fixturePHPはSEARCH_TEST_MODE付き8083のpublic/_testのみ、通常UIには配置しない。
+
+Failures: session試験の全体write件数は初回Localの残項目処理も数えたため失敗、対象upload versionの検証へ訂正。一方、ACK済み背景もpendingInitial=Localのまま再適用すると後続Cloud名前を上書きしてversion3になる実Regressionを検出し、ACK済みIDだけ通常3-way mergeへ切替えてversion2/Cloud編集保持で再成功。
+
+app/public/testsは3環境へ反映済み（公開fixtureは8083のみ）。送信記録は原本の追加コピーを保持するため一時的に端末容量が増えるが、保存できないときは通信しない。巨大500MiB実環境での容量/通信検証、ブラウザ実quota枯渇、認証済み実UIは未確認。Phase7未完了、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 全9Migrationを新規隔離MySQL/MariaDB Installerとup/down/upで確認。その後背景競合ルール共有、仕様全11条件の編集UI・天気/位置取得と手動地域の共通設定・動画手動再生へ進む。巨大動画実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃/Admin警告・Phase7完了条件監査も残る。実OAuthはユーザー指示の成功前提を維持し、未確認を最終監査へ留保。

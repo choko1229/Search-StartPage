@@ -35,6 +35,14 @@ final class BackgroundController
         if(!is_object($input))throw new HttpException(422,'INVALID_BACKGROUND');
         return Response::json(['item'=>self::present($this->repository->save($user,BackgroundInput::validate($input)))],201);
     }
+    public function receipt(Request $request,array $params): Response
+    {
+        $user=$this->owner($request);
+        if(!preg_match('/^[a-f0-9]{64}$/D',$params['requestId']))throw new HttpException(422,'INVALID_INPUT');
+        $saved=$this->repository->uploadReceipt($user,$params['requestId']);
+        if($saved===null)throw new HttpException(404,'NOT_FOUND');
+        return Response::json(['item'=>self::present($saved),'storage'=>$this->repository->usage($user),'warning'=>$saved['_upload_warning']??null,'replayed'=>true]);
+    }
     public function upload(Request $request,array $params=[]): Response
     {
         $user=$this->owner($request);$raw=$request->input('item');

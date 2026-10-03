@@ -6,8 +6,10 @@ export function removeSyncedData(state, userId) {
     const ownership = state.syncOwnership;
     const generalOwned=ownership&&String(ownership.userId)===String(userId);
     const backgroundsOwned=state.backgroundOwnership&&String(state.backgroundOwnership.userId)===String(userId);
-    if(!generalOwned&&!backgroundsOwned)return state;
+    const pendingOwned=state.backgroundUploadIntents?.[String(userId)];
+    if(!generalOwned&&!backgroundsOwned&&!pendingOwned)return state;
     const next = {...state};
+    if(pendingOwned){next.backgroundUploadIntents={...state.backgroundUploadIntents};delete next.backgroundUploadIntents[String(userId)];}
     for (const key of collections) {
         const ids = generalOwned?ownership.collections?.[key]:null;
         if (!Array.isArray(ids) || !Array.isArray(state[key])) continue;
@@ -34,11 +36,14 @@ export function syncedDataRemoval(state,userId) {
     const clean=removeSyncedData(state,userId);
     const retained=new Set((clean.backgrounds||[]).map(item=>item.fileId));
     const files=(state.backgrounds||[]).filter(item=>item.fileId===item.id&&typeof item.id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(item.id)&&!retained.has(item.fileId)).map(item=>({id:item.fileId,blob:null}));
+    const pending=state.backgroundUploadIntents?.[String(userId)];
+    if(pending&&/^_bg_upload_[a-f0-9]{64}$/.test(pending.fileKey))files.push({id:pending.fileKey,blob:null});
     return {values:{...Object.fromEntries(Object.keys(state).map(name=>[name,null])),...clean},files};
 }
 
 export function localUsage(state) {
-    const backgroundBytes=(Array.isArray(state.backgrounds)?state.backgrounds:[]).reduce((sum,item)=>{
+    const pendingBytes=Object.values(state.backgroundUploadIntents||{}).reduce((sum,item)=>sum+(Number.isSafeInteger(item?.fileSize)&&item.fileSize>0?item.fileSize:0),0);
+    const backgroundBytes=pendingBytes+(Array.isArray(state.backgrounds)?state.backgrounds:[]).reduce((sum,item)=>{
         const size=item.fileId===item.id?item.fileSize:item.size;return sum+(Number.isSafeInteger(size)&&size>0?size:0);
     },0);
     const metadataBytes=new TextEncoder().encode(JSON.stringify(state)).byteLength;

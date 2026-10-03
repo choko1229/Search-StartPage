@@ -1,9 +1,10 @@
 import {backgroundRecord,backgroundPayload,mergeBackgrounds} from './background-sync-core.js';
 import {equal} from './sync-core.js';
+import {clearUpload} from './background-upload-intent.js';
 
 // Pure transaction planner. Recalculate from the latest state every time the
 // store retries a write so a received Blob cannot replace an in-flight edit.
-export function backgroundAcknowledgement(state,{userId,before,target,acknowledged,blob=null,rules={},retainSentOriginal=false,keepLocal=false}) {
+export function backgroundAcknowledgement(state,{userId,before,target,acknowledged,blob=null,rules={},retainSentOriginal=false,keepLocal=false,intent=null}) {
     const owner=String(userId),id=acknowledged.id,cloud=backgroundRecord(acknowledged,true);
     if(!/^[1-9]\d*$/.test(owner)||!Number.isSafeInteger(acknowledged.version)||acknowledged.version<1||target?.id!==id||before&&before.id!==id)throw new Error('INVALID_BACKGROUND');
     const list=Array.isArray(state.backgrounds)?state.backgrounds:[],current=list.find(row=>row.id===id);
@@ -44,8 +45,10 @@ export function backgroundAcknowledgement(state,{userId,before,target,acknowledg
     }
     const previous=state.backgroundCheckpoint&&String(state.backgroundCheckpoint.userId)===owner?state.backgroundCheckpoint:{};
     const ownership=state.backgroundOwnership&&String(state.backgroundOwnership.userId)===owner?state.backgroundOwnership.ids:[];
-    return {values:{backgrounds:row?[...list.filter(item=>item.id!==id),row]:list.filter(item=>item.id!==id),
+    const cleared=intent?clearUpload(state,intent):{values:{},files:[]};
+    if(intent&&intent.userId!==owner)throw new Error('BACKGROUND_OWNER_CHANGED');
+    return {values:{...cleared.values,backgrounds:row?[...list.filter(item=>item.id!==id),row]:list.filter(item=>item.id!==id),
         backgroundCheckpoint:{...previous,userId:owner,document:{...previous.document,[id]:cloud},rules:{...previous.rules,...rules}},
         backgroundOwnership:{userId:owner,ids:[...new Set([...(ownership||[]),id])]}}
-        ,files};
+        ,files:[...files,...cleared.files]};
 }

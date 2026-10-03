@@ -50,6 +50,11 @@ try {
     [$status,$json]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary,$receiptHeader);
     $check($status===201&&$json['data']['item']['sourceType']==='upload'&&$json['data']['item']['fileSize']===strlen($png),'real app multipart upload saved with measured size');
     $initialRevision=$json['data']['item']['fileRevision'];
+    [$status,$receipt]=$request('GET','/api/backgrounds/receipts/'.$nonce,null,null,null,null,['X-Background-Owner: '.$user]);
+    $check($status===200&&$receipt['data']['item']['fileRevision']===$initialRevision,'owner retrieves receipt without resending file');
+    [$status]=$request('GET','/api/backgrounds/receipts/'.str_repeat('0',64));$check($status===404,'missing receipt returns not found');
+    [$status]=$request('GET','/api/backgrounds/receipts/'.$nonce,null,null,null,null,['X-Background-Owner: '.$other]);$check($status===403,'receipt owner hint mismatch denied');
+    $authenticated=$cookies;$cookies=[];[$status]=$request('GET','/api/backgrounds/receipts/'.$nonce);$check($status===401,'guest receipt read denied');$cookies=$authenticated;
     [$status,$replay]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary,$receiptHeader);
     $check($status===201&&$replay['data']['replayed']&&$replay['data']['item']['fileRevision']===$initialRevision&&$repository->find($user,'file-id')['version']==1,'upload replay retains original file and version');
     [$status]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('different-id',$png),$boundary,$receiptHeader);
@@ -67,6 +72,7 @@ try {
     $authenticated=$cookies;$cookies=[];[$status]=$request('GET','/api/backgrounds/file-id/file');$check($status===401,'guest file download denied');$cookies=$authenticated;
     $otherDevice=bin2hex(random_bytes(16));$otherToken=bin2hex(random_bytes(32));$auth->createDevice($other,$otherDevice,hash('sha256',$otherToken),['browser'=>'Test','os'=>'Test'],time());
     $cookies=['search_remember'=>$otherDevice.'.'.$otherToken];[$status]=$request('GET','/api/backgrounds/file-id/file');$check($status===404,'another authenticated owner cannot download the file');$cookies=$authenticated;
+    $cookies=['search_remember'=>$otherDevice.'.'.$otherToken];[$status]=$request('GET','/api/backgrounds/receipts/'.$nonce);$check($status===404,'foreign owner cannot retrieve upload receipt');$cookies=$authenticated;
     $filesBefore=count(glob($root.'/storage/uploads/backgrounds/'.$user.'/*'));
     [$status]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('file-id',$png),$boundary);$check($status===409&&count(glob($root.'/storage/uploads/backgrounds/'.$user.'/*'))===$filesBefore,'duplicate upload cleans staged file on DB rejection');
     [$status]=$request('POST','/api/backgrounds/upload',null,$csrf,$upload('bad-file','<?php echo "bad";'),$boundary);$check($status===422,'disguised script denied by app API');

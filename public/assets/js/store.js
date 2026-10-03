@@ -62,22 +62,34 @@ export async function backgroundFile(id) {
     if(!database)return null;
     return database.file(id);
 }
-export function setMany(values,files=[]) {
+async function refreshState() {
+    const next=await database.read(),changed=[];
+    for(const name of Object.keys({...state,...next})){
+        if(pending.get(name)>0||failedWrites.has(name)||JSON.stringify(state[name])===JSON.stringify(next[name]))continue;
+        state={...state,[name]:next[name]};revisions.set(name,(revisions.get(name)||0)+1);changed.push(name);
+    }
+    for(const name of changed)notify(name);
+}
+export function setMany(values,files=[],conditions=null) {
     if(initialError)throw initialError;
     if(!database&&(typeof files==='function'?files(snapshot()):files).length)throw new Error('background_files_require_indexeddb');
     if(database)return enqueue(async()=>{
-        let patch,before;
+        let patch,before,committedConditions=null;
+        try {
         for(let attempt=0;;attempt++) {
             const inputs=new Map(revisions);
             const current=snapshot();
             patch=typeof values==='function'?values(current):values;
             const operations=typeof files==='function'?files(current):files;
             before=new Map(Object.keys(patch).map(name=>[name,revisions.get(name)||0]));
-            await database.write(structuredClone(patch),operations);lastError=null;
+            const expected=committedConditions??(typeof conditions==='function'?conditions(current):conditions);
+            await database.write(structuredClone(patch),operations,expected);lastError=null;
+            if(expected)committedConditions=Object.fromEntries(Object.entries(expected).map(([name,value])=>[name,Object.hasOwn(patch,name)?patch[name]:value]));
             const dynamic=typeof values==='function'||typeof files==='function';
             if(!dynamic || (revisions.size===inputs.size&&[...inputs].every(([name,revision])=>revisions.get(name)===revision)))break;
             if(attempt>=7)throw new Error('storage_changed_during_commit');
         }
+        }catch(error){if(conditions)await refreshState();throw error;}
         const changed=[];
         for(const [name,value] of Object.entries(patch))if((revisions.get(name)||0)===before.get(name)){
             state={...state,[name]:value};revisions.set(name,before.get(name)+1);changed.push(name);
@@ -93,11 +105,7 @@ export function setMany(values,files=[]) {
 }
 if(database)database.listen(async()=>{
     try {
-        const next=await database.read();
-        for(const name of Object.keys({...state,...next})){
-            if(pending.get(name)>0 || failedWrites.has(name) || JSON.stringify(state[name])===JSON.stringify(next[name]))continue;
-            state={...state,[name]:next[name]};revisions.set(name,(revisions.get(name)||0)+1);notify(name);
-        }
+        await refreshState();
     }catch {window.dispatchEvent(new CustomEvent('storage-unavailable'));}
 });
 window.addEventListener('storage', event => {

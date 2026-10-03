@@ -2,11 +2,12 @@ import {get,setMany,setting,backgroundFile,flush} from './store.js';
 import {BackgroundSyncSession} from './background-sync-session.js';
 import {backgroundAcknowledgement} from './background-sync-ack.js';
 import {backgroundRecord} from './background-sync-core.js';
-import {readBackgrounds,createBackground,updateBackground,downloadBackground} from './background-api.js';
+import {readBackgrounds,readBackgroundReceipt,createBackground,updateBackground,downloadBackground} from './background-api.js';
 import {syncUser} from './sync-api.js';
 import {syncDialog} from './sync-dialogs.js';
 import {syncInterval} from './sync-session.js';
 import {equal} from './sync-core.js';
+import {prepareUpload,clearUpload,uploadGuard} from './background-upload-intent.js';
 import {t,node} from './i18n.js';
 export function initializeBackgroundSync(panel) {
     const status=node('p',t('sync_ready'),{role:'status','aria-live':'polite'}),button=node('button',t('sync_now'),{type:'button',class:'secondary'});
@@ -24,7 +25,11 @@ export function initializeBackgroundSync(panel) {
             return {backgrounds:state.backgrounds.map(item=>item.id===id?{...item,deleted:true,cloudSync:false,localOnly:true}:item)};
         }),
         file:backgroundFile,create:createBackground,update:updateBackground,download:downloadBackground,
-        accept:async options=>{applying=true;try{await setMany(state=>backgroundAcknowledgement(state,options).values,state=>backgroundAcknowledgement(state,options).files);}finally{applying=false;}},
+        pending:owner=>get('backgroundUploadIntents',{})[owner]||null,
+        receipt:readBackgroundReceipt,
+        prepare:async(intent,file)=>setMany(state=>prepareUpload(state,intent,file).values,state=>prepareUpload(state,intent,file).files,uploadGuard),
+        abandon:async intent=>setMany(state=>clearUpload(state,intent).values,state=>clearUpload(state,intent).files,uploadGuard),
+        accept:async options=>{applying=true;try{await setMany(state=>backgroundAcknowledgement(state,options).values,state=>backgroundAcknowledgement(state,options).files,options.intent?uploadGuard:null);}finally{applying=false;}},
         finish:async owner=>setMany(state=>{
             if(String(state.backgroundCheckpoint?.userId)!==owner)throw new Error('BACKGROUND_OWNER_CHANGED');
             const next={...state.backgroundCheckpoint};delete next.pendingInitial;return {backgroundCheckpoint:next};

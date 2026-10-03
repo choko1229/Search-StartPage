@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readBackgrounds,createBackground,updateBackground,downloadBackground} from '../public/assets/js/background-api.js';
+import {readBackgrounds,readBackgroundReceipt,createBackground,updateBackground,downloadBackground} from '../public/assets/js/background-api.js';
 let calls=[];
 const response=(data,status=200)=>new Response(JSON.stringify({success:true,data}),{status});
 globalThis.fetch=async(url,options)=>{
@@ -9,6 +9,8 @@ globalThis.fetch=async(url,options)=>{
 };
 assert.equal((await readBackgrounds()).status,200);
 await readBackgrounds('1');assert.equal(calls.at(-1).options.headers['X-Background-Owner'],'1');
+await readBackgroundReceipt('a'.repeat(64),'1');assert.equal(calls.at(-1).url,'/api/backgrounds/receipts/'+'a'.repeat(64));assert.equal(calls.at(-1).options.headers['X-Background-Owner'],'1');
+assert.throws(()=>readBackgroundReceipt('../invalid','1'),/INVALID_INPUT/);
 assert.equal((await createBackground({id:'a',type:'solid'},'1')).status,201);
 assert.deepEqual(JSON.parse(calls.at(-1).options.body),{user_id:'1',item:{id:'a',type:'solid'}});
 assert.equal(calls.at(-1).url,'/api/backgrounds/url');

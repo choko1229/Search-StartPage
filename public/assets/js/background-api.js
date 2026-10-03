@@ -20,6 +20,10 @@ function identity(userId) {
     return String(userId);
 }
 export function readBackgrounds(userId){return json(endpoint,{headers:userId===undefined?{}:{'X-Background-Owner':identity(userId)}});}
+export function readBackgroundReceipt(requestId,userId) {
+    if(typeof requestId!=='string'||!/^[a-f0-9]{64}$/.test(requestId))throw new Error('INVALID_INPUT');
+    return json(endpoint+'/receipts/'+requestId,{headers:{'X-Background-Owner':identity(userId)}});
+}
 export async function createBackground(item,userId,file=null,version=null,requestId=null) {
     itemPath(item?.id);const owner=identity(userId);
     if(version!==null&&(!Number.isSafeInteger(version)||version<0||file===null))throw new Error('SYNC_VERSION_INVALID');

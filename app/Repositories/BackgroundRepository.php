@@ -22,12 +22,12 @@ final class BackgroundRepository
         $statement=$this->pdo->prepare('SELECT COALESCE(SUM(file_size),0) FROM backgrounds WHERE user_id=?');$statement->execute([$user]);
         return ['used_bytes'=>(int)$statement->fetchColumn(),'limit_bytes'=>$this->limitBytes>0?$this->limitBytes:null];
     }
-    public function uploadReceipt(int $user,string $requestId,string $fingerprint): ?array
+    public function uploadReceipt(int $user,string $requestId,?string $fingerprint=null): ?array
     {
         $statement=$this->pdo->prepare('SELECT fingerprint,response_json FROM background_upload_receipts WHERE user_id=? AND request_id=?');
         $statement->execute([$user,$requestId]);$row=$statement->fetch(PDO::FETCH_ASSOC);
         if(!$row)return null;
-        if(!hash_equals($row['fingerprint'],$fingerprint))throw new HttpException(409,'BACKGROUND_CONFLICT');
+        if($fingerprint!==null&&!hash_equals($row['fingerprint'],$fingerprint))throw new HttpException(409,'BACKGROUND_CONFLICT');
         return json_decode($row['response_json'],true,32,JSON_THROW_ON_ERROR)+['_upload_replayed'=>true];
     }
     public function save(int $user,array $item,?int $expected=null,?array $file=null,bool $clearFile=false,?array $receipt=null): array

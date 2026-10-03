@@ -18,4 +18,6 @@ const media={backgrounds:[{id:'owned',fileId:'owned',cloudOwner:'1',cloudSync:tr
 const removal=syncedDataRemoval(media,'1');assert.deepEqual(removal.values.backgrounds.map(row=>row.id),['off','other','unowned']);assert.deepEqual(removal.files,[{id:'owned',blob:null}]);assert.equal(removal.values.backgroundOwnership,null);assert.equal(removal.values.backgroundCheckpoint,null);assert.equal(removal.values.syncOwnership.userId,'2');assert.equal(removal.values.settings.theme,'dark');
 assert.equal(localUsage(media).backgroundBytes,105);assert.equal(localUsage(media).bytes,localUsage(media).metadataBytes+105);
 assert.deepEqual(syncedDataRemoval(media,'3').files,[]);
-console.log('21 account data assertions passed.');
+const pendingKey='_bg_upload_'+'a'.repeat(64),pendingState={backgrounds:[],backgroundUploadIntents:{'1':{fileKey:pendingKey,fileSize:8},'2':{fileKey:'_bg_upload_'+'b'.repeat(64),fileSize:10}}};
+const pendingClean=syncedDataRemoval(pendingState,'1');assert.equal(pendingClean.values.backgroundUploadIntents['1'],undefined);assert.equal(pendingClean.values.backgroundUploadIntents['2'].fileSize,10);assert.deepEqual(pendingClean.files,[{id:pendingKey,blob:null}]);assert.equal(localUsage(pendingState).backgroundBytes,18);
+console.log('Account data: original 21 assertions and owner-specific pending upload cleanup/capacity passed.');

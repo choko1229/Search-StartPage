@@ -94,6 +94,7 @@ if ($config->get('installed')) {
         };
     };
     $router->add('GET','/api/backgrounds',$backgroundHandler('index'));
+    $router->add('GET','/api/backgrounds/receipts/{requestId}',$backgroundHandler('receipt'));
     $router->add('POST','/api/backgrounds/url',$backgroundHandler('url'),[new Csrf()]);
     $router->add('POST','/api/backgrounds/upload',$backgroundHandler('upload'),[new Csrf()]);
     $router->add('POST','/api/backgrounds/{id}/upload',$backgroundHandler('upload'),[new Csrf()]);
