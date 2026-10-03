@@ -648,3 +648,17 @@ public/assets/langは8082〜8086へ反映済み。背景設定/元Blob/ユーザ
 JSは8082〜8086へ反映。fixture公開はSEARCH_TEST_MODE付き8083のみ、新規両DBのPHPはtests配下だけ。通常config・データ・ボリューム保持。docs/weather.mdの既知未確認（実OS許可/認証済み地域同期）を維持。Phase7途中保存、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 動画EN・Loop OFF終端・表示復帰/モバイル代替を実ブラウザで確認。その後背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査へ進む。位置取得UIの生成/保存/拒否/解除/手動入力/破棄中の古い応答/保存失敗は今回確認済み。実OS許可と認証済み地域同期/実OAuthは未確認留保継続。Admin圧縮不足警告はPhase9で接続。
+
+## Phase 7 動画の英語操作・終端・モバイル代替（2026-10-03）
+
+製品8083の既存Video playback verification（同期OFF）を英語UIで編集。Auto Play OFFを維持、Loop OFF、生成PNGのサイト内fallback URLを保存。通常画面のPlay background videoで実MP4 paused=false、loop=false/muted=true/speed1を確認。6秒の終端でended=true/paused=true/currentTime=duration=6、ボタンがPlayへ復帰。後続の同一動画の再確認でも終端を保持し勝手に再生しない。英語の保存・再生操作が利用できることを確認。
+
+検証1: 上記実動画の終端/英語ボタンを確認。画像.test-output/phase7-video-ended-en.png（Git除外）。生成MP4を利用しユーザーファイル/本番データは不使用。Autoplay拒否や実Uploadとは区別する。
+検証2: 390pxへ変更するとvideo0、fallback img naturalWidth1/指定サイト内パス、再生ボタンhidden=true、document375/scroll375。通常viewportへresetするとvideo1/img0/paused=true（Auto Play OFF）、手動再生も成功。画像.test-output/phase7-video-fallback-mobile.png。既存JS単体25ファイル成功（非表示pause/表示復帰はモデルで既に検証済み）。
+検証3: console warn/error0、通常JAトップへ戻しLocal upload retained再選択、image naturalWidth1/video0/ボタンhidden=trueを確認。UI設定の変更だけでアプリコード・DB/API/Migrationに変更なし。PHP構文108/両DB基盤39/全9Migration Installer往復は直前証拠を維持、今回は再実行していない。git diff --checkを保存前に確認。
+
+表示復帰の実ブラウザ検証は未確認。別タブ作成後も元ページのdocument.hidden=falseだったため、本来の非表示状態を作れず成功扱いにしない。JSON healthを一時タブで開く試みはbrowser側ERR_BLOCKED_BY_CLIENT、空タブ17として作成されたことをinventoryで確認して閉じた。APIのAJAX通信が失敗した証拠とは扱わない。実非表示・復帰を作れるブラウザ環境で最終監査時に確認する。通常タブ14は前turnで保持されず既に存在しなかったため、新規タブ16で検証。生成地域fixtureタブ15はそのまま保持。新規タブ16をhandoff保持、onboarding案内を閉じ通常表示へ復帰。
+
+Video playback verificationはLoop OFF/fallback追加を保存して隔離8083に保持（同期OFF）。生成PNGを.test-outputからpublic/_testに配置。通常config/ユーザーデータ/ボリュームを保持。Phase7未完了、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 背景競合解決の保存ルールを他端末へ共有する。現状background checkpoint.rulesのみ、一般同期のsettings.syncRulesの共有方式と整合させる。アカウント混同/履歴・一般競合ルールの破壊/並行同期を避け、両DB実HTTP2端末と単体で確認。その後巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。動画非表示復帰、実OS位置許可、認証済み地域同期/実OAuthは未確認留保を維持。Admin圧縮不足警告はPhase9。
