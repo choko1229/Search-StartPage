@@ -1,6 +1,6 @@
 # Phase 7 機能ゲート監査
 
-2026-10-03。Phase 7の完了判定はまだ行わない。実Discord成功はユーザー指定の開発前提とし、実OAuthの未確認を成功扱いにしない。Version 1.0全体は未完成。
+2026-10-03。Phase 7の機能ゲート判定は末尾の完了条件表を参照。実Discord成功はユーザー指定の開発前提とし、実OAuthの未確認を成功扱いにしない。Version 1.0全体は未完成。
 
 | 仕様 | 実装・証拠 | 状態 |
 |---|---|---|
@@ -28,3 +28,21 @@
 ## 添付Phase7の追加照合
 
 添付Library要件のthumbnail/favorite/sortは2026-10-03監査で不足を発見し補修。色・gradient・実画像/動画（autoplayなし）のサムネイル、背景favorite boolean、保存順/名前/お気に入り優先を実装。DB既存settings_json、background sync appearanceへfavoriteを追加。両DBAPI56/実2端末8group（favorite登録・解除の往復を追加）と全JS28、新library8、JA/EN/reload/390px実画面を確認。並び順はUndo/resetカテゴリ対象。既存の実OAuth等の留保は継続。添付完了条件9項目の最終判定を次回行う。
+
+## Phase7完了条件の判定（2026-10-03）
+
+| 添付完了条件 | 根拠 | 判定 |
+|---|---|---|
+| image upload | 実file入力/Blob保存/再読込、両DB multipart・MIME・private download/API56 | 機能確認済み |
+| video upload | 実filechooser MP4→Blob→readyState4/再生/reload/編集、500MiB実HTTP両DB12 | 機能確認済み |
+| compression | 実Imagick/GD/FFmpegと失敗fallback、両DB実圧縮HTTP15/最終容量quota8 | 機能確認済み |
+| background library | 複数背景/保管復元/サムネイル/favorite/sort、JA/EN/再読込/390px、新library8 | 機能確認済み |
+| cloud sync | 製品session実HTTP2端末各8、URL/file/選択共有/owner/receipt回復/お気に入り登録解除 | 機能確認済み、実OAuth前提の実UIは留保 |
+| rules | 全11条件、入れ子AND/OR編集/保存/再編集、JS/PHP制限 | 機能確認済み |
+| weather | 公開都市の実providerと製品条件切替、両DBweather HTTP14、手動/ブラウザ地域入力 | 機能確認済み、OS位置許可は留保 |
+| priority | background-core.testのAND条件数・OR具体性・同率random、実条件編集 | 機能確認済み |
+| fallback behavior | 実動画mobile代替、codecなし原本保存warning、provider失敗/オフライン再試行、地域遅延応答破棄 | 機能確認済み |
+
+Phase7の機能ゲートは検証済みと判定し、Phase8へ進む。直近3種類の検証はライブラリ補修記録に記載（全JS28とPHP/翻訳基盤39、両DB API56/実2端末8、JA/EN/mobile実UI）。DB変更は全9Migrationの既存Installer往復40で確認済み、補修では追加Migration不要。
+
+これはVersion1.0全DoDの合格判定ではない。実OAuth/認証済み実UI、実OS位置許可、実非表示動画復帰、500MiBのFFmpeg変換、ブラウザ実quota枯渇は未確認でPhase12に追跡する。codec不足の管理画面警告は仕様のPhase9で実装する。モデル試験で実ブラウザや外部サービス成功を推定しない。

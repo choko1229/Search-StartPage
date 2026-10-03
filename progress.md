@@ -587,3 +587,11 @@ Phase7最終ゲート監査中、Phase8〜12未着手、Version1.0未完成。�
 app/public/langを8082/8083/8084/8089/8090へ反映。DB/config/storage/既存背景を保持。9Migration/Installer各40の直前証拠を維持、今回新Migrationなし/再Installerなし。git diff --check成功。新PHP設定は既存JSONで扱う。Phase7機能ゲートはまだ監査中、Phase8〜12未着手、Version1.0未完成。
 
 次に実行すること: 添付Phase7完了9項目とライブラリ補修をdocs/phase7-gate.mdで最終照合し、機能ゲートを確定する。未確認の実OAuth/認証済みUI/実OS位置許可/非表示動画復帰/巨大FFmpeg変換/実ブラウザquota枯渇をPhase12監査へ個別追跡。残る実装不足がなければPhase8 spec§48〜52と添付Phase8のRegistry/Search/Ranking/Commands/Confirmationsへ進む。
+
+## Phase7機能ゲート確定・Phase8開始（2026-10-03）
+
+添付Phase7の完了条件9項目とspec§57〜67をコード/検証結果に照合。image/video upload、実圧縮、library（thumb/favorite/sort含む）、per-background sync、全11rules、weather、priority、fallbackが機能確認済み。docs/phase7-gate.mdへ個別根拠と未確認を記録し、Phase7機能ゲート検証済みとしてPhase8へ進む。最低3検証は直近補修で全JS28/PHP基盤、両DB API56・2端末8、実JA/EN/mobileを確認。今回監査のみで既存検証の不要な再実行は行わず、spec.mdは未変更/未stage。Phaseごとの確定コミットを作成する。
+
+実OAuth/認証済み実UIはユーザー指定の進行前提による留保。実OS位置許可/実非表示動画復帰/巨大FFmpeg変換/実ブラウザquota枯渇も未確認のままPhase12へ追跡。Admin codec不足警告はPhase9接続。Version1.0未完成。
+
+次に実行すること: Phase8 spec§48〜52/添付全文に従い拡張可能なcommand registryを実装。8カテゴリ横断検索、初期recent/frequent/favorites/search/AI、exact/prefix/relevance/usage/recency/categoryランキング、列挙された実操作と操作別confirm/次回確認なし、Ctrl+Kとキーボード/JA/EN/mobileを順に検証。Phase8未完了、9〜12未着手。
