@@ -1,10 +1,10 @@
-import {get,setting,saveSettings,setMany,flush} from './store.js';
+import {get,setting,saveSettings,setMany} from './store.js';
 import {t} from './i18n.js';
 import {favorites,folders,openFavorite} from './favorites-store.js';
 import {focusFavorites} from './favorites.js';
 import {editFavorite} from './favorite-editor.js';
 import {providers} from './providers.js';
-import {history,clearHistory} from './history.js';
+import {history} from './history.js';
 import {normalizeBackground,backgroundPresets} from './background-core.js';
 import {categories} from './settings-schema.js';
 import {logoutPaletteAccount,recoverPaletteAccount} from './palette-logout.js';
@@ -15,7 +15,7 @@ export function registerProductCommands(registry,actions) {
     register('settings:open',t('palette_open_settings'),'commands','navigate',()=>()=>actions.openSettings());
     register('history:open',t('palette_open_history'),'commands','navigate',()=>actions.openHistory);
     register('favorite:add',t('add_favorite'),'commands','navigate',()=>()=>editFavorite());
-    register('history:clear',t('clear_history'),'commands','state',async()=>{clearHistory();await flush();});
+    register('history:clear',t('clear_history'),'commands','state',()=>setMany({history:[]}));
     register('account:login',t('discord_login'),'commands','navigate',()=>()=>location.assign('/account'));
     register('account:logout',t('logout'),'commands','state',async()=>{
         await logoutPaletteAccount();

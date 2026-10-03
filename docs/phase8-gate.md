@@ -35,3 +35,19 @@ Palette画面とCtrl+K/キーボード、5初期groups、8カテゴリの製品�
 Phase8未完了、Phase9〜12未着手、Version1.0未完成。実OAuth/認証済み実UI等の留保は継続。
 
 次に実行すること: tab18（存在を再確認）からPalette AI変更、背景選択/Random、履歴の再検索/消去、確認設定reset/共有、拡張登録とARIAを検証。永久削除をUIから無確認で実行しない。保存故障の製品adapter/実IndexedDB回復を検証し、未確認を成功扱いにせずPhase8機能ゲートを判定する。
+
+## Phase8 AI・背景操作と履歴保存の補修（2026-10-03）
+
+前のGoalターンは実HTTP/実UIの証拠追加とa830007保存によりprogress。progress/status/gitを確認してPhase8を継続。
+
+検証1: 実8083 JAゲストUI/tab18でPalette Claude→confirm→実行しAI mode/Claude selected、reload後AIへ切替してClaude保持。森背景→confirm実行でlinear-gradient(90deg,17/37/29,85/120/98)実描画。RandomのCancelで森style不変、再実行で夜gradientへ変更。背景はLocal upload retainedへ確認後に戻す。履歴を開くコマンドで実History dialog/空欄表示。既存履歴が空のため履歴項目再検索/実消去は未確認。console warn/error0、背景コマンド画像.test-output/phase8-background-commands.png保存・目視確認。JA/Web/Google/Light/Local upload retained、AI既定Claude、tab18で背景queryを開きhandoff。
+
+監査でPalette履歴消去がclearHistoryの先行メモリ更新→flushであり、保存失敗でも画面データを先に消す経路を発見。palette-product-commands.jsをsetMany({history:[]})へ変更し、原子的保存成功後にメモリ/通知を更新する既存store処理へ接続。失敗はexecutorへ伝播、成功usageを記録しない。通常履歴UIの既存clear処理は今回変更なし。
+
+検証2: 変更JS構文、全JS単体31ファイル成功。最初の単体一覧に引数必須sync-http.test.mjsを含めて実行しpath undefinedで失敗、HTTP専用を除外して未実行のsync-session/weatherを実行成功。失敗を製品不具合/成功として扱わない。既存store/IndexedDB原子保存失敗の回帰は合格。今回Palette実UIのquota故障は未検証。
+
+検証3: 変更JSを8083/8084へ反映、両DB基盤各39成功、git diff --check成功。DB/Migration/PHP/API変更なし、9Migration Installer往復40の直前証拠は維持（再実行なし）。既存config/DBvolume/背景/専用検証favorite保持。
+
+Phase8未完了、Phase9〜12未着手、Version1.0未完成。実OAuth/認証済み実UI等の留保継続。
+
+次に実行すること: 確認設定reset/同期共有、拡張登録とARIAを検証。隔離した専用履歴をUI検索で生成してPalette再検索を確認（外部への個人データ送信なし）。履歴消去・favorite削除は実データの永久削除をUIから無確認で行わず、専用adapter試験で原子保存失敗/成功を確認。製品adapter/実IndexedDB回復と残るPhase8ゲートを監査する。
