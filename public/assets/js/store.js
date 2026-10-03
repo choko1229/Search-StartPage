@@ -12,6 +12,7 @@ if(database)state=database.initial;
 if(database)try {localStorage.removeItem(key);}catch {}
 let queue=Promise.resolve(),lastError=null;
 const failedWrites=new Map();
+const optimisticSettings=new Map(),failedSettings=new Map();
 const revisions=new Map(),pending=new Map();
 const notify=name=>window.dispatchEvent(new CustomEvent('data-change',{detail:name}));
 function enqueue(operation) {
@@ -27,6 +28,7 @@ export async function flush() {
     await queue;
     if(initialError)throw initialError;
     if(!database && lastError)throw lastError;
+    for(const [name,request] of failedSettings)await enqueue(()=>persistSetting(name,request));
     if(database && failedWrites.size) {
         const retry=Object.fromEntries(failedWrites);
         await enqueue(async()=>{await database.write(retry);failedWrites.clear();lastError=null;});
@@ -53,15 +55,69 @@ export function set(name, value) {
 }
 export function setting(name, fallback) { return get('settings', {})[name] ?? fallback; }
 export function setSetting(name, value) {
+    if(database){
+        const request={value:structuredClone(value)};
+        optimisticSettings.set(name,request);failedSettings.delete(name);
+        state={...state,settings:{...get('settings',{}),[name]:value}};
+        revisions.set('settings',(revisions.get('settings')||0)+1);
+        pending.set('settings',(pending.get('settings')||0)+1);
+        enqueue(async()=>{
+            try {await persistSetting(name,request);}
+            catch(error){if(optimisticSettings.get(name)===request)failedSettings.set(name,request);throw error;}
+            finally{pending.set('settings',pending.get('settings')-1);}
+        }).catch(()=>{});
+        notify('settings');return;
+    }
     const settings=get('settings',{});
     if(!['lastMode','webLast','aiLast','favoritesExpanded'].includes(name))set('settingsHistory',recordSettings(get('settingsHistory',null),settings,{[name]:value},name));
     set('settings',{...settings,[name]:value});
+}
+async function persistSetting(name,request){
+    const tracked=!['lastMode','webLast','aiLast','favoritesExpanded'].includes(name);
+    for(let attempt=0;;attempt++){
+        const before=get('settings',{}),historyRevision=revisions.get('settingsHistory')||0;
+        const latest=await database.read(),settings={...latest.settings,[name]:request.value};
+        const values={settings},expected={settings:latest.settings??null};
+        if(tracked){
+            values.settingsHistory=recordSettings(latest.settingsHistory,latest.settings||{},{[name]:request.value},name);
+            expected.settingsHistory=latest.settingsHistory??null;
+        }
+        try {await database.write(values,[],expected);}
+        catch(error){if(error.message==='storage_conflict'&&attempt<7)continue;throw error;}
+        lastError=null;
+        if(optimisticSettings.get(name)===request)optimisticSettings.delete(name);
+        if(failedSettings.get(name)===request)failedSettings.delete(name);
+        // Keep newer edits made while awaiting this transaction, including queued
+        // optimistic settings that have not reached IndexedDB yet.
+        const current=get('settings',{}),merged={...settings};
+        for(const key of Object.keys({...before,...current})){
+            if(Object.hasOwn(before,key)===Object.hasOwn(current,key)&&JSON.stringify(before[key])===JSON.stringify(current[key]))continue;
+            if(Object.hasOwn(current,key))merged[key]=current[key];else delete merged[key];
+        }
+        for(const [key,pendingRequest] of optimisticSettings)merged[key]=pendingRequest.value;
+        state={...state,settings:merged};revisions.set('settings',(revisions.get('settings')||0)+1);
+        const historyChanged=tracked&&(revisions.get('settingsHistory')||0)===historyRevision;
+        if(historyChanged){state={...state,settingsHistory:values.settingsHistory};revisions.set('settingsHistory',historyRevision+1);}
+        notify('settings');if(historyChanged)notify('settingsHistory');return;
+    }
 }
 export function snapshot() { return structuredClone(state); }
 export function saveSettings(patch,label,extra={}) {
     // This transform reads only settings and its undo history. Telemetry and sync
     // status changes must not invalidate a successful settings transaction.
-    return setMany(state=>({settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,label),settings:{...state.settings,...patch},...extra}),[],null,['settings','settingsHistory']);
+    const values=state=>({settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,label),settings:{...state.settings,...patch},...extra});
+    if(!database)return setMany(values);
+    const guard=state=>({settings:state.settings??null,settingsHistory:state.settingsHistory??null});
+    return (async()=>{
+        if(failedSettings.size)await flush();
+        for(let attempt=0;;attempt++){
+            try {return await setMany(values,[],guard,['settings','settingsHistory']);}
+            catch(error){
+                if(error.message!=='storage_conflict'||attempt>=7)throw error;
+                if(failedSettings.size)await flush();
+            }
+        }
+    })();
 }
 export async function backgroundFile(id) {
     if(initialError)throw initialError;
@@ -71,6 +127,7 @@ export async function backgroundFile(id) {
 async function refreshState() {
     const next=await database.read(),changed=[];
     for(const name of Object.keys({...state,...next})){
+        if(name==='settings'&&optimisticSettings.size)continue;
         if(pending.get(name)>0||failedWrites.has(name)||JSON.stringify(state[name])===JSON.stringify(next[name]))continue;
         state={...state,[name]:next[name]};revisions.set(name,(revisions.get(name)||0)+1);changed.push(name);
     }
@@ -103,6 +160,13 @@ export function setMany(values,files=[],conditions=null,dependencies=null) {
         }catch(error){if(conditions)await refreshState();throw error;}
         const changed=[];
         for(const [name,value] of Object.entries(patch))if((revisions.get(name)||0)===before.get(name)){
+            if(name==='settings')for(const [key,request] of optimisticSettings){
+                // Successful reset/logout/cloud replacement cancels obsolete failed
+                // edits, so a later flush cannot restore explicitly removed data.
+                if(!Object.hasOwn(value||{},key)||JSON.stringify(value[key])!==JSON.stringify(request.value)){
+                    optimisticSettings.delete(key);failedSettings.delete(key);
+                }
+            }
             state={...state,[name]:value};revisions.set(name,before.get(name)+1);changed.push(name);
         }
         for(const name of changed)notify(name);

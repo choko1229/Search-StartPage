@@ -1289,3 +1289,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 範囲: 今回は無関係な更新による再試行枯渇を証明し修正。以前の認証済みweather操作での一過性警告が必ず同原因だったという証拠ではない。実クラウド同期と地域編集が重なる再検証、異なる設定を同時変更するtab間競合、実ACK故障、多数tab/browserは留保。汎用setManyの全state再試行を指定なしで変更していない。
 
 次に実行すること: 通常設定画面で認証済み同期/地域編集の競合とEN weather/upload停止を確認。設定の異なる項目を別tabから同時編集した際の保持を検証し、欠落があれば条件付き再適用へ補修。Phase9ゲートのLogRetention定期実行/Update管理実処理、清掃故障、管理者UI承認待ちを維持。Glassブランドアイコン/account仕上げも継続。全DoDまでGoal完了にしない。
+
+## Phase9 通知が遅れた別タブの設定保持（2026-10-04）
+
+前ターンd12f4c8は地域保存の無関係revision再試行枯渇の実装/検証により進捗。progress/status/gitから異なる設定の別tab編集へ再開。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+発見/修正: saveSettingsがDBの最新settings/undo historyを条件検証せず古いstateから上書きし、別tabのfont39が27へ戻ることをNode修正前試験で再現。settings/settingsHistoryを期待値にした条件付きsetManyと再読込/再適用へ変更。個別setSettingにも別tab地域56/78→旧12/34へ戻る欠落を修正前に再現。IndexedDB使用時は個別の更新項目だけを最新DBへ条件付き書込み、historyと同一transactionで保存。操作直後のsetting読取りは従来どおり反映。未保存の新しい項目をMapで保持し、失敗時flushは最新DBと再合成。成功したreset/logout置換や新しい同項目編集後に古い失敗値を復元しないようcancel。lastMode等の一時設定のhistory除外を維持。localStorage fallbackは既存同期保存。Controller/DB/Migration/認証変更なし。
+
+検証1: 最終IndexedDB成功。stale saveSettings/個別setSettingで別tab設定/undo保持、即時読取り、複数queued設定、quota失敗/最新別tab地域とflush再試行、lastMode除外、明示削除後の失敗retry抑止、新しい45で旧失敗44を上書きしないこと、失敗font46をrecoverしてからregion1/2のatomic保存成功。前回の無関係更新commit1回/本物のquota警告/保持、file/ACK/logout/history CASも再成功。
+検証2: Node store14/search23/preferences18/appearance42/settings-history19/sync-data28/session37/account-data/background ACK/session/intents/recovery/statistics/onboarding26成功。store/preview JS構文成功。両隔離MySQL8099/MariaDB8100基盤40/sync17/policy29成功。Migration変更なし、全16Installer既存証拠を維持。
+検証3: 127.0.0.1:8100専用previewのbrowser2/tab11/12、実IndexedDB。test-only checkboxでtab11のBroadcastChannel受信を抑止し、通知が届く前のstale stateを明示再現。tab12でfont44保存後もtab11は未設定のまま。tab11で地域10/20を保存→両tab font44/region10/20。tab12でregion30/40後もtab11は10/20のまま。tab11で個別font45保存→両tab region30/40/font45、tab12 reload保持。両Console warn/error0/保存警告0。画像settings-stale-tab-preserved.png保存・目視。最後の失敗recover分岐追加後も最終storeを両containerへ反映しtab12 reload、25回地域保存+無関係22更新PASS/警告0/font45保持。OS位置取得/cloud送信なし。
+
+清掃/範囲: SEARCH_TEST_MODE限定の手動preview2ファイルを専用containerから除去しtest ! -e両方成功。tab11/12は一時tab。Glass tab6 deliverable維持。生成設定は専用test originに保持、通常localhost8099の地域/背景をこの試験では変更していない。通知抑止は検証用だけで製品コードへ入れていない。通常認証済みcloud同期と同時地域保存、実Extension/各browser/大量tabstress/実ACK故障は別の未確認項目。汎用set(name,value)やその他任意setMany全ての別tab競合をこの試験だけで成功扱いにしない。
+
+次に実行すること: Phase9ゲートから通常認証済み同期/地域編集とEN weather/upload停止検証を進める。LogRetention定期実行とUpdate Managementを実処理につなぐ不足を進め、Phase10処理との境界を解決してから次Phaseへ進む。生成upload cleanup故障、管理者UIの権限操作は明示承認待ちのまま迂回なし。Glassブランド/account仕上げも継続。spec.md変更/stageなし、全DoDまでGoal完了にしない。
