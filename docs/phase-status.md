@@ -636,3 +636,15 @@ public/assets/langは8082〜8086へ反映済み。背景設定/元Blob/ユーザ
 修正JSは8082〜8086へ反映済み。通常JAトップ/地域未設定/手動切替/Local upload retainedへ戻しimage naturalWidth1を確認。検証背景は同期OFFのまま「保管」し復元可能、既存背景・ユーザーデータは保持。タブ14をhandoff保持。今回もPhase7途中の保存、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 位置取得UIの生成fixtureによる保存/拒否/解除中の旧応答拒否と永続化失敗を確認し、実OS許可とは区別。動画EN・Loop OFF終端・表示復帰/モバイル代替を実ブラウザで追加検証。その後背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。Admin圧縮不足警告はPhase9、実OAuth/認証済みUIは未確認留保継続。
+
+## Phase 7 位置取得UIの実IndexedDB保存・失敗・遅延検証（2026-10-03）
+
+地域UIをstore非依存のregion-editor.jsへ分離し、通常region-settings.jsからreadRegion/saveRegion/locateRegion・JA/EN node/tを渡す。通常動作の保存はsaveSettingsのまま、位置取得はrequestRegionのまま。通常storeをimportせず同じ製品UIを独立DB/生成位置へ接続できるようにした。region-preview.php/mjsをtestsに追加。PHPはSEARCH_TEST_MODE以外404、通常View/Routeは参照しない。公開fixtureは8083のpublic/_testのみ、認証バイパスなし。region-settings-verificationという専用DBを使い、通常設定/認証/実位置情報/外部天気通信に触れない。
+
+検証1: 実ブラウザの専用画面で現在地ボタン→生成0/0→成功表示/実IDB保存→reloadで0/0保持。生成許可拒否では値を保持して失敗案内。位置取得中の地域解除→古い0/0応答で未設定を上書きしない。現在地取得中に手動35.68/139.76を保存→古い0/0応答を拒否し手動地域保持。入力破棄→古い応答拒否、reloadでも最後の保存地域保持。OS位置取得・実許可はしていない。
+検証2: 専用DBへDataCloneErrorを起こす不正値を同時putし、transaction abortを製品UIから受ける。保存済み未設定のまま、入力0/0保持、pending=true、成功表示なし/保存失敗案内。失敗モード解除後の手動保存で回復・reload保持を確認。実quota枯渇ではなく実IDB DataCloneErrorによる失敗。画像.test-output/phase7-region-save-failure.png（Git除外）、console warn/error0。タブ15をhandoff保持。通常8083タブ14のデータは触れていない（このturnでmarkし直してはいない）。
+検証3: 全JS単体25ファイル/region entry・editor・fixture構文成功。隔離MySQL8085/MariaDB8086で基盤39/翻訳一致/PHP構文108成功。DB/API/Migration変更なし、全9Migration Installer往復の直前証拠維持。git diff --check成功。通常UIの再操作は今回していないが同じeditorをfixtureで実行し、既存通常UI証拠と区別。
+
+JSは8082〜8086へ反映。fixture公開はSEARCH_TEST_MODE付き8083のみ、新規両DBのPHPはtests配下だけ。通常config・データ・ボリューム保持。docs/weather.mdの既知未確認（実OS許可/認証済み地域同期）を維持。Phase7途中保存、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 動画EN・Loop OFF終端・表示復帰/モバイル代替を実ブラウザで確認。その後背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査へ進む。位置取得UIの生成/保存/拒否/解除/手動入力/破棄中の古い応答/保存失敗は今回確認済み。実OS許可と認証済み地域同期/実OAuthは未確認留保継続。Admin圧縮不足警告はPhase9で接続。
