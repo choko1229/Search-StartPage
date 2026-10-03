@@ -1092,3 +1092,21 @@ Privacy: CoreController/ViewとGET /privacy、通常layout footer導線、JA/EN�
 Phase9進行中、10〜12未着手、Version1.0未完成。匿名収集基盤とPrivacyを追加したが、集計/期間/graph/全指標は未実装。
 
 次に実行すること: spec94と添付Phase9の全指標を列挙し、StatisticsRepositoryの集計とGET /api/admin/statistics・/admin/statistics、期間/グラフ/DAU/WAU/MAU/NewUsers/Retention/各provider/source/featureを実装。実利用人数と匿名端末数の区別をUIで説明する。Presets/管理者追加解除/最後の管理者保護/容量操作/Update導線、全14Installer/統計実端末検証と管理EN Save/リンクの留保を継続。Phase9ゲート前にPhase10へ進まない。
+
+## Phase9 統計管理・期間集計・グラフ（2026-10-04）
+
+直前のGoalターンは状態報告のみでno progress。progress/status/gitを再確認し、最新再開手順から実装した。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+実装: StatisticsPeriod/StatisticsReportRepository/AdminStatisticsController、GET /admin/statistics・/api/admin/statistics、管理dashboard導線、JA/EN画面とSVGグラフ/数値表。UTC両端を含む期間、既定30日/最大366日。登録account/有効長期login/account数/非削除背景bytesは現在値、新規accountは選択期間。イベント検索/AI/favorite・provider/feature/source比率、終了日から1/7/30日間の匿名DAU/WAU/MAU、新規匿名端末、成熟した初利用cohortのD7再利用率。実accountと匿名IDを結合せず集計応答に識別子なし。Controller SQLなし、prepared Repository、read transaction。追加Migrationなし。
+
+検証1: 専用MySQL8095/MariaDB8096で最終各48成功。日付不正/leap day/366日、inclusive境界、欠損日0、過去初利用/成熟cohort/50%再利用率、provider/feature/source ratio、accounts/login/storage/new_users、guest401/user403/admin200/権限剥奪、JA/EN HTML/graph/table、秘密非露出。生成イベント/ユーザーだけfinally清掃。初回MariaDBはSQL alias returningが予約語で失敗、returned_devicesへ変更して両DBを再成功。最終UTC日付iterator補修後も両48成功。
+
+検証2: 両DB統計収集30/admin64/policy29/authHTTP12/基盤39/PHP168成功。Docker runnerへadmin-statistics追加、PowerShell Parser/git diff --check成功。追加Migrationなし、全14新規Installer往復は留保。通常config/storage/volume/ユーザーデータ保持。
+
+検証3: 同browser2/tab23、localhost8095専用admin fixtureで通常Auth/AdminMiddlewareを使いログイン。JA dashboard統計linkの実遷移成功、JA期間変更/日別表開閉成功。最初mobile390pxはSVG固定600でscrollWidth677、外部core.cssの幅100%規則へ修正してJA/EN scrollWidth375<=390。JA/EN mobile画像.test-output/phase9-statistics-mobile-ja.png/-en.png保存・両目視確認、Console warn/error0、viewportreset。
+
+開発preview初回500はCLI root作成0600fixtureをwww-dataが読めなかったため。秘密値を出さず所有者だけwww-dataへ合わせて正常化。エラー画面となったtab22はbrowser data URL policyで再navigation不可、正常な既存tab23を同browserで再利用し環境再作成なし。専用fixture/preview/keyは清掃済み。清掃後EN期間変更を試すとPlease sign inで拒否、これは失効の証拠でありEN期間操作成功には数えない。tab23はEN統計ログイン要求へhandoff。tab22エラー画面の復帰は未解消。
+
+未確認: 大規模統計性能、全ブラウザ/Extension実収集、統計の実検索/AI/favorite/背景/Palette送信と故障再送/実複数タブ競合、実DiscordOAuth。匿名収集からの実feature同期イベントはENホーム遷移後UIで2件表示、生成fixtureaccountの通常同期であり実OAuthの証拠ではない。
+
+次に実行すること: spec92/添付Phase9のPresetsを既存provider/default bootstrapと接続し管理API/日英UI/監査/権限を実装。続いて管理者追加解除/最後の管理者保護/容量操作/Update導線。全14空DBInstaller往復、EN管理Save/統計期間操作、天気/背景upload/account停止実UI、統計実端末収集を継続。統計指標はdocs/statistics.mdに定義を保存、Phase9ゲート前にPhase10へ進まない。

@@ -10,4 +10,17 @@ POST /api/statistics/eventはログイン不要、CSRF必須。JSONはevents配�
 
 現在の証拠: 両DBの実HTTP/API各30、migration up/再実行、秘密field拒否、再送dedup、一括validation、90日整理からの分離。Nodeのqueue保存/再送/ACK失敗/再読込/20件batch/応答中編集/秘密非露出/同期対象外を確認。実Webの訪問2件＋設定操作1件を同じ匿名端末IDとしてDBで件数確認、実IDは出力しない。実JA/EN privacy、EN390px横溢れなし、Console0。これらは全統計機能の完成を意味しない。
 
-未完了: 管理者の集計API/UI・期間指定・グラフ・DAU/WAU/MAU/Retentionなど全指標、Extensionの実送信、全14Migrationの新規Installer往復、実ブラウザで検索/favorite/background/Palette/同期イベントと故障回復の網羅。原子的queueの別タブ競合は製品storeの既存機構を使うが、統計専用の実複数タブ試験は未実施。
+未確認・残作業: Extensionの実送信、全14Migrationの新規Installer往復、実ブラウザで検索/favorite/background/Palette/同期イベントと故障回復の網羅。原子的queueの別タブ競合は製品storeの既存機構を使うが、統計専用の実複数タブ試験は未実施。
+# 管理集計（Phase9）
+
+`GET /admin/statistics` と `GET /api/admin/statistics` は通常のサーバー管理者権限を必須とする。`start=YYYY-MM-DD&end=YYYY-MM-DD` はUTCの両端を含み、既定は今日まで30日、最大366日。未来日・存在しない日・逆順・配列値は422。集計は読み取りのみでCSRF付き変更操作はない。
+
+登録アカウント総数、期限内login_tokensを持つ異なるアカウント数、非削除背景のfile_size合計は現在値。新規アカウントはusers.created_atが選択期間にある件数。匿名イベントとアカウントは結合しない。
+
+検索・AI検索・favorite_open、各provider/feature/sourceの件数は選択期間の実イベント。Web/Extension比率はイベント件数の比率で、端末・アカウント比率ではない。DAU/WAU/MAUは終了日まで1/7/30日間に任意イベントのあった異なる匿名ID数。新規匿名端末は全保存イベント中の最初の日が選択期間に含まれる端末数。端末データ消去・別ブラウザは別IDになる。
+
+D7 Retentionは選択期間に初利用した匿名端末のうち、UTCの初利用日+7日目にもイベントがある割合。7日目の全日が期間終了日かつ今日までに終わったコホートだけを分母に含める。分母ゼロはnull/対象なし。遅れたオフラインイベント到着で過去値は変化する。
+
+日別DAU/検索/AI検索/favorite_openのSVGグラフと、同じ値の開閉式数値表を提供。provider/feature/sourceはmeterで表示。匿名ID、Discord情報、token等は集計応答に出さない。クエリはRepositoryのprepared statement、複数集計は読み取りtransactionで行う。追加Migrationなし。大規模・長期蓄積時の集計速度は未検証。
+
+`tests/admin-statistics.php` は専用testmode DBで実イベントを一時作成し、期間境界・D7・ゼロ日・各分類・current accounts/storage・権限・日英HTMLを検証して自分のfixtureのみ削除する。MySQL/MariaDB各48成功。実ブラウザでJA期間変更/表開閉、JA/EN390px幅とConsoleを確認。全browser・実Extensionの収集は未確認。

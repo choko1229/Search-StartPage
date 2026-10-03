@@ -74,6 +74,11 @@ if ($config->get('installed')) {
         $router->add('POST',$path,$policyHandler('update'),[$adminMiddleware,new Csrf()]);
     }
     $router->add('GET','/api/site-policy',static fn(Request $request):App\Http\Response=>App\Http\Response::json(['flags'=>$resolvePolicy()['flags']]));
+    $statisticsReport=static function(Request $request)use($config,$view):App\Http\Response {
+        try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+        return (new App\Controllers\AdminStatisticsController(new App\Repositories\StatisticsReportRepository($pdo),$view))->read($request);
+    };
+    foreach(['/admin/statistics','/api/admin/statistics'] as $path)$router->add('GET',$path,$statisticsReport,[$adminMiddleware]);
     $router->add('POST','/api/statistics/event',static function(Request $request)use($config):App\Http\Response {
         try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
         return (new App\Controllers\StatisticsController(new App\Repositories\StatisticsRepository($pdo)))->event($request);
