@@ -5,12 +5,14 @@ import {detectUrl, recommendAi, safeUrl} from './search-core.js';
 import {t} from './i18n.js';
 import {favorites, folders} from './favorites-store.js';
 import {rankFavorites} from './favorites-core.js';
+import {rejectDisabled} from './site-policy.js';
 let controller;
 let sequence = 0;
 export function cancelSuggestions() { sequence++; controller?.abort(); }
-export async function suggestions(query, mode, current, render) {
+export async function suggestions(query, mode, current, render, report=()=>{}) {
     const generation = ++sequence;
     controller?.abort();
+    report('');
     const text = query.trim();
     if (!text) {
         render(setting('suggestOnFocus',false) ? history().slice(0,5).map(item=>({label:item.query,category:t('history'),query:item.query,mode:item.mode,providerId:item.provider})) : []);
@@ -38,10 +40,12 @@ export async function suggestions(query, mode, current, render) {
     controller = new AbortController();
     try {
         const response = await fetch(`/api/search/suggest?q=${encodeURIComponent(text)}`, {signal: controller.signal});
-        if (!response.ok) return;
         const payload = await response.json();
+        if(generation !== sequence)return;
+        rejectDisabled(payload);
+        if (!response.ok) return;
         if (generation !== sequence || !Array.isArray(payload.data?.suggestions)) return;
         const existing = new Set(results.map(item => item.query));
         render([...results, ...payload.data.suggestions.filter(item => typeof item === 'string' && !existing.has(item)).map(item => ({label: item, category: t('external_suggest'), query: item, mode}))]);
-    } catch { /* Local suggestions remain usable offline or during provider failures. */ }
+    } catch(error) {if(generation===sequence && error.message==='FEATURE_DISABLED')report('external_suggest_disabled');}
 }

@@ -1,5 +1,6 @@
 import {t, node} from './i18n.js';
 import {favorites, folders, saveFavorite} from './favorites-store.js';
+import {rejectDisabled} from './site-policy.js';
 const dialog = document.getElementById('favorite-editor');
 const form = document.getElementById('favorite-form');
 let request;
@@ -28,15 +29,17 @@ async function metadata() {
     const url = form.elements.url.value;
     if (!url || !form.elements.url.checkValidity()) return;
     request?.abort(); request = new AbortController();
+    const active=request;
     const status = document.getElementById('metadata-status'); status.textContent = t('loading_metadata');
     try {
         const response = await fetch(`/api/favorites/metadata?url=${encodeURIComponent(url)}`,{signal:request.signal});
         const result = await response.json();
-        if (form.elements.url.value !== url) return;
+        if (active!==request || form.elements.url.value !== url) return;
+        rejectDisabled(result);
         if (!response.ok || !result.success) throw new Error();
         for (const [field,key] of [['name','title'],['description','description'],['icon','favicon']]) if (!form.elements[field].value && result.data[key]) form.elements[field].value = result.data[key];
         status.textContent = t('metadata_loaded');
-    } catch(error) {if(error.name !== 'AbortError') status.textContent = t('metadata_unavailable');}
+    } catch(error) {if(active===request && form.elements.url.value===url && error.name !== 'AbortError') status.textContent = t(error.message==='FEATURE_DISABLED'?'metadata_disabled':'metadata_unavailable');}
 }
 form.elements.url.addEventListener('blur', metadata);
 document.getElementById('favorite-metadata').addEventListener('click',metadata);

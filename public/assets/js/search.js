@@ -18,6 +18,7 @@ const input = document.getElementById('query');
 const select = document.getElementById('provider');
 const list = document.getElementById('suggestions');
 const status = document.getElementById('search-status');
+const suggestStatus=node('p','',{role:'status','aria-live':'polite'});status.before(suggestStatus);
 const initialMode = setting('initialMode', 'web');
 let mode = initialMode === 'last' ? setting('lastMode', 'web') : initialMode;
 if (!['web', 'ai'].includes(mode)) mode = 'web';
@@ -64,9 +65,9 @@ function updateSuggestions() {
     const recommended = input.value.trim() !== '' && recommendAi(input.value);
     document.getElementById('ai-hint').hidden = !recommended;
     document.querySelector('.search-box').classList.toggle('ai-recommended', recommended);
-    suggestions(input.value, mode, current(mode), renderSuggestions);
+    suggestions(input.value, mode, current(mode), renderSuggestions,key=>{suggestStatus.textContent=key?t(key):'';});
 }
-input.addEventListener('input', () => {clearTimeout(timer); cancelSuggestions(); renderSuggestions([]); timer = setTimeout(updateSuggestions, 180);});
+input.addEventListener('input', () => {clearTimeout(timer); cancelSuggestions(); suggestStatus.textContent='';renderSuggestions([]); timer = setTimeout(updateSuggestions, 180);});
 input.addEventListener('focus',()=>{if(setting('suggestOnFocus',false))updateSuggestions();});
 async function navigate(url) {
     if(!safeUrl(url))return;

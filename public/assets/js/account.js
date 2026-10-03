@@ -22,6 +22,7 @@ const ownsSync = syncStatus && String(state.syncOwnership?.userId) === syncStatu
 if (lastSync && ownsSync && usage.lastSync && Number.isFinite(Date.parse(usage.lastSync))) lastSync.textContent = new Date(usage.lastSync).toLocaleString();
 if(syncStatus)syncStatus.textContent=state.settings?.syncEnabled===false ? syncStatus.dataset.disabled
     : ownsSync && state.syncStatus?.state==='synced' ? syncStatus.dataset.synced
+    : ownsSync && state.syncStatus?.state==='site_disabled' ? syncStatus.dataset.siteDisabled
     : ownsSync && state.syncStatus?.state==='failed' ? syncStatus.dataset.failed : syncStatus.dataset.ready;
 const clear = document.getElementById('clear-synced-on-logout');
 if (clear) {

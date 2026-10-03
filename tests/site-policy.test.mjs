@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
-import {assertFeatures,requireFeatures} from '../public/assets/js/site-policy.js';
+import {assertFeatures,requireFeatures,rejectDisabled} from '../public/assets/js/site-policy.js';
 import {request,syncUser} from '../public/assets/js/sync-api.js';
 import {readBackgrounds} from '../public/assets/js/background-api.js';
 const originalFetch=globalThis.fetch;
 try {
     assertFeatures({cloud_sync:true},['cloud_sync']);
+    rejectDisabled({success:true});
+    assert.throws(()=>rejectDisabled({error:{code:'FEATURE_DISABLED'}}),/FEATURE_DISABLED/);
+    rejectDisabled({error:{code:'AUTH_REQUIRED'}});
     assert.throws(()=>assertFeatures({cloud_sync:false},['cloud_sync']),/FEATURE_DISABLED/);
     assert.throws(()=>assertFeatures({},['cloud_sync']),/site_policy_unavailable/);
     assert.throws(()=>assertFeatures({cloud_sync:'true'},['cloud_sync']),/site_policy_unavailable/);
@@ -24,4 +27,4 @@ try {
     globalThis.fetch=async()=>Response.json({success:false},{status:503});
     await assert.rejects(requireFeatures(['cloud_sync']),/site_policy_unavailable/);
 } finally {globalThis.fetch=originalFetch;}
-console.log('12 site policy assertions passed.');
+console.log('Site policy validation, disable responses, recovery and authentication separation passed.');

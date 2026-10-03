@@ -103,7 +103,8 @@ export function initializeBackground() {
     document.getElementById('favorites-section').before(playbackButton,playbackStatus);
     const playback=new BackgroundPlayback(state=>{playbackButton.hidden=!state.available;playbackButton.textContent=t(state.playing||state.pending?'background_pause_video':'background_play_video');playbackButton.setAttribute('aria-pressed',String(state.playing||state.pending));if(!state.available)playbackStatus.textContent='';},()=>{error.textContent=t('background_play_blocked');playbackStatus.textContent=t('background_play_blocked');});
     playbackButton.addEventListener('click',()=>{playbackStatus.textContent='';playback.toggle();});
-    const weather=new WeatherContext({changed:()=>apply(true)});
+    const weatherStatus=node('p','',{role:'status','aria-live':'polite'});panel.append(weatherStatus);
+    const weather=new WeatherContext({changed:()=>apply(true),status:key=>{weatherStatus.textContent=key?t(key):'';}});
     function clearMedia(){mediaGeneration++;playback.clear();video=null;media.replaceChildren();if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}}
     let authCheck=null,lastAuthCheck=0;
     function refreshAuth(){

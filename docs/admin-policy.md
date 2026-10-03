@@ -18,4 +18,8 @@
 
 API: GET/POST `/api/admin/policy`。POSTは整数versionとpolicy（flags全5項目のbool、limits全3項目の整数またはnull）を送る。更新履歴は管理ログのSITE_POLICY_CHANGEDで確認できる。
 
-現在の留保: 実管理ブラウザ・モバイル・Console、同期以外の各機能の停止表示、アカウント画面の専用同期停止表示は検証・接続を継続する。全13Migrationの空DB Installer往復は未実行で、前回全12の結果とは区別する。
+外部候補・サイト情報・天気の停止理由を日英表示する。ローカル候補・お気に入り手入力は利用でき、天気条件は取得不能として扱う。天気は60秒後に再試行し、成功後に停止表示を消す。アカウント画面も保存済みの同期停止状態を表示する。
+
+検証: 専用MySQL環境の実ゲスト画面でJA外部候補停止、JA/ENサイト情報停止、編集のCancel、Console警告/エラー0を確認。天気停止→復帰は模擬通信による製品WeatherContext試験。実管理ブラウザ・モバイル・認証済みaccount・天気の停止画面は未確認。全13Migrationの空DB Installer往復は未実行で、前回全12の結果とは区別する。
+
+専用テスト環境のみ `php tests/site-policy-preview-state.php stop` で候補・サイト情報の2フラグを停止し、検証後は必ず `restore` で元設定へ戻す。元設定は非公開storageへ0600で保存する。CLIかつSEARCH_TEST_MODE=1以外では使用不可、本番routeや認証の回避経路を追加しない。既存の退避がある場合は上書きせず復元を要求する。

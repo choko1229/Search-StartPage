@@ -50,3 +50,16 @@ try {
     const bound=new WeatherContext();
     bound.read(region);await bound.pending;assert.equal(bound.cached?.weather,'rain');
 } finally {globalThis.fetch=originalFetch;}
+let stopped=true,notice='',policyCalls=0;
+const controlled=new WeatherContext({clock:()=>now,status:value=>notice=value,fetcher:async url=>{
+    policyCalls++;
+    return {status:url==='/api/weather'&&stopped?403:200,json:async()=>url==='/api/csrf'?{data:{csrf_token:'generated-test-token'}}:
+        stopped?{success:false,error:{code:'FEATURE_DISABLED'}}:{success:true,data:{weather:'rain',temperature:12,observedAt:now/1000,expiresAt:now/1000+900}}};
+}});
+controlled.read(region);await controlled.pending;
+assert.equal(notice,'weather_disabled');assert.equal(controlled.cached,null);
+assert.equal(controlled.read(region).weather,undefined);assert.equal(policyCalls,2);
+stopped=false;now+=60000;controlled.read(region);await controlled.pending;
+assert.equal(notice,'');assert.equal(controlled.read(region).weather,'rain');
+controlled.read(null);assert.equal(notice,'');assert.equal(controlled.cached,null);
+console.log('Weather disable notice, fallback, bounded retry and recovery passed.');

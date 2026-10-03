@@ -839,3 +839,19 @@ Phase9進行中、10〜12未着手、Version1.0未完成。PHP/API/OAuth/Sync/Se
 Phase9進行中、10〜12未着手、Version1.0未完成。機能・制限のserver管理と同期停止処理は実装済み、全Phase9の完了を意味しない。
 
 次に実行すること: docs/admin-policy.mdとspec90〜100/118に沿い、天気/候補/metadata/背景uploadの停止表示とaccount専用表示を接続し実日英管理UI/mobile/Consoleを検証。全13Migration Installer往復。Presets、匿名Statistics/Privacy、管理者追加/解除/最後の管理者保護、容量操作、Update導線を順に実装。Phase9機能ゲート確定前にPhase10へ進まない。既存browser2/tab18(account観測timeout)/19/20は未操作、存在を確認して再利用する。
+
+## Phase9 各機能の停止表示と実ゲスト画面（2026-10-04）
+
+前のGoalターンは機能制御49544e4と両DB検証によりprogress。progress/status/gitを確認して次の停止表示を接続。Phase9継続、10〜12未着手、Version1.0未完成。
+
+実装: rejectDisabled共通判定、外部候補停止の専用status（端末候補を維持）、metadata停止のJA/EN理由（手入力可能、旧URL/旧request応答を無視）、WeatherContext停止理由と60秒retry/復帰時clear、背景設定内の天気status、accountに保存済みsite_disabled状態表示。既存設定/データ/所有者/intentは変更しない。site-policy-preview-state.phpはCLI/testmode専用で2flagsだけ一時停止・非公開元設定保存・復元する補助、本番routeなし。両DBのstop/restore完了、元policy復元・退避file除去。
+
+検証1: Node site-policy判定/復帰/認証分離、WeatherContext既存＋停止/fallback/retry/復帰、account-data既存21＋intent清掃、SyncSession37成功。変更7JS構文/git diff --check成功。模擬通信のweather試験を実サービス成功の証拠にしない。
+
+検証2: 最新app/public/lang/testsを専用8093/8094の/var/www/appへ反映。両DB基盤39/policy29/auth43、PHP154成功。追加preview補助を両DBへ反映し最終PHP155成功、MariaDB stop/restoreも成功。今回Migration変更なし、全13空DBInstaller往復はまだ未実行。通常config/storage/volume保持。
+
+検証3: 実IAB browser2新tab21/8093でJA外部候補停止理由、JA/ENサイト情報停止理由、編集dialog/Cancelを確認。URLは生成example.test、server flagで外部取得前に拒否。favoriteの保存・削除は未実行。Console warn/error0。最初の入力は初回Wizardが遅れて開きtarget mismatch、同tab AXで確認してContinue later後に入力成功。環境を再作成せず解消。画像.test-output/phase9-metadata-disabled.pngと-en.png保存、JA画像を目視確認。テストInstallerのXSS titleは文字列として表示、実行なし。設定復元後tab21はENホーム/生成query保持、復元後の外部provider取得成功は未検証。既存tab18/19/20 inventoryで生存、利用可能な旧handlesと新tab21をhandoff。
+
+未確認: 実管理者画面/mobile、認証済みaccount専用状態、天気停止実UI、外部候補EN停止、実OAuth/全browser/OScleanup。背景upload停止は既存同期の汎用クラウド停止表示であり実UI停止試験は残る。docs/admin-policy.mdを最新証拠へ更新。
+
+次に実行すること: 全13Migrationの新規隔離Installer往復を検証し、testmode専用通常token fixtureで管理画面の日英/保存/モバイル/Consoleを確認（実OAuthの代替と混同しない）。残るPresets/匿名Statistics/Privacy/管理者追加解除/最後の管理者保護/容量操作/Update導線を実装。Phase9ゲート確定前にPhase10へ進まない。実ブラウザの天気停止/背景upload/復帰とaccount状態を追跡する。
