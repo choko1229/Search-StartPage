@@ -122,6 +122,11 @@ try {
         $freshHeader='Cookie: '.implode('; ',array_map(static fn($key,$value)=>$key.'='.$value,array_keys($freshCookies),$freshCookies));
         $path=$operation==='logout'?'/api/auth/logout':'/api/user/devices/'.$freshDevice;
         $method=$operation==='logout'?'POST':'DELETE';
+        if($operation==='logout') {
+            $wrongContext=stream_context_create(['http'=>['method'=>'POST','header'=>$freshHeader."\r\nX-CSRF-Token: ".$freshCsrf[1]."\r\nContent-Type: application/json",'content'=>json_encode(['user_id'=>(string)($uid+1)]),'ignore_errors'=>true]]);
+            file_get_contents('http://127.0.0.1/api/auth/logout',false,$wrongContext);
+            $check(str_contains($http_response_header[0],'403')&&$repository->authenticate($freshDevice,hash('sha256',$freshToken),time())!==null,'logout owner mismatch preserves authenticated device');
+        }
         $freshContext=stream_context_create(['http'=>['method'=>$method,'header'=>$freshHeader."\r\nX-CSRF-Token: ".$freshCsrf[1],'ignore_errors'=>true]]);
         $json=json_decode(file_get_contents('http://127.0.0.1'.$path,false,$freshContext),true,flags:JSON_THROW_ON_ERROR);
         $check(str_contains($http_response_header[0],'200') && ($json['data']['logged_out']??false) && (int)$json['data']['user_id']===$uid,"$operation API succeeds with JSON");

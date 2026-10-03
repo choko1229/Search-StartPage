@@ -1,5 +1,7 @@
 import {localUsage, syncedDataRemoval} from './account-data.js';
 import {snapshot,setMany,saveSettings} from './store.js';
+import {recoverPaletteAccount} from './palette-logout.js';
+try {await recoverPaletteAccount();}catch {const message=document.getElementById('palette-logout-recovery');if(message)message.hidden=false;}
 let state=snapshot();
 const logout = document.getElementById('logout-data');
 if (logout && state.settings?.clearSyncedOnLogout !== false) {

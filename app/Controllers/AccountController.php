@@ -43,6 +43,7 @@ final class AccountController
     public function logout(Request $request): Response
     {
         $user=$this->auth->requireUser();
+        if(array_key_exists('user_id',$request->body)&&(!is_string($request->body['user_id'])&&!is_int($request->body['user_id'])||(string)$request->body['user_id']!==(string)$user['id']))throw new HttpException(403,'FORBIDDEN');
         $this->auth->logout();
         if ($request->isApi()) { return Response::json(['logged_out'=>true,'user_id'=>$user['id']]); }
         return new Response($this->view->render('logged-out',['user_id'=>$user['id']]));

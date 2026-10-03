@@ -1,6 +1,7 @@
 <?php declare(strict_types=1); use App\Auth\Session; ?>
 <section class="panel">
 <h1><?= $e($t->get('account')) ?></h1>
+<p id="palette-logout-recovery" role="alert" hidden><?= $e($t->get('local_cleanup_failed')) ?></p>
 <?php if (!$data['user']): ?>
     <?php if ($data['oauth_configured']): ?>
     <form method="post" action="/auth/discord">

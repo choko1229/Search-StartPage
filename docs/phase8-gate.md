@@ -19,3 +19,5 @@
 ## 製品接続（2026-10-03）
 
 Palette画面とCtrl+K/キーボード、5初期groups、8カテゴリの製品登録、列挙操作、実確認画面、操作別確認設定/原子保存、成功usageを実装。JA/ENでテーマ変更（Cancel/確認なし/再ON）と設定移動、recent/frequentの再読込保持、検索先Cancel、390px/console0を確認。全JS30、両DB基盤39/認証42成功。お気に入り/tag/folder/history等のPalette実操作、background/provider実変更、logout/同期削除回復、拡張登録、保存失敗・ARIA監査は未確認。Phase8の完了判定はまだ行わない。
+
+ログアウトの回復intentとowner照合を追加。新core単体と両DB認証43、全JS31成功。実HTTPと製品storageを組み合わせたLogout回復/故障UIは未確認で後続検証。Phase8未完了。

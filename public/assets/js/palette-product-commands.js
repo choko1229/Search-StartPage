@@ -7,10 +7,10 @@ import {providers} from './providers.js';
 import {history,clearHistory} from './history.js';
 import {normalizeBackground,backgroundPresets} from './background-core.js';
 import {categories} from './settings-schema.js';
-import {request} from './sync-api.js';
-import {syncedDataRemoval} from './account-data.js';
+import {logoutPaletteAccount,recoverPaletteAccount} from './palette-logout.js';
 
 export function registerProductCommands(registry,actions) {
+    void recoverPaletteAccount().catch(()=>window.dispatchEvent(new CustomEvent('storage-unavailable')));
     const register=(id,title,category,effect,run,keywords=[],confirmationKey=id)=>registry.register({id,title,category,effect,run,keywords,confirmationKey});
     register('settings:open',t('palette_open_settings'),'commands','navigate',()=>()=>actions.openSettings());
     register('history:open',t('palette_open_history'),'commands','navigate',()=>actions.openHistory);
@@ -18,10 +18,7 @@ export function registerProductCommands(registry,actions) {
     register('history:clear',t('clear_history'),'commands','state',async()=>{clearHistory();await flush();});
     register('account:login',t('discord_login'),'commands','navigate',()=>()=>location.assign('/account'));
     register('account:logout',t('logout'),'commands','state',async()=>{
-        const csrf=await request('/api/csrf');if(csrf.status!==200)throw new Error('logout_failed');
-        const response=await request('/api/auth/logout',{method:'POST',headers:{'X-CSRF-Token':csrf.data.csrf_token,'Content-Type':'application/json'},body:'{}'});
-        if(response.status!==200||response.data?.logged_out!==true)throw new Error('logout_failed');
-        if(setting('clearSyncedOnLogout',true))await setMany(state=>syncedDataRemoval(state,response.data.user_id).values,state=>syncedDataRemoval(state,response.data.user_id).files);
+        await logoutPaletteAccount();
         return ()=>location.assign('/account');
     });
     for(const theme of ['solar','light','dark','os','forest','rose'])register('theme:'+theme,t('palette_theme')+': '+t('theme_'+theme),'commands','state',()=>saveSettings({theme},'appearance'),[],'theme-change');

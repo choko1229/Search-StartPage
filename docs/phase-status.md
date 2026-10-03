@@ -822,3 +822,17 @@ state確認dialogは実行/取消/次回から確認しない。操作key単位�
 今回のUI検証はテーマ/設定/検索先Cancelが中心。お気に入り/tag/folder/history/provider実変更/background/Random/Delete/ログインlogoutの実Palette操作は未確認。確認省略の設定共有、storage失敗時の製品UI、ARIA詳細、拡張登録の実画面も後続検証。Phase8未完了、Phase9〜12未着手、Version1.0未完成。app config/既存DBvolume/背景ファイルを保持、public/langは8083/4に反映。
 
 次に実行すること: 専用検証Favorite・Folder・Tag・HistoryをUIで作り8カテゴリの横断操作と実actionを確認。検索先/AI変更、背景/ランダムと確認、確認設定reset/保存失敗/再読込を検証。Palette product adapter/logoutのテスト可能な境界を分離し実HTTP成功/失敗に接続、許可済み隔離認証でLogoutとclearSyncedOnLogoutの回復も確認。未確認を成功にせずPhase8ゲート判定まで実装・修正を続ける。
+
+## Phase8 ログアウト中断からの回復（2026-10-03）
+
+Palette logoutをcore/製品adapterへ分離。認証済みownerをGET /api/userで取得し、userId/clear booleanだけのpending intentをIndexedDBへ保存してからCSRF/JSON logoutへ進む。保存失敗ならサーバーログアウトを実行しない。成功後の同期データ削除は既存owner限定syncedDataRemovalとBlob削除/pending解除を同一setMany transactionで行う。応答喪失や削除保存失敗はintentを保持し、次のトップ/Account表示でGET /api/userが401または別ownerと確認できた場合だけ後続回復。元ownerで認証中/503等では削除しない。他accountの回復後にLogoutを指示した場合は現在accountも実Logoutする。最新intentが別操作へ変わった場合はadapterで照合し削除しない。
+
+Account画面は回復失敗を既存翻訳のalertで表示。サーバーlogoutは任意user_id hintを認証済みownerと照合し、不一致403/Token維持。PaletteはJSON bodyでownerを指定する。従来hintなしLogoutやCSRFを維持。DB/Migrationなし、秘密はintent/Gitへ保存しない。
+
+検証1: palette-logout単体成功。clear ON/OFF、事前保存失敗ではPOST0、実行後保存失敗のretry、応答喪失後の二重POSTなし、同owner認証中の非削除、503保留、別owner回復と現在accountのLogout、不正owner拒否を確認。IOモデルであり実IndexedDB quota故障・実OAuth成功とは区別。
+検証2: MySQL8083/MariaDB8084の認証実HTTP/API各43成功。新owner hint不一致403とremember device非失効、既存JSON Logout/CSRF/失効/他owner/current-deviceを確認。変更Controller/View構文成功。coreワークフロー全体を実HTTPへ接続する専用試験はまだ未実施。
+検証3: 全JS31単体成功、logout adapter JS構文/git diff --check成功。新規UI回復操作は今回未実施、既存Phase8の日英/mobile/console証拠を維持。全9Migrationの既存Installer往復40は今回再実行なし。app/public/testsを8083/4へ反映、既存config/DBvolume/背景保持。
+
+ユーザーへPhase別内容と進捗を表で報告。Phase8未完了、Phase9〜12未着手、Version1.0未完成。実OAuth等の環境依存未確認は継続。
+
+次に実行すること: 専用検証Favorite/Folder/Tag/HistoryのUI作成から8カテゴリの実横断操作を確認。provider/AI/background/random/delete/history action、確認設定reset/共有を検証。palette logout coreを隔離認証fixtureの実HTTPとowner限定local cleanupへ接続し、回復条件・clear OFF・storage failureを確認。全DoDと未確認を縮小せずPhase8ゲート判定へ進む。
