@@ -92,7 +92,7 @@ try {
     $audit->execute([$recoveryId]); $check((int)$audit->fetch(PDO::FETCH_ASSOC)['file_written']===0,'file failure remains pending in DB');
     (new AdminAuditLogger($pdo,new FileLogger($recovery.'/logs')))->flush();
     $audit->execute([$recoveryId]); $check((int)$audit->fetch(PDO::FETCH_ASSOC)['file_written']===1,'pending file audit retries successfully');
-    unlink($recovery.'/logs/'.gmdate('Y-m-d').'.jsonl'); rmdir($recovery.'/logs'); unlink($recovery.'/blocked'); rmdir($recovery);
+    unlink($recovery.'/logs/'.gmdate('Y-m-d').'.jsonl'); unlink($recovery.'/logs/.write.lock'); rmdir($recovery.'/logs'); unlink($recovery.'/blocked'); rmdir($recovery);
 } finally {
     if ($ids && $settings->maintenance()['enabled']) $settings->setMaintenance(false,$settings->maintenance()['version'],$ids[0]);
     foreach ($ids as $id) $pdo->prepare('DELETE FROM users WHERE id=?')->execute([$id]);

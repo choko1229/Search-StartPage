@@ -55,6 +55,19 @@ if ($config->get('installed')) {
     $router->add('POST','/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
     $router->add('GET','/api/admin/maintenance',$adminHandler('maintenance'),[$adminMiddleware]);
     $router->add('POST','/api/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
+    $logHandler=static function(bool $auditOnly) use($resolveAdmin,$config,$view,$root):Closure {
+        return static function(Request $request) use($resolveAdmin,$config,$view,$root,$auditOnly):App\Http\Response {
+            [,,,$audit]=$resolveAdmin();
+            try {$pdo=App\Database\Database::connect($config->get('database'));}
+            catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            $repository=new App\Repositories\LogRepository($pdo);
+            return (new App\Controllers\AdminLogsController($repository,new App\Services\LogRetention($repository,$root.'/storage/logs'),$audit,$view))->handle($request,$auditOnly);
+        };
+    };
+    foreach (['logs'=>false,'audit-logs'=>true] as $path=>$auditOnly) {
+        $router->add('GET','/admin/'.$path,$logHandler($auditOnly),[$adminMiddleware]);
+        $router->add('GET','/api/admin/'.$path,$logHandler($auditOnly),[$adminMiddleware]);
+    }
     // Authentication is resolved only for routes that need it. Local search and
     // favorites remain available when the database cannot be reached.
     $account = null;

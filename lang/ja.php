@@ -2,6 +2,12 @@
 declare(strict_types=1);
 
 return [
+    'admin_logs'=>'ログ','admin_audit_logs'=>'監査ログ','admin_log_retention'=>'ログは90日間保持します。日時はUTCです。',
+    'admin_log_type'=>'種類','admin_log_from'=>'開始日（UTC）','admin_log_to'=>'終了日（UTC）','admin_log_user_id'=>'ユーザーID',
+    'admin_log_error_code'=>'エラーコード','admin_log_q'=>'キーワード','admin_no_logs'=>'該当するログはありません。',
+    'admin_log_file'=>'ファイル保存','admin_log_delivered'=>'保存済み','admin_log_pending'=>'再試行待ち',
+    'log_type_php_error'=>'PHPエラー','log_type_api_error'=>'APIエラー','log_type_oauth_error'=>'OAuthエラー',
+    'log_type_sync_error'=>'同期エラー','log_type_update_error'=>'更新エラー','log_type_admin_audit'=>'管理操作','log_type_security'=>'セキュリティ',
     'admin_maintenance'=>'メンテナンス設定','admin_maintenance_help'=>'有効にすると一般ユーザーの画面・APIを停止します。管理者は引き続き利用できます。',
     'admin_maintenance_off'=>'通常運用','admin_maintenance_on'=>'メンテナンスを有効にする','maintenance_message'=>'メンテナンス中です','maintenance_reload'=>'再読み込み',
     'ADMIN_SETTINGS_CONFLICT'=>'設定が別の操作で変更されました。画面を読み込み直してください。','ADMIN_SETTINGS_UNAVAILABLE'=>'管理設定を読み込めません。',

@@ -109,5 +109,6 @@ $logger->exception(new RuntimeException('secret-password-marker'), 'test-id');
 $log = file_get_contents($temp . '/' . gmdate('Y-m-d') . '.jsonl');
 $check(str_contains($log, 'test-id') && !str_contains($log, 'secret-password-marker'), 'exception logs exclude secret messages');
 unlink($temp . '/' . gmdate('Y-m-d') . '.jsonl');
+unlink($temp . '/.write.lock');
 rmdir($temp);
 echo "$passed assertions passed.\n";

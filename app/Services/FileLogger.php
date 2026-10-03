@@ -18,14 +18,13 @@ final class FileLogger
         ]);
     }
 
-    public function write(string $level, string $code, array $safeContext = []): void
+    public function write(string $level, string $code, array $safeContext = [],?int $timestamp=null): void
     {
-        if (!is_dir($this->directory) && !mkdir($this->directory, 0700, true) && !is_dir($this->directory)) {
-            throw new \RuntimeException('Log directory unavailable');
-        }
-        $entry = json_encode(['at' => gmdate(DATE_ATOM), 'level' => $level, 'code' => $code, 'context' => $safeContext], JSON_THROW_ON_ERROR);
-        if (file_put_contents($this->directory . '/' . gmdate('Y-m-d') . '.jsonl', $entry . "\n", FILE_APPEND | LOCK_EX) === false) {
-            throw new \RuntimeException('Log write failed');
-        }
+        $timestamp ??= time();
+        $entry = json_encode(['at' => gmdate(DATE_ATOM,$timestamp), 'level' => $level, 'code' => $code, 'context' => $safeContext], JSON_THROW_ON_ERROR);
+        LogFileLock::run($this->directory,function() use($entry,$timestamp):void {
+            if (is_link($this->directory.'/'.gmdate('Y-m-d',$timestamp).'.jsonl')) throw new \RuntimeException('Log file cannot be a link');
+            if (file_put_contents($this->directory . '/' . gmdate('Y-m-d',$timestamp) . '.jsonl', $entry . "\n", FILE_APPEND | LOCK_EX) === false) throw new \RuntimeException('Log write failed');
+        });
     }
 }

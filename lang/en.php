@@ -2,6 +2,12 @@
 declare(strict_types=1);
 
 return [
+    'admin_logs'=>'Logs','admin_audit_logs'=>'Audit logs','admin_log_retention'=>'Logs are retained for 90 days. Dates use UTC.',
+    'admin_log_type'=>'Type','admin_log_from'=>'From (UTC)','admin_log_to'=>'To (UTC)','admin_log_user_id'=>'User ID',
+    'admin_log_error_code'=>'Error code','admin_log_q'=>'Keyword','admin_no_logs'=>'No matching logs.',
+    'admin_log_file'=>'File delivery','admin_log_delivered'=>'Delivered','admin_log_pending'=>'Pending retry',
+    'log_type_php_error'=>'PHP error','log_type_api_error'=>'API error','log_type_oauth_error'=>'OAuth error',
+    'log_type_sync_error'=>'Sync error','log_type_update_error'=>'Update error','log_type_admin_audit'=>'Admin audit','log_type_security'=>'Security',
     'admin_maintenance'=>'Maintenance settings','admin_maintenance_help'=>'Enabling maintenance stops public pages and APIs. Administrators can continue using the service.',
     'admin_maintenance_off'=>'Normal operation','admin_maintenance_on'=>'Enable maintenance','maintenance_message'=>'Under maintenance','maintenance_reload'=>'Reload',
     'ADMIN_SETTINGS_CONFLICT'=>'Another operation changed the settings. Reload this page.','ADMIN_SETTINGS_UNAVAILABLE'=>'Admin settings are unavailable.',

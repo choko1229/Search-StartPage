@@ -783,3 +783,21 @@ Phase9進行中、Version1.0未完成。Users/Storageの一覧・検索は実装
 Phase9進行中、10〜12未着手、Version1.0未完成。Maintenanceと監査保存基盤を実装したが、Feature Flags/Limits/Presets/Statistics/全Logs/90日保持/Privacy/管理者操作/容量操作/Update導線は残る。
 
 次に実行すること: 最新専用環境8091/8092を利用。admin_audit/log_entriesの閲覧・検索/type/date/user/errorcode/keyword filterと90日DB/file保持を実装し、ErrorHandler/OAuth/Sync/Securityなどへ安全な記録を接続。Feature Flags/Limitsとサーバー・UI制御、Presetsとanonymous event Statistics/Privacyを順に実装。設定ファイル/DB/secretを保持してUpdater導線をPhase10へ引き渡す。実管理日英/mobileUI/consoleとsnapshot障害時のHTTPを検証。Phase9機能ゲートを満たすまでPhase10へ進まない。
+
+## Phase9 ログ閲覧・検索・90日保持（2026-10-03）
+
+前のGoalターンはメンテナンス/監査4f84822と11Migration Installer/両DB検証によりprogress。progress/status/gitとspec§98/99を確認して継続。
+
+実装: GET /admin/logs・/admin/audit-logs と /api/admin/logs・/api/admin/audit-logs。全routeに現在DB権限のAdminMiddleware。種類7種、UTC開始/終了日、内部user ID、error code exact、keyword literal、stable pagination（25既定/最大100）。Audit専用は常にadmin_auditのみ。日英UI、context/filter入力/URLはEscape、長いcontextは折返し。SQLはLogRepository、入力はLogFilters、ViewにDBなし。
+
+LogRetention: DB90日cutoffとdaily fileの古い日を整理し、境界日fileは実at timestampで古い行だけ除去。UTC終了日は23:59:59まで含む。FileLoggerと共通LogFileLockにより整理/書込みを直列化、境界再保存はtemporary/rename。リンク・不正date filename・無関係fileを削除せず、writerはlinked lock/dailyfileを拒否。監査再配送は元のevent日時をFileLoggerへ渡し保持期限を延長しない。bin/cleanup-logs.phpを追加、管理ログ訪問でも整理/監査再試行。docs/admin-logs.mdに毎日のサーバー側実行を記載、OS定期実行は未設定。
+
+検証1: 専用新規Installer済みMySQL8091/MariaDB8092へapp/lang/public/bin/testsだけ反映、config/storage/DBvolume保持。実HTTP tests/admin-logs.php最初各52、linked writer検証を追加して最終各54成功。guest401/一般403/admin200、7種類/date/user/error/keywordと組合せ、1件pagination2ページ、audit固定、SQL fragments/%_ literal、日英XSS Escape、不正UTF8/arrays/date/range拒否を確認。90日境界DB/fileと再実行、links/無関係file保持、writer linked path拒否も確認。専用fixture/log rows/temp fileはfinally清掃。
+
+検証2: 両DB基盤39/admin64/maintenance62/auth43の回帰成功。FileLogger lock追加に合わせ試験directory cleanupのみ調整、監査file失敗/retryも維持。最終linked guard後にlogs54/基盤39を再成功。他回帰の証拠はguard直前。
+
+検証3: 両DB PHP各140構文成功、bin cleanup両DB成功（期限外0/ファイル0/行0）、git diff --check・tests/docker.ps1 Parser成功。通常Docker回帰へlogs試験追加。DB/Migration変更なし、全11 Installer40の直前証拠維持（今回は再実行なし）。最終2writer guardsはPHPを実試験で読込・実行済み。実ブラウザ管理UI/mobile/consoleは未確認。
+
+Phase9進行中、Version1.0未完成。ログ閲覧・保持は実装済みだが、全エラー分類の実収集は未完了。現実に接続済みのauditはmaintenanceのみ、7type選択肢/生成fixtureを全収集の証拠にしない。PHP errorsは既存file経路のみでDB接続が次作業。匿名Statisticsの無期限データをLogRetentionへ含めない。
+
+次に実行すること: ErrorHandlerを安全なdual file/DB loggerへ接続する。PHP/API/OAuth/Sync/Update/Securityを実経路で分類し、query/body/secret/例外messageを記録しない。DB停止時もfileへ残し、復帰時に重複なくDBへ戻せる耐久処理を設計・実装・検証。全Logs収集と管理監査を完了後、Feature Flags/Limits/Presets/anonymous Statistics/Privacy/管理者・容量操作/Update導線を接続する。全Phase9ゲート、実管理日英/mobileUI/console、残る環境依存を区別して監査する。

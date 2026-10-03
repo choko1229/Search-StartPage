@@ -10,6 +10,7 @@
     --muted: #526174;
     --accent: #304fc3;
 }
+.admin-log-context { white-space: pre-wrap; overflow-wrap: anywhere; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; }
