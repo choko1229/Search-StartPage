@@ -14,7 +14,7 @@
 | 6 | Appearance | 機能ゲート検証済み（環境依存の実確認は留保） |
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
-| 9 | Admin | 未着手 |
+| 9 | Admin | 進行中（管理者Middleware・実DBダッシュボードを実装、両DB権限検証済み） |
 | 10 | Updater | 未着手 |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
@@ -928,3 +928,19 @@ tests/palette-storage-preview.php/mjsを追加。SEARCH_TEST_MODE=1で隔離8089
 添付Phase8全文とspec§48〜52をregistry/search/ranking/cross search/actions/confirmations/extensible architectureの7項目で照合、docs/phase8-gate.md先頭へ最新証拠を反映。機能ゲート検証済みとしてPhase9へ進む。環境依存の実OAuth/認証済みUI、実quota枯渇、全browser/実読み上げをPhase12監査へ追跡。前述専用検証と未確認を区別しVersion1.0未完成。Phaseごとの確定コミットを作成。
 
 次に実行すること: Phase9添付全文とspec§90〜100/118を読み、既存administrators/Installer予約/認証middleware/Logs/configを監査する。Admin権限はserver side、Dashboard/Users/Storage/Presets/Feature Flags/Maintenance/Limits/Logs/Audit/Statistics/Update管理導線を順に実装。Phase9の初期管理者設定を本番操作せず、隔離DBで権限/CSRF/Validation/一般ユーザー拒否を検証。codec警告はPhase7から接続、Updater実動作はPhase10へ。Phase9〜12未着手、Version1.0は未完成。
+
+## Phase9 管理者権限とダッシュボード（2026-10-03）
+
+前のGoalターンはユーザーへの表形式の状態報告のみでno progress。progress/status/gitを確認し、Phase9の実装へ再開。
+
+実装: 010_admin_flag Migration（既存管理者はdefault 1、DDL再実行可能）。AdminRepositoryがprepared statementで現在のmembership/admin_flagを確認し、AdminMiddlewareが各requestで永続ログインを復元してDB権限を照合。セッションやclientのadminフラグは権限根拠にしない。GET /admin、GET /api/admin/dashboardを追加。実DBのユーザー数/管理者数/背景数/保存容量、実圧縮capabilityと不足警告を日英表示。ControllerにSQLなし、ViewにDBなし。設定値・秘密・本番データ不使用。
+
+検証1: 隔離MySQL8083/MariaDB8084へapp/lang/database/testsのみ反映（config/storage/volume保持）、Migration各1適用→再実行0。tests/admin.php各16成功。guest401/regular403/admin200、権限flag取り消し・復帰・membership削除の即時反映、client偽装拒否、実counts/codec flags、秘密非露出を実HTTPで確認。専用fixtureはfinally削除。
+
+検証2: 両DB基盤39、認証43の回帰成功。Installer予約の初期管理者昇格、長期login/端末/logout/CSRFを維持。
+
+検証3: 両DB PHP構文各122ファイル成功、git diff --check成功。実ブラウザ管理者UI/レスポンシブ/Consoleは今回未確認。全10Migrationの新規Installer/down/upはまだ未実行、旧9Migrationの証拠と区別。read-only routesのみで管理更新CSRFは今後実装時に検証。
+
+Phase9進行中、Version1.0未完成。残りUsers/Storage/Presets/Flags/Maintenance/Limits/Logs/Audit/Statistics/Update導線、匿名統計イベント/Privacy/90日log保持。Updater実動作はPhase10。実Discord OAuthは留保。
+
+次に実行すること: spec§90〜100/118と添付Phase9の完了条件を照合し、管理者Users/Storage一覧と検索/pagination、管理変更のCSRF/validation/auditを実装。続いてメンテナンス/feature flags/limitsと一般user制御、統計/ログを接続。新規Installer全10Migration往復、日英/モバイル実UIとconsoleを検証する。既存ブラウザtab18は観測timeoutであり終了とは判断せず、必要時に同handle/inventoryを再確認。

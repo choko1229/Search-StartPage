@@ -26,6 +26,26 @@ $core = new CoreController($config, $view);
 $installer = new InstallerController(new InstallationService($root), new EnvironmentCheck($root), $view, new FileLogger($root . '/storage/logs'));
 $router = new Router();
 if ($config->get('installed')) {
+    $adminContext = null;
+    $resolveAdmin = static function () use (&$adminContext, $config): array {
+        if ($adminContext === null) {
+            try { $pdo = App\Database\Database::connect($config->get('database')); }
+            catch (PDOException) { throw new App\Http\HttpException(503, 'DATABASE_UNAVAILABLE'); }
+            $auth = new App\Auth\Auth($config, new App\Repositories\AuthRepository($pdo));
+            $auth->restore();
+            $adminContext = [$auth, new App\Repositories\AdminRepository($pdo)];
+        }
+        return $adminContext;
+    };
+    $adminMiddleware = new App\Middleware\AdminMiddleware($resolveAdmin);
+    $adminHandler = static function (string $method) use ($resolveAdmin, $view): Closure {
+        return static function (Request $request) use ($resolveAdmin, $view, $method): App\Http\Response {
+            [, $repository] = $resolveAdmin();
+            return (new App\Controllers\AdminController($repository, $view))->$method($request);
+        };
+    };
+    $router->add('GET', '/admin', $adminHandler('page'), [$adminMiddleware]);
+    $router->add('GET', '/api/admin/dashboard', $adminHandler('dashboard'), [$adminMiddleware]);
     // Authentication is resolved only for routes that need it. Local search and
     // favorites remain available when the database cannot be reached.
     $account = null;

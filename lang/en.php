@@ -2,6 +2,11 @@
 declare(strict_types=1);
 
 return [
+    'ADMIN_REQUIRED'=>'Administrator access is required.',
+    'admin_dashboard'=>'Admin dashboard','admin_count_users'=>'Users','admin_count_administrators'=>'Administrators',
+    'admin_count_backgrounds'=>'Backgrounds','admin_count_background_bytes'=>'Background storage (bytes)',
+    'admin_compression'=>'Background compression','admin_available'=>'Available','admin_unavailable'=>'Unavailable',
+    'admin_compression_warning'=>'Some compression features are unavailable. Supported images and videos are compressed when possible; otherwise the original file is stored.',
     'add_favorite'=>'Add favorite','folders'=>'Folders','find_favorites'=>'Find favorites','sort'=>'Sort','display'=>'Display',
     'manual'=>'Manual','usage'=>'Most used','recent'=>'Recently used','icon-name'=>'Icon + name','card'=>'Cards','auto'=>'Automatic',
     'show_hidden'=>'Show hidden','edit_favorite'=>'Favorite details','fetch_metadata'=>'Get site details','favorite_icon'=>'Icon text or HTTPS image URL',

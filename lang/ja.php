@@ -2,6 +2,11 @@
 declare(strict_types=1);
 
 return [
+    'ADMIN_REQUIRED'=>'管理者権限が必要です。',
+    'admin_dashboard'=>'管理ダッシュボード','admin_count_users'=>'ユーザー数','admin_count_administrators'=>'管理者数',
+    'admin_count_backgrounds'=>'背景数','admin_count_background_bytes'=>'背景の保存容量（バイト）',
+    'admin_compression'=>'背景の圧縮機能','admin_available'=>'利用可能','admin_unavailable'=>'利用不可',
+    'admin_compression_warning'=>'圧縮機能の一部が利用できません。対応する画像・動画は圧縮できる場合のみ圧縮され、その他は元のファイルを保存します。',
     'add_favorite'=>'お気に入りを追加','folders'=>'フォルダ','find_favorites'=>'お気に入りを検索','sort'=>'並び順','display'=>'表示形式',
     'manual'=>'手動','usage'=>'使用頻度','recent'=>'最近使用','icon-name'=>'アイコン＋名前','card'=>'カード','auto'=>'自動',
     'show_hidden'=>'非表示も表示','edit_favorite'=>'お気に入りの詳細','fetch_metadata'=>'サイト情報を取得','favorite_icon'=>'アイコン文字またはHTTPS画像URL',
