@@ -747,3 +747,19 @@ tests/palette-storage-preview.php/mjsを追加。SEARCH_TEST_MODE=1で隔離8089
 Phase9進行中、Version1.0未完成。残りUsers/Storage/Presets/Flags/Maintenance/Limits/Logs/Audit/Statistics/Update導線、匿名統計イベント/Privacy/90日log保持。Updater実動作はPhase10。実Discord OAuthは留保。
 
 次に実行すること: spec§90〜100/118と添付Phase9の完了条件を照合し、管理者Users/Storage一覧と検索/pagination、管理変更のCSRF/validation/auditを実装。続いてメンテナンス/feature flags/limitsと一般user制御、統計/ログを接続。新規Installer全10Migration往復、日英/モバイル実UIとconsoleを検証する。既存ブラウザtab18は観測timeoutであり終了とは判断せず、必要時に同handle/inventoryを再確認。
+
+## Phase9 ユーザー・背景容量一覧（2026-10-03）
+
+前のGoalターンは管理者基盤2ff9e71と両DB検証によりprogress。progress/status/git/specと添付Phase9を確認して継続。
+
+実装: GET /admin/users・/admin/storage、GET /api/admin/users・/api/admin/storage。全routeにAdminMiddleware。Discord ID/username/display nameでliteral検索、page/page_size（最大100件）検証、安定順序のpagination。ユーザー一覧は新しいID順、容量一覧は背景bytes順。背景はdeleted=0のみ集計しゼロ容量ユーザーも表示。ユーザー登録/最終login/役割/背景数/bytesを日英表示。Viewは値・検索欄・pagination URLをEscape、ControllerにSQLなし、prepared statementをRepositoryへ集約。read-onlyでデータ削除/権限変更なし。
+
+検証1: 隔離MySQL8083/MariaDB8084の実HTTP tests/admin.php各64成功（最初60、日英/検索Escapeを追加し64再成功）。guest401/regular403/admin200、即時権限失効、2user検索/1件pagination/2ページ、削除済み背景除外/37bytes、%_ literal/SQL injection literal、user/search XSS Escape、UTF8/control/array/範囲不正422を確認。専用生成fixtureはfinally清掃、秘密は出力せず。
+
+検証2: 両DB基盤39成功（日英key parity/CSRF/router/escape/log秘匿等）。認証43は直前変更後の証拠維持、今回は再実行なし。
+
+検証3: 両DB PHP構文各123ファイル/git diff --check成功。Migration変更なし、10の再実行0をadmin試験で確認。全10新規Installer/down/up未実行、実管理UIのブラウザ/mobile/console未確認。今回はHTTP HTML日英の確認でありブラウザ検証とは区別。
+
+Phase9進行中、Version1.0未完成。Users/Storageの一覧・検索は実装済み、管理変更/audit/limits/容量設定/cleanup等と他管理項目は未完了。Phase10〜12未着手、実OAuth留保継続。
+
+次に実行すること: 管理操作の監査ログ・DB設定Migrationを追加し、Maintenance/Feature Flags/Limitsの編集をCSRF/権限/validation付きで実装する。Maintenanceは一般user full stop/admin通常利用という仕様を全routeと照合する。管理者追加/失効操作もauditと競合/最後の管理者保護を考慮して実装。Presets/匿名Statistics/file+DB Logs/90日保持/Privacy/Updater導線を残りPhase9ゲートへ接続し、全10以降Migration Installer往復と実日英/mobileUI検証を進める。

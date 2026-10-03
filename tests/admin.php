@@ -22,8 +22,8 @@ $repository=new AuthRepository($pdo);
 $adminRepository=new AdminRepository($pdo);
 $ids=[];
 $cookies=[];
-$http=static function(string $path,string $cookie=''):array {
-    $context=stream_context_create(['http'=>['header'=>"Accept-Language: en\r\nCookie: $cookie",'ignore_errors'=>true]]);
+$http=static function(string $path,string $cookie='',string $locale='en'):array {
+    $context=stream_context_create(['http'=>['header'=>"Accept-Language: $locale\r\nCookie: $cookie",'ignore_errors'=>true]]);
     $body=file_get_contents('http://127.0.0.1'.$path,false,$context);
     preg_match('/\s(\d{3})\s/',$http_response_header[0],$match);
     return [(int)$match[1],$body];
@@ -55,6 +55,34 @@ try {
     $check($http('/api/admin/dashboard?admin_flag=1&user_id='.$ids[0],$cookies[1].'; admin_flag=1')[0]===403,'client administrator flags cannot grant access');
     $pdo->prepare('UPDATE administrators SET admin_flag=1 WHERE user_id=?')->execute([$ids[0]]);
     $check($http('/api/admin/dashboard',$cookies[0])[0]===200,'membership restoration applies immediately');
+    foreach (['/admin/users','/admin/storage','/api/admin/users','/api/admin/storage'] as $path) {
+        $check($http($path)[0]===401,'guest rejected '.$path);
+        $check($http($path,$cookies[1])[0]===403,'regular user rejected '.$path);
+        $check($http($path,$cookies[0])[0]===200,'administrator accepted '.$path);
+    }
+    $pdo->prepare('UPDATE users SET discord_username=? WHERE id=?')->execute(['Admin verification <img onerror=alert(1)>%_',$ids[1]]);
+    $pdo->prepare("INSERT INTO backgrounds(id,user_id,name,type,source_type,file_size,settings_json,deleted,created_at,updated_at) VALUES ('admin-check-active',?,'Generated','image','url',37,'{}',0,UTC_TIMESTAMP(),UTC_TIMESTAMP()),('admin-check-deleted',?,'Generated','image','url',100,'{}',1,UTC_TIMESTAMP(),UTC_TIMESTAMP())")->execute([$ids[1],$ids[1]]);
+    foreach (['users','storage'] as $section) {
+        [$status,$body]=$http('/api/admin/'.$section.'?q=99999999999999995&page_size=1',$cookies[0]);
+        $data=json_decode($body,true,512,JSON_THROW_ON_ERROR)['data'];
+        $check($status===200 && $data['total']===2 && count($data['items'])===1,'filtered paginated '.$section);
+        $check($data['items'][0]['id']===$ids[1] && $data['items'][0]['background_bytes']===37 && $data['items'][0]['background_count']===1,'deleted backgrounds excluded '.$section);
+        [, $body]=$http('/api/admin/'.$section.'?q=99999999999999995&page_size=1&page=2',$cookies[0]);
+        $check(json_decode($body,true)['data']['items'][0]['id']===$ids[0],'second page '.$section);
+        [, $body]=$http('/api/admin/'.$section.'?q='.rawurlencode('%_'),$cookies[0]);
+        $check(json_decode($body,true)['data']['total']===1,'wildcards treated literally '.$section);
+        [, $body]=$http('/api/admin/'.$section.'?q='.rawurlencode("' OR 1=1 --"),$cookies[0]);
+        $check(json_decode($body,true)['data']['total']===0,'SQL injection treated literally '.$section);
+        [, $body]=$http('/admin/'.$section.'?q=999999999999999952',$cookies[0]);
+        $check(str_contains($body,'&lt;img onerror=alert(1)&gt;') && !str_contains($body,'<img onerror=alert(1)>'),'user HTML escaped '.$section);
+        [, $body]=$http('/admin/'.$section,$cookies[0],'ja');
+        $check(str_contains($body,$section==='users' ? 'ユーザー管理' : '容量管理') && str_contains($body,'lang="ja"'),'Japanese listing '.$section);
+        [, $body]=$http('/admin/'.$section.'?q='.rawurlencode('"><img onerror=alert(1)>'),$cookies[0]);
+        $check(!str_contains($body,'"><img onerror=alert(1)>') && str_contains($body,'&quot;&gt;&lt;img'),'search input escaped '.$section);
+        foreach (['page=0','page=-1','page=1000001','page[]=1','page_size=101','page_size=1.5','q[]=x','q='.str_repeat('x',101),'q=%00','q=%FF'] as $invalid) {
+            $check($http('/api/admin/'.$section.'?'.$invalid,$cookies[0])[0]===422,'invalid listing rejected '.$section.' '.$invalid);
+        }
+    }
     $pdo->prepare('DELETE FROM administrators WHERE user_id=?')->execute([$ids[0]]);
     $check($http('/admin',$cookies[0])[0]===403,'deleted membership rejected');
 } finally {

@@ -46,6 +46,10 @@ if ($config->get('installed')) {
     };
     $router->add('GET', '/admin', $adminHandler('page'), [$adminMiddleware]);
     $router->add('GET', '/api/admin/dashboard', $adminHandler('dashboard'), [$adminMiddleware]);
+    $router->add('GET', '/admin/users', $adminHandler('usersPage'), [$adminMiddleware]);
+    $router->add('GET', '/admin/storage', $adminHandler('storagePage'), [$adminMiddleware]);
+    $router->add('GET', '/api/admin/users', $adminHandler('users'), [$adminMiddleware]);
+    $router->add('GET', '/api/admin/storage', $adminHandler('storage'), [$adminMiddleware]);
     // Authentication is resolved only for routes that need it. Local search and
     // favorites remain available when the database cannot be reached.
     $account = null;

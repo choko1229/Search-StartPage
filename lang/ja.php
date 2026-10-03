@@ -2,6 +2,10 @@
 declare(strict_types=1);
 
 return [
+    'admin_users'=>'ユーザー管理','admin_storage'=>'容量管理','admin_user_search'=>'Discord ID・ユーザー名で検索',
+    'admin_search'=>'検索','admin_total'=>'該当件数','admin_no_results'=>'該当するユーザーはいません。',
+    'admin_username'=>'ユーザー名','admin_role'=>'権限','admin_administrator'=>'管理者','admin_regular_user'=>'一般ユーザー',
+    'admin_created'=>'登録日時','admin_last_login'=>'最終ログイン','admin_pages'=>'ページ切替','admin_previous'=>'前へ','admin_next'=>'次へ',
     'ADMIN_REQUIRED'=>'管理者権限が必要です。',
     'admin_dashboard'=>'管理ダッシュボード','admin_count_users'=>'ユーザー数','admin_count_administrators'=>'管理者数',
     'admin_count_backgrounds'=>'背景数','admin_count_background_bytes'=>'背景の保存容量（バイト）',

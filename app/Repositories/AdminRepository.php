@@ -19,4 +19,29 @@ final class AdminRepository
         $query->execute();
         return array_map(static fn($value): int => (int)$value, $query->fetch(\PDO::FETCH_ASSOC));
     }
+
+    public function users(string $search, int $page, int $pageSize, bool $storage = false): array
+    {
+        // LOCATE treats %, _ and SQL fragments as literal search text.
+        $where = "WHERE (?='' OR LOCATE(?,u.discord_id)>0 OR LOCATE(?,u.discord_username)>0 OR LOCATE(?,COALESCE(u.discord_display_name,''))>0)";
+        $parameters = [$search,$search,$search,$search];
+        $count = $this->pdo->prepare('SELECT COUNT(*) FROM users u '.$where);
+        $count->execute($parameters);
+        $total = (int)$count->fetchColumn();
+        $order = $storage ? 'background_bytes DESC,u.id DESC' : 'u.id DESC';
+        $query = $this->pdo->prepare("SELECT u.id,u.discord_id,u.discord_username,u.discord_display_name,u.locale,u.created_at,u.last_login_at,
+            COALESCE(a.admin_flag,0) AS admin_flag,COALESCE(b.background_count,0) AS background_count,COALESCE(b.background_bytes,0) AS background_bytes
+            FROM users u LEFT JOIN administrators a ON a.user_id=u.id
+            LEFT JOIN (SELECT user_id,COUNT(*) AS background_count,SUM(file_size) AS background_bytes FROM backgrounds WHERE deleted=0 GROUP BY user_id) b ON b.user_id=u.id
+            $where ORDER BY $order LIMIT ? OFFSET ?");
+        foreach ($parameters as $index=>$value) $query->bindValue($index+1,$value,\PDO::PARAM_STR);
+        $query->bindValue(5,$pageSize,\PDO::PARAM_INT);
+        $query->bindValue(6,($page-1)*$pageSize,\PDO::PARAM_INT);
+        $query->execute();
+        $items = $query->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($items as &$item) {
+            foreach (['id','admin_flag','background_count','background_bytes'] as $key) $item[$key]=(int)$item[$key];
+        }
+        return ['items'=>$items,'total'=>$total,'page'=>$page,'page_size'=>$pageSize,'search'=>$search];
+    }
 }

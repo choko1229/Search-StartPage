@@ -2,6 +2,10 @@
 declare(strict_types=1);
 
 return [
+    'admin_users'=>'User management','admin_storage'=>'Storage management','admin_user_search'=>'Search by Discord ID or username',
+    'admin_search'=>'Search','admin_total'=>'Matching users','admin_no_results'=>'No matching users.',
+    'admin_username'=>'Username','admin_role'=>'Role','admin_administrator'=>'Administrator','admin_regular_user'=>'Regular user',
+    'admin_created'=>'Created','admin_last_login'=>'Last login','admin_pages'=>'Pagination','admin_previous'=>'Previous','admin_next'=>'Next',
     'ADMIN_REQUIRED'=>'Administrator access is required.',
     'admin_dashboard'=>'Admin dashboard','admin_count_users'=>'Users','admin_count_administrators'=>'Administrators',
     'admin_count_backgrounds'=>'Backgrounds','admin_count_background_bytes'=>'Background storage (bytes)',
