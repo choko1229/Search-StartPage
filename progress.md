@@ -974,3 +974,19 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: 新規両DBで更新fixture prepare roles/cleanup、管理者29/競合13/016Migration6/admin64/presets36/statistics admin48/auth43/sync17/基盤39/PHP180成功。プロセス45300正常終了。git diff --check成功。実OAuth/全browser/Extension/大規模統計/EN policy Save/統計期間など既存留保を維持。
 
 次に実行すること: 管理者実画面の権限変更は明示承認待ち。承認が来ればdocs/admin-ui-testing.mdから短期fixtureを準備し日英付与/解除/最後の管理者拒否、reload保持/監査を確認して清掃。承認待ちでも独立した容量管理操作・Update導線、EN policy Save/統計期間操作と未確認の機能停止/匿名統計実端末収集を進める。Phase9全条件のゲート確認までPhase10へ進まない。Goal全体は継続可能でblockedにしない。
+
+## Phase9 保存容量の内訳・制限導線（2026-10-04）
+
+前ターンは3d71476/日英users表示/全16Installer40によりprogress。progress/status/git/spec61/92/118/Phase9添付仕様から独立したStorageへ再開。管理者権限の実画面変更の明示承認はまだ回答なし、拒否操作を再試行・迂回していない。Phase9進行中、10〜12未着手、Version1.0未完成。
+
+発見/修正: BackgroundRepositoryのquotaはアーカイブを含むが従来admin/storageは使用中のみで使用量を過小表示していた。AdminRepositoryで既存active件数/bytesを維持しつつ保存件数/全保存bytes/archivedbytesを追加、storage並び順を全保存bytesへ修正。Controllerに有効quota resolverと全体storage_summary/各user over_limit、日英Viewで内訳/無制限/超過説明/既存policyへの制限編集導線を追加。Controller/ViewにSQLなし、全SQL prepared。新規Migrationなし、全16Installer証拠を維持。docs/admin-storage.mdに定義。
+
+検証1: 新規隔離MySQL8099/MariaDB8100へapp/lang/tests反映。最終admin各72成功。保存137=使用中37+archived100、別user使用中60より全保存順を優先、global197/active97/archived100、検索で全体合計は変わらない。policyを100へ下げて137を保持しover_limit true/EN説明確認、finallyでpolicy/生成userを復元・清掃。旧active37/count1契約を維持。
+
+検証2: 両DB管理者29/競合13/presets36/statistics admin48/policy29/auth43/backgroundAPI56/基盤39/PHP180成功。admin試験の追加2項目後は両72再成功と対象PHP構文再成功。git diff --checkを確認する。config/storage/volumes保持。
+
+検証3: browser2新tab27/localhost8099の専用通常token fixtureでJA dashboard→Storage→制限設定の実リンク成功。JA/EN mobile390/content375、画像phase9-storage-mobile-ja/en保存・両目視、Console0。EN policyの背景quotaだけ100へ保存→reload value100→storage limit100反映成功。login limits/flags変更なし。従来のEN policy Save留保をこの専用認証済み検証で解消。EN dashboard→統計→期間2026-10-01〜03 Apply period、URL/4graph期間更新/日別表3行表示成功、EN期間操作留保を解消。実背景ファイルの超過表示はHTTP/DB fixtureのみで実ブラウザ非ゼロ行は今回未確認。
+
+清掃: fixtureでpolicy/presetsを元へ復元、生成user/token/device/非公開fixture/手動preview/host key除去。tab27 reloadでPlease sign inを確認、viewportreset/handoff。実OAuth/全browser/Extension/匿名統計全実端末収集など残る留保は維持。容量管理はDB管理背景bytesで、一時・未参照ファイルやfilesystem空き容量の測定とは区別。
+
+次に実行すること: Phase9のUpdate Management導線をPhase10仕様に照合し、Phase9ゲートの全条件を一覧で監査。残るweather/upload/account停止の実UIと匿名統計search/AI/favorite/背景/Palette送信・失敗再送/複数タブの実検証を進める。管理者権限操作の承認が来れば生成対象だけで実画面検証して清掃する。Phase9ゲート確定前にPhase10へ進まない。Goal継続、Version1.0未完成。

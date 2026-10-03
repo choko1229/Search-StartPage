@@ -13,7 +13,7 @@ final class AdminController
 {
     public function __construct(private readonly AdminRepository $repository, private readonly View $view,
         private readonly AdminSettingsRepository $settings,private readonly Auth $auth,private readonly AdminAuditLogger $audit,
-        private readonly \App\Repositories\AdminRoleRepository $roles) {}
+        private readonly \App\Repositories\AdminRoleRepository $roles,private readonly ?\Closure $storageLimit=null) {}
 
     private function overview(): array
     {
@@ -39,7 +39,14 @@ final class AdminController
             $numbers[$key]=(int)$value;
         }
         $version=$this->roles->version();
-        return $this->repository->users(trim($search),$numbers['page'],$numbers['page_size'],$storage)+['role_version'=>$version];
+        $result=$this->repository->users(trim($search),$numbers['page'],$numbers['page_size'],$storage)+['role_version'=>$version];
+        if($storage){
+            $limit=$this->storageLimit?($this->storageLimit)():0;
+            $result['storage_summary']=$this->repository->storageTotals()+['limit_bytes'=>$limit>0?$limit:null];
+            foreach($result['items'] as &$item)$item['over_limit']=$limit>0&&$item['stored_background_bytes']>$limit;
+            unset($item);
+        }
+        return $result;
     }
     public function users(Request $request): Response { return Response::json($this->listing($request,false)); }
     public function storage(Request $request): Response { return Response::json($this->listing($request,true)); }

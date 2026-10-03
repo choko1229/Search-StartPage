@@ -56,7 +56,8 @@ if ($config->get('installed')) {
     $adminHandler = static function (string $method) use ($resolveAdmin, $view,$config): Closure {
         return static function (Request $request) use ($resolveAdmin, $view, $method,$config): App\Http\Response {
             [$auth, $repository,$settings,$audit,$pdo] = $resolveAdmin();
-            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit,new App\Repositories\AdminRoleRepository($pdo)))->$method($request);
+            $storageLimit=static fn():int=>App\Services\SitePolicy::effective((new App\Repositories\SitePolicyRepository($pdo))->read()['policy'],$config)['limits']['background_max_bytes'];
+            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit,new App\Repositories\AdminRoleRepository($pdo),$storageLimit))->$method($request);
         };
     };
     $router->add('GET', '/admin', $adminHandler('page'), [$adminMiddleware]);

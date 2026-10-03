@@ -232,4 +232,7 @@ return [
     'admin_role_grant'=>'Grant administrator access','admin_role_revoke'=>'Revoke administrator access',
     'LAST_ADMIN_REQUIRED'=>'Keep at least one administrator. Grant access to another account before revoking this one.',
     'USER_NOT_FOUND'=>'This account no longer exists.',
+    'admin_storage_help'=>'Stored background bytes include archived backgrounds, matching upload quota accounting. Totals cover all accounts; search filters the account list. Temporary or orphan files are not included. Reducing the limit preserves existing files.',
+    'admin_storage_total'=>'Stored background bytes','admin_storage_active'=>'Active background bytes','admin_storage_archived'=>'Archived background bytes',
+    'admin_storage_limit'=>'Limit per account (bytes)','admin_storage_unlimited'=>'Unlimited','admin_storage_over_limit'=>'Above the current limit; existing files are preserved.','admin_storage_limits_link'=>'Change storage limits',
 ];

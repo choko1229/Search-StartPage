@@ -20,8 +20,10 @@ $migration=require $root.'/database/migrations/010_admin_flag.php';
 $migration->up($pdo);
 $repository=new AuthRepository($pdo);
 $adminRepository=new AdminRepository($pdo);
+$storageBefore=$adminRepository->storageTotals();
 $ids=[];
 $cookies=[];
+$savedPolicy=null;
 $http=static function(string $path,string $cookie='',string $locale='en'):array {
     $context=stream_context_create(['http'=>['header'=>"Accept-Language: $locale\r\nCookie: $cookie",'ignore_errors'=>true]]);
     $body=file_get_contents('http://127.0.0.1'.$path,false,$context);
@@ -62,11 +64,31 @@ try {
     }
     $pdo->prepare('UPDATE users SET discord_username=? WHERE id=?')->execute(['Admin verification <img onerror=alert(1)>%_',$ids[1]]);
     $pdo->prepare("INSERT INTO backgrounds(id,user_id,name,type,source_type,file_size,settings_json,deleted,created_at,updated_at) VALUES ('admin-check-active',?,'Generated','image','url',37,'{}',0,UTC_TIMESTAMP(),UTC_TIMESTAMP()),('admin-check-deleted',?,'Generated','image','url',100,'{}',1,UTC_TIMESTAMP(),UTC_TIMESTAMP())")->execute([$ids[1],$ids[1]]);
+    $pdo->prepare("INSERT INTO backgrounds(id,user_id,name,type,source_type,file_size,settings_json,deleted,created_at,updated_at) VALUES ('admin-check-sort',?,'Generated','image','url',60,'{}',0,UTC_TIMESTAMP(),UTC_TIMESTAMP())")->execute([$ids[0]]);
     foreach (['users','storage'] as $section) {
         [$status,$body]=$http('/api/admin/'.$section.'?q=99999999999999995&page_size=1',$cookies[0]);
         $data=json_decode($body,true,512,JSON_THROW_ON_ERROR)['data'];
         $check($status===200 && $data['total']===2 && count($data['items'])===1,'filtered paginated '.$section);
         $check($data['items'][0]['id']===$ids[1] && $data['items'][0]['background_bytes']===37 && $data['items'][0]['background_count']===1,'deleted backgrounds excluded '.$section);
+        if($section==='storage'){
+            $check($data['items'][0]['stored_background_bytes']===137&&$data['items'][0]['archived_background_bytes']===100&&$data['items'][0]['stored_background_count']===2,'archived bytes retained and total usage determines sorting');
+            $summary=$data['storage_summary'];
+            $check($summary['stored_background_bytes']===$storageBefore['stored_background_bytes']+197,'storage total includes every account despite search filter');
+            $check($summary['active_background_bytes']===$storageBefore['active_background_bytes']+97&&$summary['archived_background_bytes']===$storageBefore['archived_background_bytes']+100,'global storage breakdown is exact');
+            $check($summary['stored_background_count']===$storageBefore['stored_background_count']+3,'stored count includes archived backgrounds');
+            $limit=$summary['limit_bytes'];
+            $check(($limit===null||is_int($limit)&&$limit>0)&&$data['items'][0]['over_limit']===($limit!==null&&137>$limit),'quota projection and over-limit state');
+            $policyRepository=new App\Repositories\SitePolicyRepository($pdo);
+            $savedPolicy=$policyRepository->read()['policy'];$limited=$savedPolicy;$limited['limits']['background_max_bytes']=100;
+            $policyState=new App\Services\PolicyState($root.'/storage/policy');
+            $policyRepository->update($limited,$policyRepository->read()['version'],$ids[0],$policyState);
+            [, $limitedBody]=$http('/api/admin/storage?q=999999999999999952',$cookies[0]);
+            $limitedData=json_decode($limitedBody,true)['data'];
+            $check($limitedData['storage_summary']['limit_bytes']===100&&$limitedData['items'][0]['over_limit']===true&&$limitedData['items'][0]['stored_background_bytes']===137,'lowered quota flags actual stored usage without deleting data');
+            [, $limitedHtml]=$http('/admin/storage?q=999999999999999952',$cookies[0]);
+            $check(str_contains($limitedHtml,'Above the current limit; existing files are preserved.'),'English over-limit explanation');
+            $policyRepository->update($savedPolicy,$policyRepository->read()['version'],$ids[0],$policyState);$savedPolicy=null;
+        }
         [, $body]=$http('/api/admin/'.$section.'?q=99999999999999995&page_size=1&page=2',$cookies[0]);
         $check(json_decode($body,true)['data']['items'][0]['id']===$ids[0],'second page '.$section);
         [, $body]=$http('/api/admin/'.$section.'?q='.rawurlencode('%_'),$cookies[0]);
@@ -77,6 +99,7 @@ try {
         $check(str_contains($body,'&lt;img onerror=alert(1)&gt;') && !str_contains($body,'<img onerror=alert(1)>'),'user HTML escaped '.$section);
         [, $body]=$http('/admin/'.$section,$cookies[0],'ja');
         $check(str_contains($body,$section==='users' ? 'ユーザー管理' : '容量管理') && str_contains($body,'lang="ja"'),'Japanese listing '.$section);
+        if($section==='storage')$check(str_contains($body,'アーカイブ背景容量')&&str_contains($body,'/admin/policy'),'Japanese storage breakdown and limit editing link');
         [, $body]=$http('/admin/'.$section.'?q='.rawurlencode('"><img onerror=alert(1)>'),$cookies[0]);
         $check(!str_contains($body,'"><img onerror=alert(1)>') && str_contains($body,'&quot;&gt;&lt;img'),'search input escaped '.$section);
         foreach (['page=0','page=-1','page=1000001','page[]=1','page_size=101','page_size=1.5','q[]=x','q='.str_repeat('x',101),'q=%00','q=%FF'] as $invalid) {
@@ -86,6 +109,7 @@ try {
     $pdo->prepare('DELETE FROM administrators WHERE user_id=?')->execute([$ids[0]]);
     $check($http('/admin',$cookies[0])[0]===403,'deleted membership rejected');
 } finally {
+    if($savedPolicy!==null)$policyRepository->update($savedPolicy,$policyRepository->read()['version'],$ids[0],$policyState);
     foreach ($ids as $id) $pdo->prepare('DELETE FROM users WHERE id=?')->execute([$id]);
 }
 echo "$count admin checks passed.\n";

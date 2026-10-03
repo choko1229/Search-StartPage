@@ -5,6 +5,16 @@ $pageLink=static fn(int $page):string=>$path.'?'.http_build_query(['q'=>$data['s
 <section class="panel">
 <a href="/admin"><?= $e($t->get('admin_dashboard')) ?></a>
 <h1><?= $e($t->get($data['storage'] ? 'admin_storage' : 'admin_users')) ?></h1>
+<?php if($data['storage']): ?>
+<p><?= $e($t->get('admin_storage_help')) ?></p>
+<dl>
+<dt><?= $e($t->get('admin_storage_total')) ?></dt><dd><?= $e($data['storage_summary']['stored_background_bytes']) ?></dd>
+<dt><?= $e($t->get('admin_storage_active')) ?></dt><dd><?= $e($data['storage_summary']['active_background_bytes']) ?></dd>
+<dt><?= $e($t->get('admin_storage_archived')) ?></dt><dd><?= $e($data['storage_summary']['archived_background_bytes']) ?></dd>
+<dt><?= $e($t->get('admin_storage_limit')) ?></dt><dd><?= $e($data['storage_summary']['limit_bytes']??$t->get('admin_storage_unlimited')) ?></dd>
+</dl>
+<a href="/admin/policy"><?= $e($t->get('admin_storage_limits_link')) ?></a>
+<?php endif; ?>
 <form method="get" action="<?= $e($path) ?>">
 <label><?= $e($t->get('admin_user_search')) ?><input name="q" value="<?= $e($data['search']) ?>" maxlength="100"></label>
 <button type="submit"><?= $e($t->get('admin_search')) ?></button>
@@ -22,6 +32,11 @@ $pageLink=static fn(int $page):string=>$path.'?'.http_build_query(['q'=>$data['s
 <dt><?= $e($t->get('admin_last_login')) ?></dt><dd><?= $e($user['last_login_at'] ?? $t->get('never')) ?></dd>
 <dt><?= $e($t->get('admin_count_backgrounds')) ?></dt><dd><?= $e($user['background_count']) ?></dd>
 <dt><?= $e($t->get('admin_count_background_bytes')) ?></dt><dd><?= $e($user['background_bytes']) ?></dd>
+<?php if($data['storage']): ?>
+<dt><?= $e($t->get('admin_storage_total')) ?></dt><dd><?= $e($user['stored_background_bytes']) ?></dd>
+<dt><?= $e($t->get('admin_storage_archived')) ?></dt><dd><?= $e($user['archived_background_bytes']) ?></dd>
+<?php if($user['over_limit']): ?><dt><?= $e($t->get('admin_storage_limit')) ?></dt><dd><?= $e($t->get('admin_storage_over_limit')) ?></dd><?php endif; ?>
+<?php endif; ?>
 </dl>
 <?php if(!$data['storage']): ?>
 <form method="post" action="/admin/users/role">

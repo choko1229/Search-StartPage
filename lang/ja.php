@@ -232,4 +232,7 @@ return [
     'admin_role_grant'=>'管理者権限を付与','admin_role_revoke'=>'管理者権限を解除',
     'LAST_ADMIN_REQUIRED'=>'管理者を最低1人残してください。別のアカウントに権限を付与してから解除できます。',
     'USER_NOT_FOUND'=>'このアカウントは存在しません。',
+    'admin_storage_help'=>'保存容量はアーカイブ済み背景も含み、アップロード容量制限と同じ計算です。合計は全アカウントが対象で、検索は一覧に適用されます。一時ファイル・未参照ファイルは含みません。制限を下げても既存ファイルは保持されます。',
+    'admin_storage_total'=>'保存背景容量（バイト）','admin_storage_active'=>'使用中の背景容量（バイト）','admin_storage_archived'=>'アーカイブ背景容量（バイト）',
+    'admin_storage_limit'=>'アカウントごとの制限（バイト）','admin_storage_unlimited'=>'無制限','admin_storage_over_limit'=>'現在の制限を超えています。既存ファイルは保持されます。','admin_storage_limits_link'=>'容量制限を変更',
 ];
