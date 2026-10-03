@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は末尾の最新記録から再開。新規Installer+全9Migrationは8089/8090各40成功。認証状態の背景追従を補修。次は初回WizardのPreset/library選択を接続して実UI検証し、docs/phase7-gate.mdの不足を照合。Phase7未完了、未確認を成功扱いにしない。
+1. Phase 7は末尾の最新記録から再開。初回案内Preset/libraryは日英/mobile保存・再開・Skipを確認済み。次は生成MP4の実ブラウザfile選択→Local Upload/IDB/reloadを確認し、docs/phase7-gate.mdでゲート判定。未確認を成功扱いにしない。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -545,3 +545,17 @@ docs/phase7-gate.mdへ§57〜67/87/120〜121と持越し§82の証拠と未確�
 JSは8082〜8086/8089/8090へ反映済み。既存config・ユーザーデータ・volumeを保持。新規UI操作なし。今回もPhase7途中保存、Phase8〜12未着手、Version1.0未完成。
 
 次に実行すること: onboardingのBackgroundステップにPreset/保存済みlibraryを接続し、選択・保存・Skip/Back・初回/再開とJA/EN/mobileを検証する。docs/phase7-gate.mdの未達を再照合してPhase7機能ゲートを判定。Admin codec警告はPhase9、環境依存の実OAuth/実OS/実ブラウザ認証は最終監査への留保を継続。
+
+## Phase 7 初回案内のプリセット・背景ライブラリ（2026-10-03）
+
+onboarding-coreに有効な背景候補を導出するonboardingBackgroundsを追加。3Presetと保存背景、normalize済み/保管除外/ID重複除外。BackgroundステップはTheme/Solid/libraryを選べ、libraryはPreset/保存済みimage/video等を選択。設定保存時に候補IDを再検査し、消えた/保管済み/不正な候補を拒否。library選択はbackgroundSelectedとmanual切替を同じsaveSettingsで保存し、既存の条件/ランダムで指定背景が別に切り替わらないようにする。背景本体/Blob/Cloud設定を変更しない。選択方法ごとにcolor/背景候補を表示、画像/動画追加は設定ライブラリでできるJA/EN案内を追加。DB/API/Migration変更なし。
+
+検証1: オンボーディング単体26と全JS27ファイル、変更JS構文成功。Preset/保存画像、保管/不正URL/duplicate除外、欠落ID拒否、手動切替、旧Theme/Solid/Skip関連Regressionを確認。候補取得は保存直前のstateを使い、候補未存在を成功扱いにしない。
+
+検証2: 製品8083の実UIでJA 3/8 Backgroundから森選択→保存→Backで森保持と実linear-gradient、夜明けへ未保存変更→Skip→Backで森を保持、Local upload retained選択→保存→Back→reloadで背景step/画像保持を確認。保管Weather背景が候補に出ず3Preset+有効libraryが見える。390pxでdocument375/scroll375/dialog358/image naturalWidth1、横はみ出しなし。英語へ変更して同じ背景step、Solid選択時color表示/library候補hiddenを確認。libraryへ戻しVideo playback verification選択→保存→Backで選択保持、mobile video0/fallback image naturalWidth1を確認。画像.test-output/phase7-onboarding-background-mobile.pngとphase7-onboarding-background-en.png、Git除外。最初のEN dialog待機は名称を誤りtimeout、実DOMでMake this your start pageを確認して操作継続。製品不具合ではない。通常JA/Local upload retained/手動へ戻しimage1/video0、onboardingの「あとで続ける」で閉じ、viewport reset、warn/error0、tab16 handoff保持。ブラウザ検証はゲストであり実OAuth成功の証拠にしない。
+
+検証3: 新規両DB8089/8090で翻訳key一致/基盤各39、PHP114構文成功。DB/API変更なし、直前全9Installer往復各40の証拠維持（今回は再実行なし）。git diff --check成功。JS/langを通常8082・背景8083/4・新規8089/90へ反映済み、他隔離環境は必要時に反映。config/既存背景・Blob/ユーザーデータ/volumes保持。
+
+docs/phase7-gate.mdでWizard持越しを確認済みへ更新、docs/spec-audit.mdの古いPhase7状態を最新証拠へ更新。Phase7の最終機能ゲートはまだ監査中、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 生成MP4のブラウザfilechooserから製品Local Upload UI→実IndexedDB保存→描画→reload→編集保持の経路を確認（file-uploads documentationを読む）。既存画像の証拠と動画URL/動画HTTP試験を区別する。必要な修正後にPhase7ゲート判定、環境依存未確認をPhase12監査へ追跡しPhase8へ進む。実OAuth/認証済み実UI/実OS位置許可/非表示復帰/巨大FFmpeg変換/実quota枯渇は未確認留保。

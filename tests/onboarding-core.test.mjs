@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {onboardingSteps,onboardingPosition,onboardingPatch} from '../public/assets/js/onboarding-core.js';
+import {onboardingSteps,onboardingPosition,onboardingPatch,onboardingBackgrounds} from '../public/assets/js/onboarding-core.js';
 assert.equal(onboardingSteps().length,8);assert.equal(onboardingSteps(true).length,7);
 assert.equal(onboardingSteps(true).includes('discord'),false);
 assert.equal(onboardingPosition({step:'ai'},onboardingSteps()),4);
@@ -17,4 +17,13 @@ assert.deepEqual(onboardingPatch('favorites',{favoriteDisplay:'card',webKey:'Shi
 assert.throws(()=>onboardingPatch('favorites',{favoriteDisplay:'card',webKey:'Control+Shift+A',aiKey:'Shift+Control+A'}));
 assert.throws(()=>onboardingPatch('favorites',{favoriteDisplay:'auto',webKey:'Control+Shift+H',aiKey:'Alt+Enter'}));
 assert.throws(()=>onboardingPatch('favorites',{favoriteDisplay:'auto',webKey:'Control+K',aiKey:'Alt+Enter'}));
-console.log('18 onboarding assertions passed.');
+const background={id:'image',name:'Saved image',type:'image',url:'https://example.test/image.png'};
+const choices=onboardingBackgrounds([background,{...background,id:'archive',deleted:true},{...background,id:'unsafe',url:'javascript:alert(1)'},background,{...background,id:'preset-night'}]);
+assert.deepEqual(choices.map(row=>row.id),['preset-night','preset-forest','preset-dawn','image']);
+assert.equal(onboardingBackgrounds(null).length,3);
+assert.deepEqual(onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'image'},{backgrounds:choices.map(row=>row.id)}),{backgroundMode:'library',backgroundSelected:'image',backgroundSwitch:'manual'});
+assert.deepEqual(onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'preset-forest'},{backgrounds:choices.map(row=>row.id)}),{backgroundMode:'library',backgroundSelected:'preset-forest',backgroundSwitch:'manual'});
+assert.throws(()=>onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'archive'},{backgrounds:choices.map(row=>row.id)}),/INVALID_INPUT/);
+assert.throws(()=>onboardingPatch('background',{backgroundMode:'library',backgroundSelected:'missing'}),/INVALID_INPUT/);
+assert.equal(choices[0].type,'gradient');assert.equal(background.url,'https://example.test/image.png');
+console.log('26 onboarding assertions passed.');

@@ -12,7 +12,7 @@
 | 4 | Auth §7–10/89/97/117 | 認証42/HTTP12/OAuth応答11/制限7と同時24プロセス・HTTP制限・両DB停止を検証。同期所有権接続済み。実Discord/認証済みブラウザは未確認でユーザー指定により留保 | 実認証の未確認を留保 |
 | 5 | Sync §31/46/60/84–88/117 | 版管理/原子的DB投影/JS・PHP項目マージ/初回3択/競合UI/適応同期/各CRUD・POST同期/競合APIを実装。新規両DBInstaller35、API52/同期17/投影34/期限削除9を検証。実HTTP2端末・履歴ON切替/削除・オフライン復帰・競合ルール共有も両DB検証済み。長文履歴14.4MBの保存/読込/競合解決を両DB実HTTPで確認。IndexedDBへ旧データを移行し長文300件+checkpoint/再読込/失敗時ACK保持/保存中編集/別タブ/所有権削除を検証。背景設定はPhase 7へ接続 | 同期機能ゲート検証済み（実OAuth留保） |
 | 6 | Appearance §37/53–56/68–82 | カテゴリmodal/Undo20/reset、テーマ/複数Custom/太陽時近似/フォント/Animation、検索欄Glass、時計/日付/挨拶基本表示を実装。JS appearance37/history19と既存回帰、両DB構文84/基盤39/sync17、ブラウザreset/Undo/Close/resize/mobile、Dark/Custom/font実読込、表示の保存、検索欄固定幅/高さ/透過/ぼかしを確認。時計/日付style・ヘッダーも実装し日英/再読込/390pxで確認。Google Font読込・架空地域の昼夜も確認。初回ウィザード18単体と日英/Skip/Back/Later/再開/完了/390px実UIも確認。docs/phase6-gate.mdで照合、実OS motion切替は最終監査へ留保 | 機能ゲート検証済み（実OAuth留保） |
-| 7 | Background §57–67/120–121 | 端末内メディアライブラリ・編集/保管/復元・動画/モバイル代替・手動/ランダム/時間切替を実装し実UI確認。11条件/AND OR/優先順位のコア41、同期保護28単体。アップロード検査と私有保存サービスを追加、両DB22単体成功（実HTTP受付は未確認）。Imagick→GD/FFmpeg実圧縮と最終サイズ計測17/16/12項目を専用環境で検証。008背景DB/認証CSRF API/実upload・streamと圧縮後容量を接続。API27/並列quota6、新規両DBInstaller35/全8Migration往復成功。Local Upload UI/背景ごとの同期/全条件編集/天気・地域/永久清掃が残る | 実装中 |
+| 7 | Background §57–67/120–121 | 全11条件/複合編集・実天気/地域UI・動画手動操作・単位背景同期/原子的Blob・中断receipt回復・競合ルール共有・孤立清掃を実装。両DB API55/2端末8group/500MiB実HTTP12/実圧縮quota8/圧縮HTTP15/孤立回収15。新規全9Migration/Installer各40、全PHP114/JS27。初回案内Preset/libraryも日英/mobile実UI確認。docs/phase7-gate.mdで証拠と留保を追跡 | 最終機能ゲート監査中 |
 | 8 | Palette §48–52 | Registry/全カテゴリ/ランキング/確認・確認省略設定が必要 | 未着手 |
 | 9 | Admin §90–100/118 | 管理権限、各管理機能、統計、90日ログ、監査、メンテが必要 | 未着手 |
 | 10 | Update §104–109 | GitHub/チャンネル/24h確認/検証/バックアップ/安全置換/DB/失敗復旧・手動Rollbackが必要 | 未着手 |

@@ -19,8 +19,8 @@
 | 競合ルール共有 (§87) | general settings.syncRules、owner照合、旧ルール昇格・削除後非復活、通信中保存保持、実2端末適用 | 機能確認済み |
 | 中断/削除失敗の孤立回収 | CLI dry-run/apply、24h grace、DB参照保持、uploadと共通lock、実別プロセス停止後回復、両DB各15 | 確認済み、定期実行は運用ホストで設定 |
 | Installer/Migration/前Phase Regression | 新規8089/8090で全9 up/0/down/Installer up/0各40、weather初期値、実weather各14、PHP114/基盤39、全JS27、同期HTTP各8 | 確認済み |
-| 初回Wizardの背景選択 (§82、Phase 6からの持越し) | 現状はTheme/Solidのみ。ライブラリやPresetの選択をまだ接続していない | 次に補修・検証 |
+| 初回Wizardの背景選択 (§82、Phase 6からの持越し) | Theme/Solid/library、Presetと有効な保存背景の選択。JAで森→保存→Back/Skip保持、保存済み画像→再読込再開、ENで動画選択とmobile代替。390px横はみ出しなし、全JS27/オンボーディング26単体 | 確認済み |
 
 仕様は永久削除ボタンを背景の必須操作として明記していない。保管は復元可能でfile/容量を保持する。孤立回収は保管背景のfileを消す代替操作にしない。
 
-次は初回案内のライブラリ/Preset選択を接続し、背景選択の製品UIとゲートを再確認する。環境依存の未確認事項はPhase 12監査で追跡し、主要未処理を残したままPhase 7を完了扱いにしない。
+次は生成MP4の実ブラウザfile選択からIndexedDB保存・再読込まで確認し、Phase 7の実装と検証範囲を確定する。環境依存の未確認事項はPhase 12監査で追跡し、主要未処理を残したままPhase 7を完了扱いにしない。
