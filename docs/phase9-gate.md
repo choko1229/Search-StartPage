@@ -14,7 +14,7 @@
 | Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBで24時間workerを起動し稼働/初回成功、実2cycle/期限整理/統計保持/二重起動拒否、失敗再試行の時系列試験 | 本番ホストは未配置、実DB障害からworker再試行を待つ試験と実Updater categoryの発生経路は未実装 |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |
 | Statistics 実操作 | localhost専用DBへWeb/AI/favorite/Palette操作を保存。通常UIから生成背景2件保存に対応するfeature background2を観測 | 実Discord認証の同期、実外部preset分類、未配信イベントの端末上のACK確認は未確認 |
-| Update Management | VERSIONは0.1.0-dev、仕様§104〜109の処理順と保護対象を確認 | 管理画面導線、GitHub Releases確認/各channel/通知/Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackは未実装。表示だけで完了にしない |
+| Update Management | VERSIONは0.1.0-dev、§104〜109を確認。Release取得/4channel選択/手動CLI基盤、両環境44項目、公開サンプル実API0件成功。対象source404を失敗として保持 | 対象repoのアクセス確認、管理画面/24h自動確認/通知/Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackは未実装。基盤のみで完了にしない |
 | DB / Regression | 独立MySQL8099/MariaDB8100で全16up/repeat/down/Installer各40、PHP180、管理者/認証/背景/同期等の回帰 | 新しいMigrationが増えたら新規環境で再確認 |
 
 ## 匿名統計の実ブラウザ証拠

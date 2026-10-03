@@ -13,4 +13,5 @@ return [
     'encryption_key' => '',
     'session' => ['name' => 'search_session', 'secure' => true, 'same_site' => 'Lax'],
     'ffmpeg_path' => '',
+    'updates' => ['repository' => 'choko1229/Search-StartPage', 'channel' => 'stable', 'custom_tag' => '', 'token' => ''],
 ];

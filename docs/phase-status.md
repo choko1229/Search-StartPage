@@ -1317,3 +1317,15 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 範囲: 開発環境の自動整理を実際に設定した。Windowsタスク/Codex automation/本番ホスト配置は行っていない。実DB停止からworkerの1h再試行を待つ試験、worker自動再起動の故障注入は未実行。手動CLIと既存保持仕様を維持し、定期workerの実Updater category発生経路は依然Phase10処理待ち。
 
 次に実行すること: Phase9の通常認証済み同期/地域編集とEN weather/upload停止、upload清掃故障を検証。Update Management導線と仕様104〜109の実処理の不足を解決し、Phase9ゲートの境界を確認して次Phaseへ進む。管理者実権限変更は明示承認待ちを維持。Glassブランド/account仕上げ、実OAuth/各browser/Extension/最終DoDも継続。全条件までGoal完了にしない。
+
+## Phase9 更新確認の共通基盤準備（2026-10-04）
+
+前ターン2936ecdはログ定期worker実装/検証により進捗。progress/status/git/spec104〜109/Phase9〜10からUpdate Management不足へ再開。Phase9進行中でゲート未達。Phase10の完了判定へ進めず、共通の更新確認基盤を準備した段階。10のDownload/Backup/Migration/Rollback、11〜12、Version1.0は未完成。
+
+実装: ReleaseCatalogで4channel検証、Stable正式SemVer/Beta（正式昇格含む）/Nightly・dev公開日/指定タグ完全一致の選択。draft除外、numeric prerelease/巨大数/metadataを含むSemVer順序。GitHubReleasesは固定GitHub HTTPS/証明書検証/redirect禁止/100件pagination20page/2MiB上限、HTTP/JSON/schema失敗を更新なしにしない。非公開repo用tokenはサーバー専用Authorizationだけ、header注入拒否。bin/check-updates.phpでVERSIONと候補比較、config.example updates初期Stable/既存git remote repo/空token。管理UI/24hcache/通知/更新本体は未実装。Migrationなし、config.php実値は変更/出力なし。公式GitHub API文書を確認、docs/update-check.mdへ出典・未確認範囲を記録。
+
+検証1: 両隔離PHPで新4ファイル/例configの構文成功。最終releases各44成功。draft/4channel/SemVer/JSON object null等拒否/巨大数/101件目/20page上限/4xx5xx302/secretヘッダー/URL秘密非混入をfixtureで確認。初回36後に認証/空object分類を追加して44再成功。
+検証2: 両DB基盤各40成功、Config/翻訳/CSRF/escape/例外秘密省略Regression。既存全16Installer証拠を維持、DB変更なし。既存ログworkerやapp/DBvolumeを再作成していない。存在しない探索pathは未読として実在bootstrap/サービスから確認した。
+検証3: 専用www-data実CLIで現在の更新元GitHub APIへ接続しUPDATE_SOURCE_NOT_FOUND（404）/exit1。リリース0件成功として扱わない。原因は非公開/不存在など未確定、更新元とアクセス設定をユーザーへ質問中。秘密はチャットで要求しない。公式公開サンプルoctocat/Hello-Worldで同実clientから0件/selected null/exit0、HTTPS/実JSON取得成功を確認。observerをcontainer /tmpから除去。対象の実認証/実リリース検証の成功には数えない。
+
+次に実行すること: 更新確認を管理者専用画面/API、CSRF付き手動確認、24hcache/管理者トップ通知へ接続し、対象repository回答・サーバー専用Token設定があれば実API再確認。Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackの処理へつなぐまでUpdate Management/Phase10は未完成。通常認証済み地域/同期・EN weather/upload・cleanup故障、管理者UI承認待ち、Glass仕上げ、OAuth/各browser/Extension/全DoD残件も維持。spec.md変更/stageなし、Goalを完了にしない。

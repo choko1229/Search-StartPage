@@ -1,0 +1,44 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/autoload.php';
+use App\Services\{ReleaseCatalog,GitHubReleases};
+if(PHP_SAPI!=='cli')exit(1);
+$count=0;$check=static function(bool $ok,string $name)use(&$count):void{if(!$ok)throw new RuntimeException($name);++$count;echo "PASS: $name\n";};
+$row=static fn(int $id,string $tag,bool $pre=false,bool $draft=false,string $date='2026-10-01T00:00:00Z')=>['id'=>$id,'tag_name'=>$tag,'prerelease'=>$pre,'draft'=>$draft,'published_at'=>$date];
+$releases=[$row(1,'v1.9.0'),$row(2,'v1.10.0'),$row(3,'v2.0.0-beta.2',true),$row(4,'v2.0.0-beta.11',true),$row(5,'v3.0.0',false,true),$row(6,'nightly-20261002',true,false,'2026-10-02T00:00:00Z'),$row(7,'nightly-20261003',true,false,'2026-10-03T00:00:00Z')];
+$check(ReleaseCatalog::select($releases)['id']===2,'stable uses numeric semantic order and excludes drafts/beta');
+$check(ReleaseCatalog::select($releases,'beta')['id']===4,'beta compares numeric prerelease identifiers and excludes nightly');
+$check(ReleaseCatalog::select([...$releases,$row(8,'v2.0.0')],'beta')['id']===8,'beta accepts newer stable promotion');
+$check(ReleaseCatalog::select($releases,'nightly')['id']===7,'nightly uses published time');
+$check(ReleaseCatalog::select($releases,'custom','v1.9.0')['id']===1,'custom exact tag');
+$check(ReleaseCatalog::select($releases,'custom','v3.0.0')===null,'custom cannot select draft');
+$check(ReleaseCatalog::select([])===null,'empty releases is distinct from a failure');
+$check(ReleaseCatalog::compare('v1.0.0+abc','1.0.0+def')===0,'build metadata does not change version order');
+$check(ReleaseCatalog::compare('1.0.0','1.0.0-rc.1')>0,'stable promotion is newer');
+$check(ReleaseCatalog::compare('1.0.0-alpha','1.0.0-alpha.1')<0,'longer prerelease ordering');
+$check(ReleaseCatalog::compare('1.0.0-2','1.0.0-alpha')<0,'numeric prerelease precedes text');
+$check(ReleaseCatalog::compare('999999999999999999999.0.0','999999999999999999998.0.0')>0,'large semantic numbers avoid integer overflow');
+foreach(['01.0.0','1.0.0-01','1.0.0-a..b','1.0.0+a..b','not-a-version'] as $tag)$check(ReleaseCatalog::compare($tag,'1.0.0')===null,'invalid semantic version '.$tag);
+$reject=static function(callable $action,string $code)use($check):void{try{$action();throw new LogicException('Unexpected success');}catch(App\Http\HttpException $error){$check($error->errorCode===$code,$code);}};
+foreach(['../repo','owner/../repo','https://evil.test/repo','owner/repo?token=x'] as $repo)$reject(fn()=>new GitHubReleases($repo),'INVALID_UPDATE_REPOSITORY');
+$reject(fn()=>ReleaseCatalog::channel('unknown'),'INVALID_UPDATE_CHANNEL');
+$reject(fn()=>ReleaseCatalog::channel('custom',"tag\r\nHeader: value"),'INVALID_UPDATE_CHANNEL');
+$reject(fn()=>ReleaseCatalog::select([$row(1,'v1.0.0',false,false,'2026-02-30T00:00:00Z')]),'INVALID_UPDATE_RELEASE');
+$reject(fn()=>ReleaseCatalog::select([['tag_name'=>'v1.0.0']]),'INVALID_UPDATE_RELEASE');
+$pages=0;$source=new GitHubReleases('owner/repo',function(string $url)use(&$pages,$row,$check):array{
+    $pages++;$check($url==='https://api.github.com/repos/owner/repo/releases?per_page=100&page='.$pages,'fixed GitHub URL page '.$pages);
+    return ['status'=>200,'body'=>json_encode($pages===1?array_map(fn($i)=>$row($i,'v1.0.0'),range(1,100)):[$row(101,'v2.0.0')])];
+});
+$check(ReleaseCatalog::select($source->releases())['id']===101&&$pages===2,'pagination finds newer release beyond first page');
+foreach([[404,'UPDATE_SOURCE_NOT_FOUND'],[429,'UPDATE_RATE_LIMITED'],[500,'UPDATE_SOURCE_UNAVAILABLE'],[302,'UPDATE_SOURCE_UNAVAILABLE']] as [$status,$code])$reject(fn()=>(new GitHubReleases('owner/repo',fn()=>['status'=>$status,'body'=>'[]']))->releases(),$code);
+foreach(['{bad','{}','null','true','{"message":"error"}',str_repeat('x',2*1024*1024+1)] as $body)$reject(fn()=>(new GitHubReleases('owner/repo',fn()=>['status'=>200,'body'=>$body]))->releases(),'INVALID_UPDATE_RELEASE');
+$reject(fn()=>(new GitHubReleases('owner/repo',fn()=>['status'=>200,'body'=>json_encode(array_fill(0,100,$row(1,'v1.0.0')))]))->releases(),'UPDATE_RELEASE_LIMIT');
+$reject(fn()=>new GitHubReleases('owner/repo',null,"token\r\nHeader: value"),'INVALID_UPDATE_CONFIGURATION');
+$reject(fn()=>(new GitHubReleases('owner/repo',fn()=>['status'=>403,'body'=>'{}','remaining'=>'0']))->releases(),'UPDATE_RATE_LIMITED');
+$auth=new GitHubReleases('owner/repo',function(string $url,array $headers)use($check):array{
+    $check(!str_contains($url,'generated-token-marker'),'token is absent from request URL');
+    $check(($headers['Authorization']??null)==='Bearer generated-token-marker','token uses server-side authorization header');
+    return ['status'=>200,'body'=>'[]'];
+},'generated-token-marker');
+$check($auth->releases()===[],'authenticated source response contains no token');
+echo "$count release checks passed.\n";
