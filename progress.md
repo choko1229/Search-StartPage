@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は末尾の最新記録から再開。実500MiB/圧縮+DB容量/背景ルール共有/孤立回収を実装検証済み。次はweather設定付き新規Installer・全9MigrationとPhase7機能ゲート監査。孤立回収はCLI運用手順あり、定期実行はホスト未登録。未確認を成功扱いにしない。
+1. Phase 7は末尾の最新記録から再開。新規Installer+全9Migrationは8089/8090各40成功。認証状態の背景追従を補修。次は初回WizardのPreset/library選択を接続して実UI検証し、docs/phase7-gate.mdの不足を照合。Phase7未完了、未確認を成功扱いにしない。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -527,3 +527,21 @@ BackgroundUpload::withOwnerLockを追加、製品Controllerのupload受取り前
 appは8082〜8086とcodec両DBへ反映。maintenance binは8082〜8086へ反映済み。docs/background.mdに毎日PHP workerと同じOSユーザーで実行する運用手順を追加。ホストの定期実行やCodex automationは自動登録していない。config/ユーザーファイル/既存DBvolumeを保持。今回もPhase7途中保存、8〜12未着手、Version1.0未完成。
 
 次に実行すること: weather設定付き新規Installerと全9Migrationを新しい隔離MySQL/MariaDBで再検証し、Phase7仕様/機能ゲートの不足を照合する。永久削除の仕様、実動画Upload/巨大圧縮/ブラウザ容量失敗の証拠範囲、ローカルとCloudの所有権・条件・JA/EN/responsiveを監査。実OS位置許可/動画非表示復帰/実OAuth/認証済み実UIは未確認留保、Admin圧縮不足警告はPhase9。
+
+## Phase 7 新規Installerゲートと認証状態の追従（2026-10-03）
+
+新規project search-phase7-gate-20261003を準備。MySQL8089/MariaDB8090、DB/config/storage独立volume、最新Dockerfile/PHP8.2。既存環境は保持。Compose定義.test-output/phase7-gate-compose.yamlはGit除外。ランダムDB秘密はprocess envだけ、終了時に元envへ復元し値は出力・記録しない。既存9MigrationのDB変更なし。
+
+検証1: tests/integration.phpにweather初期設定の確認を追加。両DB各40成功。空DB→全9Migration up→再up0→逆順down/空schema→Web Installerで全9up→再up0を確認。認証Secretなしの初期設定、setup/CSRF/session再生成/管理者予約/秘密非露出/HTML escape/私有パス拒否/再導入拒否を維持。新Installer weather.enabled=true/mode=non-commercial/api_key空を実設定で確認。
+
+監査でbackground.jsがLogin Stateを初回だけ取得する不足を発見。同じページで認証が切り替わった場合に追従するため、sync-api.jsのsyncUserが成功/401の確定状態変化だけsearch-auth-changeを通知し、背景が選択を再判定。重複通知なし、503等では確認済み状態を変更しない。背景library表示中は60秒ごとに確認、表示復帰で再確認、通信重複なし。一般/背景同期OFFでも背景の状態を確認できる。server側認証/owner判定は従来のまま、イベントで権限を設定しない。実OAuth bypassなし。新規sync-auth-state.test.mjsを追加。
+
+検証2: 全JS単体27ファイル/変更JS構文成功。新単体でログイン/ログアウト/別account、重複通知なし/失敗時維持を確認。既存MySQL8083/MariaDB8084の製品JS実HTTP2端末各8グループ成功。今回は認証切替後の製品背景描画を実ブラウザで操作していない（単体/同期実APIと区別）。
+
+検証3: 新規両DBで全PHP114ファイル構文/基盤各39・翻訳一致成功。tests/weather-http.mjsへ専用8089/8090を追加し実HTTP各14成功。新規configから公開都市の実Open-Meteo/CSRF403/Validation422/GET405/製品JS背景選択を確認。実現在地を不使用。git diff --check成功。
+
+docs/phase7-gate.mdへ§57〜67/87/120〜121と持越し§82の証拠と未確認を表に整理。主な背景機能は確認済みだが、初回WizardがTheme/Solidだけで背景ライブラリ/Preset選択が未接続。Phase6持越しを補修してからPhase7完了判定へ進む。永久削除ボタンは必須仕様として明記されず、保管背景のfile/容量保持を維持する。実ブラウザ動画file選択/実容量枯渇/巨大FFmpeg変換/実非表示復帰/実OS位置許可/実OAuth/認証済みUIを成功扱いにしない。
+
+JSは8082〜8086/8089/8090へ反映済み。既存config・ユーザーデータ・volumeを保持。新規UI操作なし。今回もPhase7途中保存、Phase8〜12未着手、Version1.0未完成。
+
+次に実行すること: onboardingのBackgroundステップにPreset/保存済みlibraryを接続し、選択・保存・Skip/Back・初回/再開とJA/EN/mobileを検証する。docs/phase7-gate.mdの未達を再照合してPhase7機能ゲートを判定。Admin codec警告はPhase9、環境依存の実OAuth/実OS/実ブラウザ認証は最終監査への留保を継続。

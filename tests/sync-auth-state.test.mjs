@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {syncUser} from '../public/assets/js/sync-api.js';
+const events=[];
+globalThis.window={dispatchEvent:event=>events.push(event)};
+globalThis.CustomEvent=class {constructor(type,options){this.type=type;this.detail=options.detail;}};
+let status=200,user={id:1,discord_username:'Test'};
+globalThis.fetch=async()=>({status,json:async()=>({data:{user}})});
+assert.equal((await syncUser()).id,1);
+assert.deepEqual(events[0].detail,{userId:'1',authenticated:true});assert.equal(events[0].type,'search-auth-change');
+await syncUser();assert.equal(events.length,1);
+status=500;await assert.rejects(syncUser(),/sync_auth_unavailable/);assert.equal(events.length,1);
+status=401;assert.equal(await syncUser(),null);assert.deepEqual(events.at(-1).detail,{userId:null,authenticated:false});
+await syncUser();assert.equal(events.length,2);
+status=200;user={id:2};await syncUser();assert.deepEqual(events.at(-1).detail,{userId:'2',authenticated:true});
+user={id:3};await syncUser();assert.deepEqual(events.at(-1).detail,{userId:'3',authenticated:true});
+user=null;await assert.rejects(syncUser(),/sync_auth_unavailable/);assert.equal(events.length,4);
+console.log('Observed auth state: login, logout, account switch, no repeated events, and failure preserves confirmed state passed.');

@@ -87,9 +87,19 @@ export function initializeBackground() {
     playbackButton.addEventListener('click',()=>{playbackStatus.textContent='';playback.toggle();});
     const weather=new WeatherContext({changed:()=>apply(true)});
     function clearMedia(){mediaGeneration++;playback.clear();video=null;media.replaceChildren();if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}}
-    syncUser().then(user=>{loggedIn=Boolean(user);apply(true);}).catch(()=>{});
+    let authCheck=null,lastAuthCheck=0;
+    function refreshAuth(){
+        if(authCheck)return;lastAuthCheck=Date.now();
+        authCheck=syncUser().then(user=>{const next=Boolean(user);if(next!==loggedIn){loggedIn=next;apply(true);}}).catch(()=>{}).finally(()=>{authCheck=null;});
+    }
+    refreshAuth();
+    window.addEventListener('search-auth-change',event=>{
+        const next=event.detail?.authenticated===true;
+        if(next!==loggedIn){loggedIn=next;apply(true);}
+    });
     async function apply(force=false){
         const now=Date.now(),settings=get('settings',{});layer.hidden=settings.backgroundMode!=='library';if(layer.hidden){clearMedia();current=null;signature='';return;}
+        if(!document.hidden&&now-lastAuthCheck>=60000)refreshAuth();
         if(!force && current && settings.backgroundSwitch==='random' && now-lastSwitch<bounded(settings.backgroundInterval,300,10,86400)*1000)return;
         const rows=[...backgroundPresets,...storedBackgrounds()];
         const width=innerWidth,context={now:new Date(),loggedIn,width,height:innerHeight,device:width<=600?'mobile':width<=1024?'tablet':'desktop',...weather.read(settings.themeRegion,settings.backgroundSwitch==='rules' && needsWeather(rows))};
@@ -111,6 +121,6 @@ export function initializeBackground() {
             if(type==='video'){video=element;element.muted=selected.mute;element.loop=selected.loop;element.playbackRate=selected.speed;playback.attach(element,selected,document.hidden);}
         }
     }
-    window.addEventListener('data-change',event=>{if(['settings','backgrounds'].includes(event.detail)){renderLibrary();apply(true);}});window.addEventListener('resize',()=>apply(true));document.addEventListener('visibilitychange',()=>apply(true));
+    window.addEventListener('data-change',event=>{if(['settings','backgrounds'].includes(event.detail)){renderLibrary();apply(true);}});window.addEventListener('resize',()=>apply(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden&&setting('backgroundMode','theme')==='library')refreshAuth();apply(true);});
     setInterval(()=>{if(!document.hidden)apply();},10000);renderLibrary();apply(true);initializeBackgroundSync(panel);
 }

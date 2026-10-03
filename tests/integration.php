@@ -123,6 +123,7 @@ $check($status === 200 && str_contains($body, 'Core installation is complete'), 
 $check(is_file($root . '/config/config.php') && !is_file($root . '/config/install.key'), 'private config created and setup key removed');
 $stored = require $root . '/config/config.php';
 $check($stored['installed'] === true && strlen($stored['encryption_key']) === 64, 'installed configuration and encryption key');
+$check(($stored['weather']['enabled']??null)===true&&($stored['weather']['mode']??null)==='non-commercial'&&($stored['weather']['api_key']??null)==='', 'installer writes optional weather defaults without credentials');
 [$status, $body] = $request('GET', '/api/health');
 $check($status === 200 && json_decode($body, true)['data']['status'] === 'ok', 'installed DB health');
 [$status, $body] = $request('GET', '/');

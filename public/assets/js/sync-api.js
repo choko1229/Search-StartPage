@@ -2,11 +2,20 @@ export async function request(url, options={}) {
     const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000),...options});
     const payload=await response.json();return {status:response.status,data:payload.data};
 }
+let observedUserId;
+function observeUser(user) {
+    const userId=user?String(user.id):null;
+    if(userId!==observedUserId){
+        observedUserId=userId;
+        if(typeof window!=='undefined'&&typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('search-auth-change',{detail:{userId,authenticated:user!==null}}));
+    }
+    return user;
+}
 export async function syncUser() {
     const result=await request('/api/user');
-    if(result.status===401)return null;
+    if(result.status===401)return observeUser(null);
     if(result.status!==200 || !result.data?.user)throw new Error('sync_auth_unavailable');
-    return result.data.user;
+    return observeUser(result.data.user);
 }
 export async function writeSync(version, document, userId) {
     const csrf=await request('/api/csrf');
