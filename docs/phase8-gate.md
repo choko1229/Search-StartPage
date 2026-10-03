@@ -65,3 +65,19 @@ Phase8未完了、Phase9〜12未着手、Version1.0未完成。実OAuth/認証�
 Phase8未完了、Phase9〜12未着手、Version1.0未完成。未確認: Palette履歴再検索、永久削除・履歴消去成功/失敗の製品adapter、実拡張登録、製品IndexedDB回復、実読み上げ/全browser。実OAuth等留保継続。
 
 次に実行すること: 既存UIを使って隔離localhost専用検索先と履歴を作りPalette再検索を確認。新機能の登録/解除を専用プレビューで実画面検証。履歴消去/favorite削除と保存故障を製品adapter試験で確認し、実データをUIから無確認で永久削除しない。残るPhase8完了条件7項目を監査してゲート判定する。
+
+## Phase8 拡張登録・失敗表示と履歴再検索（2026-10-03）
+
+前のGoalターンは確認同期4×両DB/実UI/Esc補修cebf14cによりprogress。progress/status/gitと現ソースを確認して再開。
+
+tests/palette-extension-preview.php/mjsを追加。SEARCH_TEST_MODE=1のみ、テスト環境public/_testへ手動配置する方式で本番routesに未登録。既存製品画面・paletteCommands登録口・IndexedDBを利用し、生成コマンドの登録/解除/成功/例外、localhost専用provider準備をUI操作で検証。通常8083と別origin8089、秘密/本番DB/実OAuthなし。8089 app/public/langへ最新ソース反映、config/storage/volume保持。
+
+検証1: 実8089 JAゲストtab19で登録→Palette検索、文字列img/onerrorは文字として表示、取消では成功/usage0、再実行で成功1/保存usage1。例外注入後に実行すると失敗status/入力focus、成功1/usage1維持、Esc後解除→検索0件。console warn/error0、画像.test-output/phase8-extension-failure.png保存・目視確認。試験callbackの故障であり容量故障は未確認。
+
+検証2: テストUIからlocalhost providerを追加（既存provider保持、saveHistory ON/externalSuggest OFF）。検索先を実UIで選択し生成文字列Palette history verification 20261003を検索、専用preview?q=...へ実遷移。PaletteのHistoryカテゴリで検索→Enter（確認なし）→同localhostへ再遷移、実履歴dialogに同query2件を確認。画像.test-output/phase8-history-research.png保存・目視確認、console warn/error0。個人データ/外部検索サービス送信なし、生成履歴は保持、実消去未実施。
+
+検証3: 新preview PHP構文/JS構文、registry/executor回帰、両新規DB基盤39、git diff --check成功。製品コード/DB/API/Migration変更なし、9Migration Installer40/全JS31の既存証拠維持（今回再実行なし）。通常8083/tab18設定ショートカットは保持、tab19は履歴dialog、両tab handoff。
+
+Phase8未完了、9〜12未着手、Version1.0未完成。拡張登録/履歴再検索の未確認は解消。残る主要検証は履歴消去・favorite削除の製品adapter成功/失敗、Paletteの保存失敗、ログアウト回復adapterの実IndexedDB。実OAuth/認証済みUI・全browser/実読み上げは留保。
+
+次に実行すること: 製品登録をNode/専用IndexedDBで検証できる境界へ分離し、実callbackから履歴/favoriteの原子削除成功・保存失敗の保持を確認。通常ユーザーデータをUIから永久削除せず、隔離専用データで検証。Phase8完了7項目と添付仕様を再照合し、残る実装不足を修正して機能ゲート判定。
