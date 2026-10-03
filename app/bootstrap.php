@@ -26,6 +26,13 @@ $core = new CoreController($config, $view);
 $installer = new InstallerController(new InstallationService($root), new EnvironmentCheck($root), $view, new FileLogger($root . '/storage/logs'));
 $router = new Router();
 if ($config->get('installed')) {
+    $policyState=new App\Services\PolicyState($root.'/storage/policy');
+    $resolvePolicy=static function()use($policyState,$config):array {
+        return App\Services\SitePolicy::effective($policyState->resolve(static function()use($config):array {
+            try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            return (new App\Repositories\SitePolicyRepository($pdo))->read()['policy'];
+        }),$config);
+    };
     $maintenanceSignal=new App\Services\MaintenanceState($root.'/storage/runtime');
     $adminContext = null;
     $resolveAdmin = static function () use (&$adminContext, $config,$maintenanceSignal): array {
@@ -55,6 +62,18 @@ if ($config->get('installed')) {
     $router->add('POST','/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
     $router->add('GET','/api/admin/maintenance',$adminHandler('maintenance'),[$adminMiddleware]);
     $router->add('POST','/api/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
+    $policyHandler=static function(string $method)use($resolveAdmin,$config,$policyState,$view):Closure {
+        return static function(Request $request)use($resolveAdmin,$config,$policyState,$view,$method):App\Http\Response {
+            [$auth,,,$audit]=$resolveAdmin();
+            try{$pdo=App\Database\Database::connect($config->get('database'));}catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
+            return (new App\Controllers\AdminPolicyController(new App\Repositories\SitePolicyRepository($pdo),$policyState,$auth,$audit,$view,$config))->$method($request);
+        };
+    };
+    foreach(['/admin/policy','/api/admin/policy'] as $path){
+        $router->add('GET',$path,$policyHandler('read'),[$adminMiddleware]);
+        $router->add('POST',$path,$policyHandler('update'),[$adminMiddleware,new Csrf()]);
+    }
+    $router->add('GET','/api/site-policy',static fn(Request $request):App\Http\Response=>App\Http\Response::json(['flags'=>$resolvePolicy()['flags']]));
     $logHandler=static function(bool $auditOnly) use($resolveAdmin,$config,$view,$root):Closure {
         return static function(Request $request) use($resolveAdmin,$config,$view,$root,$auditOnly):App\Http\Response {
             [,,,$audit]=$resolveAdmin();
@@ -84,8 +103,10 @@ if ($config->get('installed')) {
             return $account->$method($request, $params);
         };
     };
-    $loginLimit = new App\Middleware\LoginRateLimit($root . '/storage/rate-limits',
-        (int)$config->get('login_rate_limit.attempts', 20), (int)$config->get('login_rate_limit.window_seconds', 60));
+    $loginLimit=static function(Request $request,callable $next)use($resolvePolicy,$root):App\Http\Response {
+        $limits=$resolvePolicy()['limits'];
+        return (new App\Middleware\LoginRateLimit($root.'/storage/rate-limits',$limits['login_attempts'],$limits['login_window_seconds']))($request,$next);
+    };
     $router->add('GET', '/account', $handler('account'));
     $router->add('POST', '/auth/discord', $handler('start'), [$loginLimit, new Csrf()]);
     $router->add('GET', '/auth/discord/callback', $handler('callback'), [$loginLimit]);
@@ -131,7 +152,9 @@ if ($config->get('installed')) {
             try{$pdo=App\Database\Database::connect($config->get('database'));}
             catch(PDOException){throw new App\Http\HttpException(503,'DATABASE_UNAVAILABLE');}
             $auth=new App\Auth\Auth($config,new App\Repositories\AuthRepository($pdo));$auth->restore();
-            $controller=new App\Controllers\BackgroundController($auth,new App\Repositories\BackgroundRepository($pdo,max(0,(int)$config->get('backgrounds.max_bytes',0))),new App\Services\BackgroundUpload($root));
+            $policyRepository=new App\Repositories\SitePolicyRepository($pdo);
+            $limitResolver=static fn(bool $lock=false):int=>App\Services\SitePolicy::effective($policyRepository->read($lock)['policy'],$config)['limits']['background_max_bytes'];
+            $controller=new App\Controllers\BackgroundController($auth,new App\Repositories\BackgroundRepository($pdo,0,$limitResolver),new App\Services\BackgroundUpload($root));
             return $controller->$method($request,$params);
         };
     };
@@ -144,7 +167,7 @@ if ($config->get('installed')) {
     $router->add('DELETE','/api/backgrounds/{id}',$backgroundHandler('delete'),[new Csrf()]);
     $router->add('GET','/api/backgrounds/{id}/file',$backgroundHandler('file'));
     $weather = new App\Controllers\WeatherController(new App\Services\WeatherService($config->get('weather', [])), new App\Services\WeatherCache($root . '/storage/weather'));
-    $router->add('POST', '/api/weather', $weather->current(...), [new Csrf(), new App\Middleware\LoginRateLimit($root . '/storage/rate-limits/weather', 30, 60)]);
+    $router->add('POST', '/api/weather', $weather->current(...), [new Csrf()]);
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
 $router->add('GET', '/', $core->home(...), [$optionalAuth]);
@@ -158,7 +181,10 @@ $router->add('POST', '/installer', $installer->handle(...), [new Csrf()]);
 // Apply the full stop before parsing JSON or reaching route middleware.
 // Malformed mutation bodies must not expose a normal API during maintenance.
 $request=new Request($_SERVER['REQUEST_METHOD'] ?? 'GET',parse_url($_SERVER['REQUEST_URI'] ?? '/',PHP_URL_PATH) ?: '/');
-$dispatch=static fn(Request $request):App\Http\Response=>$router->dispatch(Request::capture());
+$dispatch=static function(Request $request)use($router,$config,&$resolvePolicy):App\Http\Response {
+    $next=static fn(Request $request):App\Http\Response=>$router->dispatch(Request::capture());
+    return $config->get('installed') ? (new App\Middleware\FeatureFlags($resolvePolicy))($request,$next) : $next($request);
+};
 if ($config->get('installed') && $maintenanceSignal->active()) {
     [,,$maintenanceSettings]=$resolveAdmin();
     (new App\Middleware\Maintenance($maintenanceSettings,$resolveAdmin,$view,$maintenanceSignal,$translator))($request,$dispatch)->send();

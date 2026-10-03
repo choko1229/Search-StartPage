@@ -10,6 +10,7 @@ import {syncInterval} from './sync-session.js';
 import {equal} from './sync-core.js';
 import {prepareUpload,clearUpload,uploadGuard} from './background-upload-intent.js';
 import {t,node} from './i18n.js';
+import {requireFeatures} from './site-policy.js';
 export function initializeBackgroundSync(panel) {
     const status=node('p',t('sync_ready'),{role:'status','aria-live':'polite'}),button=node('button',t('sync_now'),{type:'button',class:'secondary'});
     panel.append(button,status);let timer,applying=false,lastActivity=Date.now(),rerun=false;
@@ -43,7 +44,7 @@ export function initializeBackgroundSync(panel) {
         if(session.busy){rerun=true;return;}if(session.paused)return;
         if(!setting('syncEnabled',true)){status.textContent=t('sync_disabled');return;}
         button.disabled=true;status.textContent=t('sync_working');
-        try{await flush();await session.run();}catch{status.textContent=t('sync_failed');}
+        try{await requireFeatures(['cloud_sync']);await flush();await session.run();}catch(error){status.textContent=t(error.message==='FEATURE_DISABLED'?'sync_site_disabled':'sync_failed');}
         finally{button.disabled=false;const delay=rerun?250:syncInterval(Date.now()-lastActivity);rerun=false;if(!session.paused)schedule(delay);}
     }
     button.addEventListener('click',()=>{session.paused=false;schedule(0);});

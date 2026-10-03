@@ -1,6 +1,8 @@
 export async function request(url, options={}) {
     const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000),...options});
-    const payload=await response.json();return {status:response.status,data:payload.data};
+    const payload=await response.json();
+    if(payload.error?.code==='FEATURE_DISABLED')throw new Error('FEATURE_DISABLED');
+    return {status:response.status,data:payload.data};
 }
 let observedUserId;
 function observeUser(user) {

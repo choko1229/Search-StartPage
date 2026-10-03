@@ -2,6 +2,11 @@
 declare(strict_types=1);
 
 return [
+    'FEATURE_DISABLED'=>'この機能は現在無効です。','admin_policy'=>'機能切替・制限','admin_flags'=>'機能切替','admin_limits'=>'制限',
+    'policy_enabled'=>'有効','policy_disabled'=>'無効','policy_cloud_sync'=>'クラウド同期','policy_background_uploads'=>'クラウド背景アップロード',
+    'policy_weather'=>'天気','policy_external_suggestions'=>'外部検索候補','policy_favorite_metadata'=>'お気に入りのサイト情報取得',
+    'policy_background_max_bytes'=>'ユーザーごとの背景容量上限（バイト、0は無制限）','policy_login_attempts'=>'ログイン試行回数','policy_login_window_seconds'=>'ログイン制限の期間（秒）',
+    'policy_limits_help'=>'空欄は導入時の設定を使います。背景の画像25MB・動画500MBの上限は維持されます。上限を下げても既存ファイルは削除しません。',
     'admin_logs'=>'ログ','admin_audit_logs'=>'監査ログ','admin_log_retention'=>'ログは90日間保持します。日時はUTCです。',
     'admin_log_type'=>'種類','admin_log_from'=>'開始日（UTC）','admin_log_to'=>'終了日（UTC）','admin_log_user_id'=>'ユーザーID',
     'admin_log_error_code'=>'エラーコード','admin_log_q'=>'キーワード','admin_no_logs'=>'該当するログはありません。',
@@ -111,6 +116,7 @@ return [
     'sync_enabled'=>'クラウド同期を利用する', 'sync_history'=>'検索履歴も同期する',
     'sync_disabled'=>'同期はOFFです', 'sync_signed_out'=>'同期にはログインが必要です',
     'sync_working'=>'同期中…', 'sync_synced'=>'同期しました', 'sync_failed'=>'同期できませんでした。端末の変更は保持しています。',
+    'sync_site_disabled'=>'管理者がこのクラウド機能を停止しています。端末の変更は保持し、復帰後に再試行します。',
     'sync_initial_title'=>'最初の同期', 'sync_initial_help'=>'端末とクラウドの両方にデータがあります。利用するデータを選んでください。選んだデータでもう一方を置き換えます。あとで選ぶ場合は同期を保留します。',
     'sync_local'=>'端末のデータ', 'sync_cloud'=>'クラウドのデータ', 'sync_later'=>'あとで',
     'sync_conflicts'=>'変更が競合しています', 'sync_previous'=>'前回のデータ', 'sync_deleted'=>'削除済み',

@@ -14,7 +14,7 @@
 | 6 | Appearance | 機能ゲート検証済み（環境依存の実確認は留保） |
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
-| 9 | Admin | 進行中（権限・ダッシュボード・ユーザー/容量一覧・メンテナンス・ログ閲覧/保持を実装） |
+| 9 | Admin | 進行中（管理基盤・一覧・メンテナンス・ログ収集/保持・機能制御/動的制限を実装、残る管理機能とUI検証を継続） |
 | 10 | Updater | 未着手 |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
@@ -1018,3 +1018,21 @@ ErrorHandler（PHP warning/exception/fatal handler）、Response.send（例外�
 Phase9進行中、10〜12未着手、Version1.0未完成。PHP/API/OAuth/Sync/Securityの収集経路は接続・検証済み。Updater分類は単体のみで実Updater未実装、Phase10で実経路検証する。管理auditはmaintenanceだけ、残る管理操作と連動が必要。OS定期cleanup・実管理ブラウザUI/mobile/console・実OAuth等は未確認。
 
 次に実行すること: 最新8093/8094を使いFeature Flags/LimitsのDB設定と監査付き更新API/日英UIを実装する。flagは表示だけでなくserver APIの権限/可否へ接続し、容量制限は既存BackgroundRepositoryのquota/同時uploadを守って動的設定へ接続。Presets/anonymous Statistics/Privacy/管理者・容量操作/Update導線と実UIを残るPhase9ゲートへ接続。最終Phase9条件を監査してからPhase10へ進む。管理UI試験にはtest-mode専用の通常token fixtureを用い、実Discord OAuth成功の証拠と混同しない。
+
+## Phase9 機能制御・動的制限と同期停止（2026-10-03）
+
+前のGoalターンは状態表の報告のみでno progress。progress/status/gitを確認し、既存未コミット実装から再開。
+
+実装: 013_site_policyで5機能フラグと背景容量/ログイン回数/時間窓を保存。nullはconfigを継承。AdminPolicyController/View、SitePolicyRepository/PolicyState、GET/POST /admin/policy・/api/admin/policy、公開flagsのみ/api/site-policy。DB権限/CSRF/validation/version409、設定とSITE_POLICY_CHANGED監査の同一transaction、private snapshot排他・失効・再取得。FeatureFlagsは入力解析前にserver APIを停止し、既存私有file取得は認証・owner検証付きで継続。BackgroundRepositoryはpolicy共有lock→owner lockで動的quotaを確認し、上限引下げでも既存file・非増加編集を保持。背景総容量0は無制限、個別25MiB/500MiBは維持。spec97に合わせweatherの一律回数制限を外しloginだけ動的制限。
+
+追加: site-policy.jsの厳密bool判定と最新flags確認を設定/背景同期の前へ接続。停止応答FEATURE_DISABLEDを明示的に伝播し、JA/EN理由表示。データ/所有者/背景intentを削除せず定期再試行。SyncSessionの403は元からログアウトへ接続していないことを監査。同期以外の各機能停止表示、accountページ専用表示、実UIは未完了。
+
+検証1: 専用MySQL8093/MariaDB8094でpolicy最終各29成功（権限/CSRF/CAS/全flags/監査/容量/実OAuth route login制限）。動的quota同時2writer各6成功。013各1適用→再実行0は先行実装時に確認。最終更新後の両DB基盤39/PHP154構文成功。全13新規Installer往復は未実行、全12 Installer40の既存証拠と区別。
+
+検証2: Node policy12、sync session37、background transport/session/intent/recoveryの回帰成功、変更5JS構文成功。停止→復帰/不正flags/503とAUTH_REQUIREDとの区別はmock transport試験、実ブラウザ停止UIの証明ではない。先行backend検証のadmin64/maintenance62/auth43/background-api56両DB成功は既存証拠維持、今回それら全体の再実行なし。
+
+検証3: tests/docker.ps1にpolicyとdynamic quotaを追加。git diff --check成功。最初のcopy先を/var/www/htmlと誤り、実WORKDIR /var/www/appをDockerfileで確認して正しいpublic/lang/testsへ再反映、site-policy.jsとJA keyの配置を確認後両DBを再検証した。誤った配置の結果を最終反映の証明にしない。config/storage/DBvolume/通常ユーザーデータ保持。docs/admin-policy.mdを追加。実管理ブラウザ/mobile/Console、全browser、実Discord OAuth、OS定期cleanupは未確認。
+
+Phase9進行中、10〜12未着手、Version1.0未完成。機能・制限のserver管理と同期停止処理は実装済み、全Phase9の完了を意味しない。
+
+次に実行すること: docs/admin-policy.mdとspec90〜100/118に沿い、天気/候補/metadata/背景uploadの停止表示とaccount専用表示を接続し実日英管理UI/mobile/Consoleを検証。全13Migration Installer往復。Presets、匿名Statistics/Privacy、管理者追加/解除/最後の管理者保護、容量操作、Update導線を順に実装。Phase9機能ゲート確定前にPhase10へ進まない。既存browser2/tab18(account観測timeout)/19/20は未操作、存在を確認して再利用する。

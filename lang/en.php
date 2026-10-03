@@ -2,6 +2,11 @@
 declare(strict_types=1);
 
 return [
+    'FEATURE_DISABLED'=>'This feature is currently disabled.','admin_policy'=>'Features and limits','admin_flags'=>'Feature flags','admin_limits'=>'Limits',
+    'policy_enabled'=>'Enabled','policy_disabled'=>'Disabled','policy_cloud_sync'=>'Cloud sync','policy_background_uploads'=>'Cloud background uploads',
+    'policy_weather'=>'Weather','policy_external_suggestions'=>'External suggestions','policy_favorite_metadata'=>'Favorite site metadata',
+    'policy_background_max_bytes'=>'Background bytes per user (0 means unlimited)','policy_login_attempts'=>'Login attempts','policy_login_window_seconds'=>'Login window (seconds)',
+    'policy_limits_help'=>'Blank fields use installation settings. The 25MB image and 500MB video limits remain. Lowering a limit does not delete existing files.',
     'admin_logs'=>'Logs','admin_audit_logs'=>'Audit logs','admin_log_retention'=>'Logs are retained for 90 days. Dates use UTC.',
     'admin_log_type'=>'Type','admin_log_from'=>'From (UTC)','admin_log_to'=>'To (UTC)','admin_log_user_id'=>'User ID',
     'admin_log_error_code'=>'Error code','admin_log_q'=>'Keyword','admin_no_logs'=>'No matching logs.',
@@ -111,6 +116,7 @@ return [
     'sync_enabled'=>'Enable cloud sync', 'sync_history'=>'Sync search history',
     'sync_disabled'=>'Sync is off', 'sync_signed_out'=>'Sign in to sync',
     'sync_working'=>'Syncing…', 'sync_synced'=>'Synced', 'sync_failed'=>'Sync failed. Your changes remain on this device.',
+    'sync_site_disabled'=>'An administrator has disabled this cloud feature. Your device changes are kept and will be retried when it returns.',
     'sync_initial_title'=>'First sync', 'sync_initial_help'=>'This device and the cloud both contain data. Choose which data to use. It will replace the data on the other side. Choose Later to postpone syncing.',
     'sync_local'=>'Device data', 'sync_cloud'=>'Cloud data', 'sync_later'=>'Later',
     'sync_conflicts'=>'Changes conflict', 'sync_previous'=>'Previous data', 'sync_deleted'=>'Deleted',

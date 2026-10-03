@@ -6,7 +6,8 @@ use App\Http\HttpException;
 
 final class BackgroundRepository
 {
-    public function __construct(private readonly PDO $pdo,private readonly int $limitBytes=0) {}
+    public function __construct(private readonly PDO $pdo,private readonly int $limitBytes=0,private readonly ?\Closure $limitResolver=null) {}
+    private function limit(bool $lock=false): int {return $this->limitResolver ? ($this->limitResolver)($lock) : $this->limitBytes;}
     public function list(int $user): array
     {
         $statement=$this->pdo->prepare('SELECT * FROM backgrounds WHERE user_id=? ORDER BY created_at,id');
@@ -20,7 +21,7 @@ final class BackgroundRepository
     public function usage(int $user): array
     {
         $statement=$this->pdo->prepare('SELECT COALESCE(SUM(file_size),0) FROM backgrounds WHERE user_id=?');$statement->execute([$user]);
-        return ['used_bytes'=>(int)$statement->fetchColumn(),'limit_bytes'=>$this->limitBytes>0?$this->limitBytes:null];
+        $limit=$this->limit();return ['used_bytes'=>(int)$statement->fetchColumn(),'limit_bytes'=>$limit>0?$limit:null];
     }
     public function uploadReceipt(int $user,string $requestId,?string $fingerprint=null): ?array
     {
@@ -34,6 +35,8 @@ final class BackgroundRepository
     {
         $this->pdo->beginTransaction();
         try {
+            // Policy precedes owner in the lock order, matching admin updates.
+            $limit=$this->limit(true);
             // The owner row serializes file quota and metadata writes, including the first upload.
             $lock=$this->pdo->prepare('SELECT id FROM users WHERE id=? FOR UPDATE');$lock->execute([$user]);
             if(!$lock->fetchColumn())throw new HttpException(401,'AUTH_REQUIRED');
@@ -48,8 +51,9 @@ final class BackgroundRepository
             $size=$clearFile?0:($file['bytes']??($before['file_size']??0));
             if(!is_int($size))$size=(int)$size;
             if($size<0||$size>524288000)throw new HttpException(422,'INVALID_BACKGROUND');
-            $usage=$this->usage($user)['used_bytes']-(int)($before['file_size']??0)+$size;
-            if($this->limitBytes>0 && $usage>$this->limitBytes)throw new HttpException(413,'BACKGROUND_QUOTA_EXCEEDED');
+            $used=$this->usage($user)['used_bytes'];
+            $usage=$used-(int)($before['file_size']??0)+$size;
+            if($limit>0 && $usage>$limit && $usage>$used)throw new HttpException(413,'BACKGROUND_QUOTA_EXCEEDED');
             $settings=json_encode($item['settings'],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
             $filename=$clearFile?null:($file['filename']??($before['file_path']??null));
             if($filename!==null && !preg_match('/^[a-f0-9]{48}\.(jpg|png|gif|webp|avif|mp4|webm)$/D',$filename))throw new HttpException(422,'INVALID_BACKGROUND');

@@ -8,6 +8,7 @@ async function json(url,options={}) {
     const response=await fetch(url,{credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(15000),...options});
     let payload;try{payload=await response.json();}catch{throw new Error('BACKGROUND_RESPONSE_INVALID');}
     if(!payload||typeof payload!=='object'||typeof payload.success!=='boolean')throw new Error('BACKGROUND_RESPONSE_INVALID');
+    if(payload.error?.code==='FEATURE_DISABLED')throw new Error('FEATURE_DISABLED');
     return {status:response.status,data:payload.data,error:payload.error};
 }
 async function csrf() {

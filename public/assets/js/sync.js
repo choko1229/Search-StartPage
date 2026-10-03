@@ -5,6 +5,7 @@ import {syncDocument,syncValues,syncCollections} from './sync-data.js';
 import {syncDialog} from './sync-dialogs.js';
 import {request,syncUser as user,writeSync} from './sync-api.js';
 import {mergeSync,equal} from './sync-core.js';
+import {requireFeatures} from './site-policy.js';
 
 const panel=node('section',undefined,{'aria-label':t('sync_title'),class:'sync-panel'});
 const status=node('span',t('sync_ready'),{role:'status','aria-live':'polite'});
@@ -61,8 +62,8 @@ async function run() {
     if(session.paused) {status.textContent=t('sync_later');return;}
     if(!setting('syncEnabled',true)) {status.textContent=t('sync_disabled');return;}
     button.disabled=true;status.textContent=t('sync_working');
-    try {await flush();await session.run();}
-    catch {try {session.io.status('failed');} catch {status.textContent=t('sync_failed');}}
+    try {await requireFeatures(['cloud_sync']);await flush();await session.run();}
+    catch(error) {try {session.io.status(error.message==='FEATURE_DISABLED'?'site_disabled':'failed');} catch {status.textContent=t('sync_failed');}}
     finally {
         button.disabled=false;
         if(session.paused)status.textContent=t('sync_later');
