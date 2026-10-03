@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は末尾の最新記録から再開。背景Cloud Sync・中断回復・全11条件・天気/地域UI・動画手動操作・背景競合ルール共有を実装検証済み。次は巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。未確認事項は最新記録を参照。
+1. Phase 7は末尾の最新記録から再開。実500MiB動画HTTPは両DB各12、実圧縮+DB quota各8、圧縮付き製品HTTP各15成功。次は耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。review利用上限は解消し圧縮+両DB環境は準備済み。未確認事項は最新記録を参照。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -479,3 +479,35 @@ background-sync-rules.jsを追加し、背景競合の保存ルールを一般�
 Phase7途中の保存。Phase8〜12未着手、Version1.0未完成。
 
 次に実行すること: 巨大500MiB実HTTPと実圧縮+DB容量、耐久的孤立ファイル清掃、weather設定付き新規Installer実行、Phase7ゲート監査へ進む。動画非表示復帰の実ブラウザ、実OS位置許可、認証済み地域/背景ルール共有UI、実OAuthは未確認留保。Admin圧縮不足警告はPhase9。
+
+## Phase 7 実500MiB動画の上限・容量・清掃（2026-10-03）
+
+tests/background-large-http.phpを追加。通常remember/CSRF付き製品upload APIへcurlからファイルをストリーム送信し、PHP内で全体を文字列化しない。検証用FFmpegで生成した1秒128x96のMP4へISO BMFF free boxを追加し、正確に524288000 bytesへ拡張。ユーザー動画を使わず有効な映像を維持し、sparse生成後もHTTPでは全byteを実送信。専用identity ...963を事前存在チェックし、独立/tmp内Cookie config・jar・response・生成動画だけ使用。秘密を出力せずfinallyでアカウント/生成データを清掃。
+
+検証1: MySQL8083で実HTTP12項目成功。500MiBちょうど201・encoderなしwarning・私有保存byte数とSHA一致・DB使用量500MiB・Range32byte/206と全体size・500MiB+1 byteの413/BACKGROUND_TOO_LARGE・拒否時metadata/使用量不変・孤立ファイルなし・URLへのsource変更で巨大file削除/使用量0・PHP diagnostics非露出を確認。PHP upload_max_filesize500M/post_max_size502Mを実環境で確認。HTTPの他CSRF/owner拒否は直前背景API/2端末試験の証拠を維持、今回新たな悪用試験ではない。
+
+検証2: MariaDB8084でも同じ実HTTP12項目すべて成功。両DBで生成データ/一時認証ファイルはfinally清掃。入力seedは.test-output/large-boundary-seed.mp4と両アプリ/tmpに保持（生成データ、Git除外）。圧縮がないときの最大byte保持試験であり、巨大映像のFFmpeg変換/ブラウザUpload/IndexedDB quota枯渇成功とは扱わない。
+
+検証3: 全JS単体26ファイルの既存Regression成功、git diff --check成功。今回製品PHP/DB/Migration変更なし。新large PHPは両DBで実行され構文/Fatal Errorなし。新規UI操作なし。Phase7未完了、8〜12未着手、Version1.0未完成。
+
+tests/background-compressed-quota.phpも作成済み。実PNG encoderから得たfinal bytesをDBへ保存し、原本が全quotaを超えていても圧縮後2件がちょうどquotaに収まること、3件目413とrollback、置換時の旧size減算、原本保持を確認する計画。現時点では構文も実行も未確認、成功扱いにしない。
+
+環境準備の停止理由: 圧縮image search-compression-test:20261002から2個のDB接続用アプリを作るDocker runが、自動承認レビューの利用上限エラーで未実行。unsafe判定ではなくreview自体が完了できなかったとのtool応答。回避して実行しない。search-compression-db-mysql-20261003 / search-compression-db-mariadb-20261003は今回の操作では作成されていない（再開時はinventoryで確認）。予定network search-phase7-20261002_default、既存のmysql-config/mariadb-config volumeをread-only mountし、storageはsearch-compression-db-{kind}-20261003-storageという独立volume。公開port不要、SEARCH_TEST_MODE=1/SEARCH_LOCAL_DEVELOPMENT=1。appソースと新testをdocker cpしてPHP検証する。既存config・DBvolume・ユーザーデータは保持。
+
+今回の新test2ファイルと本進捗は未コミット。Gitへのwriteも承認を必要とするため、review利用上限が解消後に最低3検証記録とともに途中コミットする。spec.mdをstageしない。
+
+次に実行すること: 自動承認レビューが利用可能か確認し、未作成の圧縮+両DB環境をinventoryで確認してから準備する。background-compressed-quota.phpの構文/実行を両DBで検証し問題を修正。次に圧縮付き製品実UploadとDB容量の接続、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。実OS位置許可/動画非表示復帰/実OAuth/認証済み実UIは未確認留保。
+
+## Phase 7 実圧縮・製品HTTP・両DB容量の接続（2026-10-03）
+
+自動承認review利用上限は今回Docker inventory/runで解消を確認。前回未作成だったsearch-compression-db-mysql-20261003 / search-compression-db-mariadb-20261003を準備済み。search-compression-test:20261002（Imagick/GD/FFmpegあり）、network search-phase7-20261002_default、既存テストconfig volume read-only、新規独立storage volume。公開portなし、内部loopbackでHTTP検証、SEARCH_TEST_MODE=1/SEARCH_LOCAL_DEVELOPMENT=1。最新app/publicを反映。config・ユーザーデータ・既存ボリュームは変更していない。新規Installer環境8085/6とは別。
+
+検証1: background-compressed-quota.phpを両DBで各8成功。生成PNGを実encoderで縮小、原本が全quotaを超える条件でもfinal bytesで2件の保存がちょうどquotaに成功。3件目413はmetadata/usage不変、置換は旧final bytes減算、私有file/DBfile_size/file_path一致、原本保持。限度値を注入した製品Repositoryと実codecによる試験であり、HTTPアプリのquota設定自体は変更しない。
+
+検証2: background-compressed-http.phpを追加、両DBで各15成功。通常remember/CSRF付き製品APIからPNG実圧縮→応答/私有file/DB/usageのfinal bytes一致→認証downloadのSHA/dimensions/MIME保持→実置換/旧file清掃→409古い置換拒否/孤立なし→URL変換file清掃/usage0を確認。生成2秒MP4のHTTP uploadも実FFmpegで縮小、返却type/size・DB/usage・認証download一致、入力stagingを捨てoutput1件だけ保持。検証identity ...965、codec/quota用...964はfinallyで削除。通常ユーザー/本番DBを不使用。最初のHTTP試験は別プロセスのunlink後に試験PHPのstat cacheが残りURL変換のfile不存在確認で両DB失敗。clearstatcacheで実file状態を再取得して成功（製品コード変更なし）。Fatal出力はCLI test自身の失敗であり本番API診断の露出とは区別。
+
+検証3: 新PHP3試験を両codec環境で構文確認成功。既存の実圧縮Regression各17（色/alpha/寸法/JPEG EXIF/GIF frames/失敗fallback/私有permission/partial output清掃含む）と基盤各39/翻訳key一致成功。JS26全単体は直前turnで成功、今回PHPテストのみ追加のため再実行なし。git diff --check成功。新規UI操作/実OAuth/実ブラウザUpload/500MiB実FFmpeg変換は未確認。500MiB入力上限のcodec-free実HTTP各12は前回証拠を維持、今回再実行なし。DB/Migration/製品コード変更なし、全9Migrationの直前証拠を維持。
+
+今回新規tests3ファイルと前回巨大HTTP結果・最新再開記録を途中コミットする。Phase7はまだ未完了、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 耐久的孤立ファイル清掃を実装する。現状HTTP finallyと置換後unlinkは確認済みだが、プロセス停止・unlink失敗・owner削除で残る私有ファイルの後続回復は未実装。DB参照中（保管済み/同期OFF含む）や通信中stagingを削除しない仕組み、安全なパス/シンボリックリンク拒否、両DB+実filesystem検証を追加。その後weather付き新規Installer、Phase7ゲート監査。実OS位置許可/動画非表示復帰/実OAuth/認証済み実UIは未確認留保、Admin圧縮不足警告はPhase9。
