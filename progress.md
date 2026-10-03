@@ -399,3 +399,15 @@ WeatherService/WeatherCache/WeatherController、POST /api/weather、weather-cont
 app/public JS/lang/config.exampleを既存8082/8083/8084と新規8085/8086へ反映。既存config/config.php・秘密値・ユーザーデータ・ボリュームは保持。新規PHP testsは8085/8086に配置。weather付き新規Installerの実実行は今回していない（直前全9Installer証拠と区別）。今回もPhase7途中の保存。
 
 次に実行すること: Browser Geolocation入力ボタン、手動地域との共通UI・取得失敗/許可拒否/地域解除・提供元リンクとJA/EN案内を実装し、地域保存/再読込/天気条件切替の実ブラウザ検証を行う。OS位置許可を自動承認せず生成位置モデルと実許可を区別。ログイン時地域同期は既存sync対象だが認証済み実UIは未確認留保。その後動画手動再生、背景競合ルール共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立清掃、Phase7ゲート監査。Admin圧縮不足警告はPhase9で接続。Phase7未完了、8〜12未着手、Version1.0未完成、実OAuth留保継続。
+
+## Phase 7 共通地域設定と位置取得UI（2026-10-03）
+
+region-core.js/region-settings.jsを追加しappearanceへ接続。現在地ボタンからだけBrowser Geolocationを呼び、粗い精度・10秒の取得timeout/20秒の全体timeoutで位置許可待ちも終了可能。小数2桁へ丸めてsettings.themeRegionに保存。手動地域・太陽時テーマ・背景weather/temperature/seasonと共通、一般設定同期の対象を維持。地域解除はnullを保存し、テーマは既存の端末テーマfallback、天気取得は停止。許可拒否/時間切れ/取得不可/非対応/不正座標をJA/ENで案内。入力中変更/解除/破棄で古い位置応答を採用しないgeneration防御、取得成功後の保存失敗はdraft保持。送信先と同期の案内・Open-Meteoリンクを追加、気象データ自体はUI非表示を維持。地域説明とstatusは全幅に配置してmobileの読みにくい半幅表示を補修。DB/API/Migration変更なし。
+
+検証1: region-settings単体で生成座標の成功/丸め/0座標、取得options、許可拒否/取得不可/timeout/非対応/不正座標/同期例外/遅いcallbackを成功。最初はUIモジュールをNodeから直接importしてdocument未定義で失敗、位置取得処理をDOM非依存region-coreへ分離して再成功。全JS単体24ファイル成功。
+検証2: 隔離MySQL8085/MariaDB8086で基盤39/翻訳キー一致・PHP構文107成功。既存のweather実HTTP14/全9Migration Installer往復証拠は直前検証を維持、今回はDB/認証/API変更なし。新weather付きInstaller実実行は未確認を維持。git diff --check成功。
+検証3: 実製品UI8083で公開都市の手動地域入力→35.68/139.76の丸め→reload保持、緯度91の拒否、解除→入力空/pending=false→Englishへの遷移後も空を確認。JA/ENのボタン・案内・提供元リンクを確認。390pxでdocument375/scroll375、地域333/scroll333、修正後説明309幅、横はみ出しなし。console warn/error0。画像.test-output/phase7-region-mobile.png（Git除外）。IABタブ14を保持、viewport reset/通常トップ/日本語へ復帰。元の地域未設定へ戻し既存背景・検索データは保持。実位置情報の取得/OS許可は行わず、位置取得は生成モデルだけ。実OAuth/認証済み地域同期・実天気による画面切替の証拠とは扱わない。
+
+public/assets/langは8082〜8086の5アプリ環境へ反映済み。config/ユーザーデータ/ボリュームは保持。docs/weather.mdを現状へ更新。Phase7途中の保存、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 製品画面で天気AND気温条件による背景切替を確認（公開都市・生成背景のみ、気象データ非表示）。位置取得UIの保存/拒否/解除中の古い応答は専用生成fixtureで追加検証し実OS許可と区別する。その後動画手動再生、背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、Phase7ゲート監査へ進む。新weather付きInstallerの新規実実行もゲートで確認。Admin圧縮不足警告はPhase9、実OAuthと認証済み実UIは未確認留保を継続。

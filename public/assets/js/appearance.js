@@ -2,6 +2,7 @@ import {get,setting,setSetting} from './store.js';
 import {t,node} from './i18n.js';
 import {palettes,color,bounded,fontUrl,fontName,themePalette,greetingKey,searchStyles,widgetStyle,headerPreferences,animationLevel} from './appearance-core.js';
 import {syncUser} from './sync-api.js';
+import {regionSettings} from './region-settings.js';
 
 export function initializeAppearance() {
     const appearance=document.getElementById('settings-appearance'),general=document.getElementById('settings-general');
@@ -38,19 +39,8 @@ export function initializeAppearance() {
     field(background,'backgroundMode','background_mode','select','theme',{choices:[['theme','background_theme'],['solid','background_solid'],['library','background_library']]});
     field(background,'backgroundColor','search_background','color','#f4f6fa');
     field(appearance,'themeTransition','appearance_transition','number',0.75,{min:'0',max:'5',step:'0.05'});
-    const region=node('fieldset'),regionLabel=node('legend',t('appearance_region'));region.append(regionLabel);
-    const latitude=node('input',undefined,{type:'number',min:'-90',max:'90',step:'any','aria-label':t('latitude')});
-    const longitude=node('input',undefined,{type:'number',min:'-180',max:'180',step:'any','aria-label':t('longitude')});
-    let regionDirty=false;
-    for(const [input,key] of [[latitude,'latitude'],[longitude,'longitude']]){input.value=setting('themeRegion',{})[key]??'';const label=node('label',t(key));label.append(input);region.append(label);}
-    region.append(node('p',t('appearance_region_help'),{class:'muted'}));appearance.append(region);
-    const readRegion=()=>{if(regionDirty)return;const value=setting('themeRegion',{});latitude.value=value.latitude??'';longitude.value=value.longitude??'';};controls.push(readRegion);
-    const saveRegion=()=>{if(regionDirty && latitude.value && longitude.value && latitude.validity.valid && longitude.validity.valid){regionDirty=false;region.dataset.pending='false';setSetting('themeRegion',{latitude:Number(latitude.value),longitude:Number(longitude.value)});}};
-    for(const input of [latitude,longitude]){
-        input.addEventListener('input',()=>{regionDirty=true;region.dataset.pending='true';});
-        input.addEventListener('change',saveRegion);input.addEventListener('blur',saveRegion);
-    }
-    document.getElementById('search-settings').addEventListener('settings-discard',()=>{regionDirty=false;region.dataset.pending='false';readRegion();});
+    const region=regionSettings(appearance);controls.push(region.read);
+    document.getElementById('search-settings').addEventListener('settings-discard',region.discard);
     const custom=node('fieldset');custom.append(node('legend',t('theme_custom')));
     const saved=node('select',undefined,{'aria-label':t('custom_theme_saved')}),name=node('input',undefined,{'aria-label':t('custom_theme_name'),maxlength:'80'});
     const colors={};

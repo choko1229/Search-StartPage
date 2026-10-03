@@ -98,6 +98,7 @@ dialog [data-close] { float: right; }
  @media(max-width:600px) {.custom-header {flex-direction:row;align-items:center;}.custom-header .language-form {flex-wrap:wrap;}.custom-header[data-position=bottom] {font-size:min(1rem,100%);}}
  #settings-appearance fieldset {display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-block:1rem;}
  #settings-appearance fieldset label {display:grid;gap:.3rem;}
+ #settings-appearance .region-settings > p {grid-column:1 / -1;}
  [data-animation=none] *,[data-animation=none] *::before,[data-animation=none] *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}
  [data-animation=low] .favorite-item {transition-duration:.15s;}
  [data-animation=standard] .favorite-item,[data-animation=rich] .favorite-item {transition:transform .2s,background-color var(--theme-duration,.75s);}

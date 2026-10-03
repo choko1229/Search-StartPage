@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {requestRegion} from '../public/assets/js/region-core.js';
+let options;
+assert.deepEqual(await requestRegion({getCurrentPosition(success,failure,value){options=value;success({coords:{latitude:35.6849,longitude:139.7649}});}}),{latitude:35.68,longitude:139.76});
+assert.deepEqual(options,{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+assert.deepEqual(await requestRegion({getCurrentPosition(success){success({coords:{latitude:0,longitude:0}});}}),{latitude:0,longitude:0});
+await assert.rejects(requestRegion(null),/region_unsupported/);
+for(const [code,message] of [[1,'region_denied'],[2,'region_unavailable'],[3,'region_timeout']])await assert.rejects(requestRegion({getCurrentPosition(success,failure){failure({code});}}),new RegExp(message));
+await assert.rejects(requestRegion({getCurrentPosition(success){success({coords:{latitude:91,longitude:0}});}}),/region_unavailable/);
+await assert.rejects(requestRegion({getCurrentPosition(){throw new Error('unavailable');}}),/region_unavailable/);
+let late;
+await assert.rejects(requestRegion({getCurrentPosition(success){late=success;}},1),/region_timeout/);
+late({coords:{latitude:0,longitude:0}});
+console.log('Region acquisition: rounded coordinates, zero values, options, denied/unavailable/timeout/unsupported and late callback passed.');

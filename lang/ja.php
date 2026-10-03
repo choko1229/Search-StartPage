@@ -170,4 +170,13 @@ return [
     'background_device_mobile'=>'スマートフォン','background_device_tablet'=>'タブレット','background_device_desktop'=>'PC',
     'background_screen_minWidth'=>'最小幅（px）','background_screen_maxWidth'=>'最大幅（px）','background_screen_minHeight'=>'最小高さ（px）','background_screen_maxHeight'=>'最大高さ（px）',
     'WEATHER_UNAVAILABLE'=>'天気の条件判定は現在利用できません。',
+    'region_locate'=>'現在地を使う','region_clear'=>'地域設定を解除','region_locating'=>'位置情報を取得しています…',
+    'region_saved'=>'地域設定を保存しました。','region_cleared'=>'地域設定を解除しました。',
+    'region_invalid'=>'緯度（−90〜90）と経度（−180〜180）を入力してください。',
+    'region_denied'=>'位置情報の利用が許可されませんでした。手動で入力できます。',
+    'region_timeout'=>'位置情報の取得が時間切れになりました。再試行するか手動で入力してください。',
+    'region_unavailable'=>'位置情報を取得できませんでした。手動で入力できます。',
+    'region_unsupported'=>'この環境では位置情報を取得できません。手動で入力してください。',
+    'region_shared_help'=>'太陽時テーマと天気による背景切替で共通の地域です。座標は小数2桁で保存し、ログイン時の設定同期に含めます。天気条件を使う場合、この地域を天気提供元へ送信します。位置取得はボタンを押したときだけ行います。',
+    'region_weather_source'=>'天気データの提供元：',
 ];

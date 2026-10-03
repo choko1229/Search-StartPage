@@ -170,4 +170,13 @@ return [
     'background_device_mobile'=>'Mobile','background_device_tablet'=>'Tablet','background_device_desktop'=>'Desktop',
     'background_screen_minWidth'=>'Minimum width (px)','background_screen_maxWidth'=>'Maximum width (px)','background_screen_minHeight'=>'Minimum height (px)','background_screen_maxHeight'=>'Maximum height (px)',
     'WEATHER_UNAVAILABLE'=>'Weather conditions are temporarily unavailable.',
+    'region_locate'=>'Use current location','region_clear'=>'Clear region','region_locating'=>'Getting your location…',
+    'region_saved'=>'Region saved.','region_cleared'=>'Region cleared.',
+    'region_invalid'=>'Enter latitude (−90 to 90) and longitude (−180 to 180).',
+    'region_denied'=>'Location permission was denied. You can enter coordinates manually.',
+    'region_timeout'=>'Location request timed out. Try again or enter coordinates manually.',
+    'region_unavailable'=>'Your location could not be found. You can enter coordinates manually.',
+    'region_unsupported'=>'Location is unavailable in this environment. Enter coordinates manually.',
+    'region_shared_help'=>'This region is shared by the solar theme and weather background conditions. Coordinates are saved to two decimal places and included in signed-in settings sync. When you use weather conditions, this region is sent to the weather provider. Location is requested only when you press the button.',
+    'region_weather_source'=>'Weather data provided by',
 ];
