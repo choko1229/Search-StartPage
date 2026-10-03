@@ -1,4 +1,6 @@
-import {get,setting,saveSettings,setMany} from './store.js';
+import {get,setting,saveSettings} from './store.js';
+import * as store from './store.js';
+import {createPaletteStorage} from './palette-storage.js';
 import {t} from './i18n.js';
 import {favorites,folders,openFavorite} from './favorites-store.js';
 import {focusFavorites} from './favorites.js';
@@ -10,12 +12,13 @@ import {categories} from './settings-schema.js';
 import {logoutPaletteAccount,recoverPaletteAccount} from './palette-logout.js';
 
 export function registerProductCommands(registry,actions) {
+    const storage=createPaletteStorage(store);
     void recoverPaletteAccount().catch(()=>window.dispatchEvent(new CustomEvent('storage-unavailable')));
     const register=(id,title,category,effect,run,keywords=[],confirmationKey=id)=>registry.register({id,title,category,effect,run,keywords,confirmationKey});
     register('settings:open',t('palette_open_settings'),'commands','navigate',()=>()=>actions.openSettings());
     register('history:open',t('palette_open_history'),'commands','navigate',()=>actions.openHistory);
     register('favorite:add',t('add_favorite'),'commands','navigate',()=>()=>editFavorite());
-    register('history:clear',t('clear_history'),'commands','state',()=>setMany({history:[]}));
+    register('history:clear',t('clear_history'),'commands','state',storage.clearHistory);
     register('account:login',t('discord_login'),'commands','navigate',()=>()=>location.assign('/account'));
     register('account:logout',t('logout'),'commands','state',async()=>{
         await logoutPaletteAccount();
@@ -35,7 +38,7 @@ export function registerProductCommands(registry,actions) {
         const add=(...args)=>dynamic.push(register(...args));
         for(const item of data.favorites){
             add('favorite:'+item.id,item.name,'favorites','navigate',()=>()=>{const latest=favorites().find(row=>row.id===item.id);if(latest)void openFavorite(latest);},(item.tags||[]).slice(0,20));
-            add('favorite-delete:'+item.id,t('delete')+': '+item.name,'commands','state',()=>setMany(state=>({favorites:(state.favorites||[]).filter(row=>row.id!==item.id)})),[],'favorite-delete');
+            add('favorite-delete:'+item.id,t('delete')+': '+item.name,'commands','state',()=>storage.deleteFavorite(item.id),[],'favorite-delete');
         }
         for(const item of data.folders)add('folder:'+item.id,item.name,'folders','navigate',()=>()=>focusFavorites({folder:item.id}));
         const tags=[...new Set(data.favorites.flatMap(item=>item.tags||[]))];for(const tag of tags)add('tag:'+Array.from(tag).map(value=>value.codePointAt(0).toString(16).padStart(6,'0')).join(''),tag,'tags','navigate',()=>()=>focusFavorites({tag}));

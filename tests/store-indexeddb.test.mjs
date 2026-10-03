@@ -104,3 +104,44 @@ assert.equal(await store.backgroundFile(intent.fileKey),null);assert.equal(store
 await assert.rejects(store.setMany({backgroundUploadIntents:{},backgrounds:[]},[{id:'transfer',blob:null}],{backgroundUploadIntents:{stale:true}}),/storage_conflict/);
 assert.equal(await (await store.backgroundFile('transfer')).text(),'old');assert.equal(records.get('backgrounds').length,1);
 console.log('IndexedDB: original 49 assertions plus upload prepare/ACK rollback, reload and conditional write conflict passed.');
+
+const {createPaletteStorage}=await import('../public/assets/js/palette-storage.js');
+const palette=createPaletteStorage(store);
+await store.setMany({history:[{id:'palette-history',query:'Generated history'}],favorites:[{id:'remove'},{id:'keep'}]});
+abortNext=true;await assert.rejects(palette.clearHistory(),/quota/);
+assert.equal(store.get('history')[0].id,'palette-history');assert.equal(records.get('history')[0].id,'palette-history');
+await palette.clearHistory();assert.deepEqual(store.get('history'),[]);assert.deepEqual(records.get('history'),[]);
+abortNext=true;await assert.rejects(palette.deleteFavorite('remove'),/quota/);
+assert.deepEqual(store.get('favorites').map(row=>row.id),['remove','keep']);
+await palette.deleteFavorite('remove');assert.deepEqual(records.get('favorites').map(row=>row.id),['keep']);
+console.log('Palette storage: history/favorite actions retain data on transaction abort and commit on retry.');
+const logoutIntent={userId:'1',clear:true};
+await store.setMany({paletteLogoutPending:null,settings:{clearSyncedOnLogout:true},favorites:[{id:'owned'},{id:'private'}],
+    syncOwnership:{userId:'1',collections:{favorites:['owned']},settings:[]},
+    backgrounds:[{id:'owned',fileId:'owned',cloudSync:true,cloudOwner:'1'},{id:'off',fileId:'off',cloudSync:false}],
+    backgroundOwnership:{userId:'1',ids:['owned','off']}},[{id:'owned',blob:new Blob(['cloud'])},{id:'off',blob:new Blob(['local'])}]);
+abortNext=true;await assert.rejects(palette.prepare(logoutIntent),/quota/);assert.equal(palette.pending(),null);
+await palette.prepare(logoutIntent);assert.deepEqual(palette.pending(),logoutIntent);
+abortNext=true;await assert.rejects(palette.complete(logoutIntent),/quota/);
+assert.deepEqual(palette.pending(),logoutIntent);assert.equal(await (await store.backgroundFile('owned')).text(),'cloud');
+assert.deepEqual(store.get('favorites').map(row=>row.id),['owned','private']);
+await palette.complete(logoutIntent);
+assert.equal(palette.pending(),null);assert.deepEqual(store.get('favorites').map(row=>row.id),['private']);
+assert.equal(await store.backgroundFile('owned'),null);assert.equal(await (await store.backgroundFile('off')).text(),'local');
+const reloadedPaletteStore=await import('../public/assets/js/store.js?palette-reloaded');
+assert.equal(reloadedPaletteStore.get('paletteLogoutPending',null),null);
+assert.deepEqual(reloadedPaletteStore.get('favorites').map(row=>row.id),['private']);
+console.log('Palette logout storage: failed prepare/cleanup roll back intent, owned data and Blob together; retry persists cleanup.');
+const replacement={userId:'2',clear:false};await palette.prepare(replacement);
+await palette.complete(logoutIntent);assert.deepEqual(palette.pending(),replacement);assert.equal(await (await store.backgroundFile('off')).text(),'local');
+await palette.complete(replacement);assert.equal(palette.pending(),null);assert.equal(store.get('favorites')[0].id,'private');
+assert.equal(await (await store.backgroundFile('off')).text(),'local');
+console.log('Palette logout storage: stale intent is ignored and clear OFF retains data and files.');
+await palette.prepare(logoutIntent);
+await store.setMany({backgrounds:[{id:'racing',fileId:'racing',cloudSync:true,cloudOwner:'1'}],backgroundOwnership:{userId:'1',ids:['racing']}},[{id:'racing',blob:new Blob(['retained'])}]);
+// Another tab commits a new intent before this tab receives its notification.
+records.set('paletteLogoutPending',structuredClone(replacement));
+await assert.rejects(palette.complete(logoutIntent),/storage_conflict/);
+assert.deepEqual(palette.pending(),replacement);assert.equal(await (await store.backgroundFile('racing')).text(),'retained');
+assert.equal(records.get('backgrounds')[0].id,'racing');
+console.log('Palette logout storage: conditional commit rejects another tab replacing the intent before cleanup.');

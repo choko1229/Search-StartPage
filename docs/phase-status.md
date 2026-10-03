@@ -896,3 +896,19 @@ tests/palette-extension-preview.php/mjsを追加。SEARCH_TEST_MODE=1のみ、�
 Phase8未完了、9〜12未着手、Version1.0未完成。拡張登録/履歴再検索の未確認は解消。残る主要検証は履歴消去・favorite削除の製品adapter成功/失敗、Paletteの保存失敗、ログアウト回復adapterの実IndexedDB。実OAuth/認証済みUI・全browser/実読み上げは留保。
 
 次に実行すること: 製品登録をNode/専用IndexedDBで検証できる境界へ分離し、実callbackから履歴/favoriteの原子削除成功・保存失敗の保持を確認。通常ユーザーデータをUIから永久削除せず、隔離専用データで検証。Phase8完了7項目と添付仕様を再照合し、残る実装不足を修正して機能ゲート判定。
+
+## Phase8 製品保存adapterと別タブ清掃競合（2026-10-03）
+
+前のGoalターンは拡張登録/履歴再検索の実UI証拠7f22420によりprogress。progress/status/gitと現ソースを確認して再開。
+
+palette-storage.js/createPaletteStorageを追加し、Palette履歴消去・favorite削除・Logout intent保存/清掃を共通の製品store callbackへ分離。product commandsとpalette-logoutが同じfactoryを使用し、認証通信・UI・既存CSRFは変更なし。完了清掃は現在intentの一致だけでなくIndexedDB transaction内でもpendingの条件照合を行い、別タブが通知前に新intentを保存した場合はstorage_conflictで書込・Blob削除を拒否し最新stateへ再読込。
+
+検証1: 既存store-indexeddb.test.mjsへ製品factory経由の検証を追加。履歴/favorite削除のtransaction abortでメモリ/保存値保持→retry成功、Logout事前intent失敗/清掃失敗で所有データ・Blob・intent一括rollback、成功後の再読込保持、古いintent無害/clear OFF保持、別タブがDB上pendingを置換して通知前に旧清掃する競合の拒否とfile保持を確認。IndexedDBは既存模擬driverであり実ブラウザ容量枯渇ではない。最初のreload null照合はget fallback省略によるundefinedで試験失敗、製品pendingと同じfallback nullへ修正して再成功。
+
+検証2: 全JS31単体成功、変更3JS構文/git diff --check成功。別タブ条件照合追加後に該当IndexedDB単体を再実行成功。DB/PHP/API/Migration変更なし、全9Installer往復40の既存証拠維持（今回再実行なし）。
+
+検証3: 変更JSを8083/8084へ反映、両DB基盤39成功。実JAゲストtab18 reload/Wizard閉じ/Palette横断queryで3カテゴリと既存favorite保持、console warn/error0。今回Paletteでの永久削除・ログインは未実施。tab18と19 handoff、通常背景/config/DBvolume保持。8089のtestpreviewへ最新factoryはまだ反映していない。
+
+Phase8未完了、Phase9〜12未着手、Version1.0未完成。製品adapter経由の削除/故障/別タブ競合の単体証拠を追加、実IndexedDB故障UIの確認は残る。実OAuth/認証済みUI・全browser/実読み上げ等の留保継続。
+
+次に実行すること: 新factoryと専用DBを使うブラウザstorage previewで生成データだけの原子保存失敗と回復を確認（通常ユーザーデータ不使用）。最新コードを8089へ反映。Phase8完了7項目と添付仕様を監査し、残る実装不足を修正して機能ゲートを判定、Phase9 Adminへ進む。
