@@ -22,4 +22,6 @@ API: GET/POST `/api/admin/policy`。POSTは整数versionとpolicy（flags全5項
 
 検証: 専用MySQL環境の実ゲスト画面でJA外部候補停止、JA/ENサイト情報停止、編集のCancel、Console警告/エラー0を確認。天気停止→復帰は模擬通信による製品WeatherContext試験。実管理ブラウザ・モバイル・認証済みaccount・天気の停止画面は未確認。全13Migrationの空DB Installer往復は未実行で、前回全12の結果とは区別する。
 
+2026-10-04追加検証: 新規隔離MySQL8095/MariaDB8096で全13Migration up/down/upとWeb Installer各40項目成功。実MySQL管理画面のJA保存/再読込保持/復元、JA/EN表示、390px幅で横溢れなし、変更前後の監査表示、Console0を確認。上の未確認記録のうち全13Installerと管理policy画面のJA/EN・390px表示は解消。EN保存、他の管理画面全体、認証済みaccount・天気停止実UI、全browserは未確認。
+
 専用テスト環境のみ `php tests/site-policy-preview-state.php stop` で候補・サイト情報の2フラグを停止し、検証後は必ず `restore` で元設定へ戻す。元設定は非公開storageへ0600で保存する。CLIかつSEARCH_TEST_MODE=1以外では使用不可、本番routeや認証の回避経路を追加しない。既存の退避がある場合は上書きせず復元を要求する。

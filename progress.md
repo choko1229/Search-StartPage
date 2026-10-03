@@ -855,3 +855,23 @@ Phase9進行中、10〜12未着手、Version1.0未完成。機能・制限のser
 未確認: 実管理者画面/mobile、認証済みaccount専用状態、天気停止実UI、外部候補EN停止、実OAuth/全browser/OScleanup。背景upload停止は既存同期の汎用クラウド停止表示であり実UI停止試験は残る。docs/admin-policy.mdを最新証拠へ更新。
 
 次に実行すること: 全13Migrationの新規隔離Installer往復を検証し、testmode専用通常token fixtureで管理画面の日英/保存/モバイル/Consoleを確認（実OAuthの代替と混同しない）。残るPresets/匿名Statistics/Privacy/管理者追加解除/最後の管理者保護/容量操作/Update導線を実装。Phase9ゲート確定前にPhase10へ進まない。実ブラウザの天気停止/背景upload/復帰とaccount状態を追跡する。
+
+## Phase9 全13Migration新規Installer・管理policy実UI（2026-10-04）
+
+前のGoalターンは停止表示bf653e2/実ゲストUI/両DB検証によりprogress。progress/status/gitを読み次の新規Installerと管理UIへ進んだ。
+
+検証1: 最新コードから新しい専用search-phase9-policy-20261004を独立DB/config/storage volumesでbuild/start（MySQL8095/MariaDB8096）。tests/integration.php各40成功、空DBの全13Migration up→idempotent→down→Web Installerによる再up、全Migration適用数/初期admin予約/Secret非露出/再導入拒否を確認。既存8093/94等は変更せず保持。
+
+検証2: 新規両DBpolicy29/admin64/maintenance62/logs54/application29/HTTP errors25/auth43/基盤39/PHP155、動的背景quota同時writer6成功。maintenance/applicationのfile delivery pendingは注入したsink故障の試験出力、回復結果を含み成功。新規環境は画像/video codecなしでdashboard警告を実表示、codec検証済み環境の証拠と区別。新test補助2件を追加して両DB最終PHP157成功、両DBfixture prepare/cleanup成功。
+
+追加: tests/admin-ui-fixture.phpとadmin-ui-preview.php。CLI/testmodeだけで専用user/admin/token/deviceと15分keyを非公開0600へ生成、手動public/_test previewはtestmode/localdev/期限/key確認のみ。通常製品Auth.restore/AdminMiddlewareを通り、製品routes・OAuthを迂回する恒久機能は追加しない。キーはGit除外一時fileでのみ受渡し、chat/進捗/Gitへ実値なし。docs/admin-ui-testing.mdを追加。
+
+検証3: 実browser2/tab22最初127.0.0.1:8095でJA管理dashboard/policy、metadata無効・quota1024を保存→reload保持、EN表示、390px幅（document scrollWidth=390/innerWidth390）成功。ENから復元SaveするとAUTH_REQUIREDになり復元を成功扱いにしなかった。複数DBの同ホスト別portでCookie名/pathを共有しAuth.clearが無効tokenを削除するコードを確認、別ゲストtabの影響が原因と推定（通信を捕捉して原因確定した訳ではない）。同環境をlocalhost:8095へ分離して再ログインしJA enabled/空欄へ復元保存→reload保持を再成功。製品の認証を緩めず対処。
+
+JA/EN mobile画像.test-output/phase9-admin-policy-mobile-ja.png/-en.pngを保存・両画像目視確認。localhost実監査画面に今回変更前後/actor/DBとfile保存済みを確認、390pxでscrollWidth375<=390、Console warn/error0。dashboard監査link clickは遷移を観測できずheading待ちtimeout、同tabの既知リンク先URLへ直接移動して表示成功。リンク操作成功とは区別して追跡。viewport reset済み。
+
+清掃: 両DBfixture cleanupで元policy復元、専用user/token/device/非公開fixture除去。MySQL public/_test previewとhostキー一時fileを除去。tab22 reloadでPlease sign inを実確認、role/token失効は通常認証に反映。生成auditは保持。tab22 localhost auditログイン要求と既存tab18/19/20/21をhandoff。秘密/通常user/config/uploads不変更。
+
+未確認: EN管理Save、他管理画面全体/リンク遷移、実天気停止/背景upload/認証済みaccount状態、実OAuth/全browser/OScleanup。Phase9進行中、10〜12未着手、Version1.0未完成。全13Installerと管理policy表示/JA保存の未確認を解消したが全Phase9完成ではない。
+
+次に実行すること: spec92/94〜96/118と添付Phase9を再確認し、残るPresets、匿名Statistics/Privacy（直接Discord IDなし・無期限・期間/graph・必須イベント）、管理者追加/解除/最後の管理者保護、容量操作、Update導線を実装。管理UIはlocalhostで新fixture準備しEN Save/他管理page/リンクを継続検証、既存guest127環境とはCookie分離。Phase9ゲート確定前にPhase10へ進まない。
