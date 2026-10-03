@@ -7,6 +7,7 @@ import {recordSettings} from './settings-history.js';
 import {inspectBackgroundFile} from './background-file-core.js';
 import {initializeBackgroundSync} from './background-sync.js';
 import {backgroundRuleEditor} from './background-rule-editor.js';
+import {WeatherContext,needsWeather} from './weather-context.js';
 
 export function initializeBackground() {
     const panel=document.getElementById('settings-background'),settingsDialog=document.getElementById('search-settings');
@@ -78,13 +79,15 @@ export function initializeBackground() {
         switching.value=setting('backgroundSwitch','manual');if(document.activeElement!==interval)interval.value=String(setting('backgroundInterval',300));
     }
     let loggedIn=false,current=null,video=null,lastSwitch=0,signature='',objectUrl=null,mediaGeneration=0;
+    const weather=new WeatherContext({changed:()=>apply(true)});
     function clearMedia(){mediaGeneration++;video?.pause();video=null;media.replaceChildren();if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}}
     syncUser().then(user=>{loggedIn=Boolean(user);apply(true);}).catch(()=>{});
     async function apply(force=false){
         const now=Date.now(),settings=get('settings',{});layer.hidden=settings.backgroundMode!=='library';if(layer.hidden){clearMedia();current=null;signature='';return;}
         if(!force && current && settings.backgroundSwitch==='random' && now-lastSwitch<bounded(settings.backgroundInterval,300,10,86400)*1000)return;
-        const width=innerWidth,context={now:new Date(),loggedIn,width,height:innerHeight,device:width<=600?'mobile':width<=1024?'tablet':'desktop'};
-        const selected=selectBackground([...backgroundPresets,...storedBackgrounds()],settings,context);if(!selected)return;
+        const rows=[...backgroundPresets,...storedBackgrounds()];
+        const width=innerWidth,context={now:new Date(),loggedIn,width,height:innerHeight,device:width<=600?'mobile':width<=1024?'tablet':'desktop',...weather.read(settings.themeRegion,settings.backgroundSwitch==='rules' && needsWeather(rows))};
+        const selected=selectBackground(rows,settings,context);if(!selected)return;
         current=selected;lastSwitch=now;const next=JSON.stringify([selected,width<=600]);if(signature===next){if(video){if(document.hidden||selected.paused)video.pause();else if(selected.autoplay)video.play().catch(()=>{});}return;}signature=next;
         clearMedia();const generation=mediaGeneration;media.style.background='';
         media.style.filter=`blur(${selected.blur}px) brightness(${selected.brightness})`;media.style.transform=`scale(${selected.scale})`;layer.style.position=selected.fixed?'fixed':'absolute';

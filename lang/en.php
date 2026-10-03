@@ -169,4 +169,5 @@ return [
     'background_random_chance'=>'Probability (0 to 1)','background_logged_in'=>'Signed in','background_logged_out'=>'Signed out',
     'background_device_mobile'=>'Mobile','background_device_tablet'=>'Tablet','background_device_desktop'=>'Desktop',
     'background_screen_minWidth'=>'Minimum width (px)','background_screen_maxWidth'=>'Maximum width (px)','background_screen_minHeight'=>'Minimum height (px)','background_screen_maxHeight'=>'Maximum height (px)',
+    'WEATHER_UNAVAILABLE'=>'Weather conditions are temporarily unavailable.',
 ];

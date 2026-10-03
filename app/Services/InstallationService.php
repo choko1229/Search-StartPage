@@ -62,6 +62,7 @@ final class InstallationService
                 'encryption_key' => bin2hex(random_bytes(32)),
                 'session' => ['name' => 'search_session', 'secure' => str_starts_with($draft['site']['url'], 'https://'), 'same_site' => 'Lax'],
                 'ffmpeg_path' => getenv('SEARCH_FFMPEG_PATH') ?: '',
+                'weather' => ['enabled'=>true, 'mode'=>'non-commercial', 'api_key'=>''],
             ];
             $temporary = tempnam($this->root . '/config', '.config-');
             if ($temporary === false) {

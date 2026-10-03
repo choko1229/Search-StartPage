@@ -169,4 +169,5 @@ return [
     'background_random_chance'=>'確率（0〜1）','background_logged_in'=>'ログイン中','background_logged_out'=>'未ログイン',
     'background_device_mobile'=>'スマートフォン','background_device_tablet'=>'タブレット','background_device_desktop'=>'PC',
     'background_screen_minWidth'=>'最小幅（px）','background_screen_maxWidth'=>'最大幅（px）','background_screen_minHeight'=>'最小高さ（px）','background_screen_maxHeight'=>'最大高さ（px）',
+    'WEATHER_UNAVAILABLE'=>'天気の条件判定は現在利用できません。',
 ];

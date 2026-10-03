@@ -101,6 +101,8 @@ if ($config->get('installed')) {
     $router->add('PUT','/api/backgrounds/{id}',$backgroundHandler('update'),[new Csrf()]);
     $router->add('DELETE','/api/backgrounds/{id}',$backgroundHandler('delete'),[new Csrf()]);
     $router->add('GET','/api/backgrounds/{id}/file',$backgroundHandler('file'));
+    $weather = new App\Controllers\WeatherController(new App\Services\WeatherService($config->get('weather', [])), new App\Services\WeatherCache($root . '/storage/weather'));
+    $router->add('POST', '/api/weather', $weather->current(...), [new Csrf(), new App\Middleware\LoginRateLimit($root . '/storage/rate-limits/weather', 30, 60)]);
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
 $router->add('GET', '/', $core->home(...), [$optionalAuth]);

@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は末尾の端末内ファイル保存記録から再開。IndexedDB blobとメタデータの原子的保存、再読込/編集/保管/復元を検証済み。次は背景ごとのCloud Sync・ファイル/メタ同期・競合/オフライン復帰、全条件編集/天気・地域/動画の手動再生。背景APIは項目version、既存同期文書にはライブラリをまだ含めない。OSファイル選択と巨大ファイルの実操作は未確認。
+1. Phase 7は末尾の最新記録から再開。背景Cloud Sync・中断回復・全11条件編集・天気/気温の実APIと製品選択処理の接続を検証済み。次はBrowser Geolocationの入力ボタン、太陽時テーマ/天気共通の地域設定画面と提供元案内、実ブラウザでの地域入力/条件切替を実装・検証する。その後動画手動再生・背景競合ルール共有・巨大ファイル・実圧縮+容量・耐久的孤立清掃・Phase7ゲートへ進む。OSファイル選択と巨大ファイルの実操作は未確認。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -385,3 +385,17 @@ background-rule-core/editorを追加し製品background.jsの時間だけの編�
 public/langは既存UI8082・8083/4・新規8085/6へ反映。新規test/integration修正は新規8085/6へ反映済み。最新の全Migration証拠は全9件へ更新、旧環境の設定/ボリュームを維持。今回の実装もPhase7途中のコミットで完了判定ではない。
 
 次に実行すること: Weather IntegrationとBrowser Geolocation/Manual Locationの地域共通設定・ログイン時地域同期を接続（天気はUIに表示せず条件判定専用）。現在条件入力/検証は完成したが、製品描画contextへ実weather/temperatureをまだ与えていない。動画の手動再生、背景競合解決の保存ルール共有（現在checkpointだけ）、巨大動画実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、Phase7機能ゲート照合を継続。管理画面の圧縮不足警告はPhase9で接続。Phase7未完了、8〜12未着手、Version1.0未完成。実OAuthはユーザーの成功前提指示を維持し未確認留保。
+
+## Phase 7 天気APIと背景条件への接続（2026-10-03）
+
+WeatherService/WeatherCache/WeatherController、POST /api/weather、weather-context.jsを実装。既存settings.themeRegionの手動緯度経度を太陽時テーマと共用し、背景描画contextへlatitude/longitude/weather/temperatureを接続。地域は一般設定同期の対象（同期投影/受信試験も追加）。天気データは背景判定専用、UI表示せずメモリ保持だけ。ライブラリ・条件切替・有効な天気/気温条件・地域がある場合だけ取得。待機中も描画を継続、取得後に再選択。重複通信防止、15分TTL、失敗60秒retry、地域変更時abortと古い応答拒否。
+
+サーバー取得先はOpen-Meteo固定HTTPS（非商用公開/契約customerの2種類）、任意URL拒否。秘密キーはconfigだけ。CSRF必須、未知キー/非数値/座標範囲422、IP毎分30回429、ゲスト利用可/DB不要。小数2桁丸め、座標をブラウザ要求URLへ入れない。証明書検証/redirect拒否/約4秒/32KiB上限、接続URLやキーを例外に含めない。単位/数値/観測時刻/期限/WMO分類を確認（97含む）。私有キャッシュ256スロット上限、地域・設定のhashだけを識別に保存、成功15分/失敗60秒。設定無効化/キー変更はcacheより先に検査。config.exampleと新規Installerへweather設定を追加（既存config未設定も既定値で互換動作）、docs/weather.mdに設定と提供元利用条件を記録。DB/Migration変更なし、全9件の直前両DB往復証拠を維持。
+
+検証1: 新規隔離MySQL8085/MariaDB8086でPHP天気各73項目成功。全WMO分類、0座標/0度気温、異常値/未知キー/古い時刻/単位/過大・不正JSON、取得例外、契約モード/不足キー、cache期限/再取得/失敗backoff/破損cache/無効化、Controller成功・拒否、座標/キー非露出を確認。取得は注入transportによるモデルと区別する。
+検証2: 両環境の実HTTP各14項目成功。CSRF403/入力422/GET405、公開都市の実Open-Meteo取得200、製品WeatherContextから実CSRFと実weather APIへ接続し、製品selectBackgroundで天気AND気温に一致する背景選択を確認。実位置情報を取得せず公開都市を使用。認証不要APIであり実Discord成功の証拠にはしない。通常トップ200/Stack Trace非露出確認。初回HTTP試験は試験Cookie jarがSession再生成前後の同名Cookieを両方送って403となり失敗、最新値だけ残す形へ訂正。GET期待もRouter仕様405へ訂正し再成功。製品の認証/CSRFを緩和していない。
+検証3: 全JS単体23ファイル・全JS構文成功。新weather contextで製品条件選択、同期投影/受信、TTL/通信重複/失敗再試行/旧地域応答拒否を確認。両DB基盤39/PHP構文107成功。git diff --check成功。新規ブラウザ操作は今回未実施、実画面の天気切替/位置許可は未確認。実HTTP+製品JS選択とブラウザUI検証を混同しない。
+
+app/public JS/lang/config.exampleを既存8082/8083/8084と新規8085/8086へ反映。既存config/config.php・秘密値・ユーザーデータ・ボリュームは保持。新規PHP testsは8085/8086に配置。weather付き新規Installerの実実行は今回していない（直前全9Installer証拠と区別）。今回もPhase7途中の保存。
+
+次に実行すること: Browser Geolocation入力ボタン、手動地域との共通UI・取得失敗/許可拒否/地域解除・提供元リンクとJA/EN案内を実装し、地域保存/再読込/天気条件切替の実ブラウザ検証を行う。OS位置許可を自動承認せず生成位置モデルと実許可を区別。ログイン時地域同期は既存sync対象だが認証済み実UIは未確認留保。その後動画手動再生、背景競合ルール共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立清掃、Phase7ゲート監査。Admin圧縮不足警告はPhase9で接続。Phase7未完了、8〜12未着手、Version1.0未完成、実OAuth留保継続。

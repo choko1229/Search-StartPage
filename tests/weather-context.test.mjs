@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import {weatherRegion,needsWeather,WeatherContext} from '../public/assets/js/weather-context.js';
+import {selectBackground} from '../public/assets/js/background-core.js';
+import {syncDocument,syncValues} from '../public/assets/js/sync-data.js';
+const region={latitude:35.6849,longitude:139.7649};
+assert.deepEqual(weatherRegion(region),{latitude:35.68,longitude:139.76});
+assert.deepEqual(weatherRegion({latitude:0,longitude:0}),{latitude:0,longitude:0});
+for(const value of [null,{}, {latitude:'0',longitude:0},{latitude:91,longitude:0},{latitude:0,longitude:181},{latitude:NaN,longitude:0}])assert.equal(weatherRegion(value),null);
+assert.equal(needsWeather([{rule:{operator:'and',conditions:[{type:'time'},{operator:'or',conditions:[{type:'temperature'}]}]}}]),true);
+assert.equal(needsWeather([{deleted:true,rule:{type:'weather'}},{rule:{type:'season'}}]),false);
+let now=1700000000000,changed=0,calls=[],answer={weather:'rain',temperature:12,observedAt:now/1000,expiresAt:now/1000+900};
+const fetcher=async(url,options)=>{calls.push({url,options});return {status:200,json:async()=>url==='/api/csrf'?{data:{csrf_token:'test-token'}}:{success:true,data:answer}};};
+const context=new WeatherContext({fetcher,clock:()=>now,changed:()=>changed++});
+assert.deepEqual(context.read(region,false),{latitude:35.68,longitude:139.76});assert.equal(calls.length,0);
+assert.deepEqual(context.read(region),{latitude:35.68,longitude:139.76});
+context.read(region);await context.pending;assert.equal(calls.length,2);assert.equal(changed,1);
+assert.deepEqual(context.read(region),{latitude:35.68,longitude:139.76,weather:'rain',temperature:12});
+assert.equal(calls[1].options.method,'POST');assert.deepEqual(JSON.parse(calls[1].options.body),{latitude:35.68,longitude:139.76});
+assert.equal(calls[1].options.redirect,'error');assert.equal(calls[1].options.credentials,'same-origin');
+assert.equal(calls[1].options.headers['X-CSRF-Token'],'test-token');
+const rows=[{id:'rain-test',type:'solid',name:'Rain',color:'#000000',rule:{operator:'and',conditions:[{type:'weather',values:['rain']},{type:'temperature',min:10,max:15}]}},{id:'fallback',type:'solid',name:'Fallback',color:'#ffffff'}];
+assert.equal(selectBackground(rows,{backgroundSwitch:'rules'},context.read(region)).id,'rain-test');
+now+=900000;answer={...answer,expiresAt:now/1000+900,observedAt:now/1000};
+assert.equal(context.read(region).weather,undefined);await context.pending;assert.equal(calls.length,4);
+context.read(null);assert.equal(context.cached,null);assert.deepEqual(context.read(null),{});
+let failedCalls=0;
+const failing=new WeatherContext({clock:()=>now,fetcher:async()=>{failedCalls++;throw new Error('offline');}});
+failing.read(region);await failing.pending;failing.read(region);assert.equal(failedCalls,1);
+now+=60000;failing.read(region);await failing.pending;assert.equal(failedCalls,2);
+for(const invalid of [{...answer,weather:'sunny'},{...answer,temperature:'12'},{...answer,temperature:71},{...answer,expiresAt:now/1000+1000},{...answer,observedAt:now/1000-7201}]){
+    const bad=new WeatherContext({clock:()=>now,fetcher:async url=>({status:200,json:async()=>url==='/api/csrf'?{data:{csrf_token:'test-token'}}:{success:true,data:invalid}})});
+    bad.read(region);await bad.pending;assert.equal(bad.cached,null);assert.equal(bad.read(region).weather,undefined);
+}
+let release,oldSignal;
+const delayed=new WeatherContext({clock:()=>now,fetcher:async(url,options)=>{
+    if(url==='/api/csrf')return {status:200,json:async()=>({data:{csrf_token:'test-token'}})};
+    oldSignal=options.signal;return new Promise(resolve=>{release=()=>resolve({status:200,json:async()=>({success:true,data:{...answer,expiresAt:now/1000+900}})});});
+}});
+delayed.read(region);const old=delayed.pending;await Promise.resolve();await Promise.resolve();
+delayed.read(null);assert.equal(oldSignal.aborted,true);release();await old;assert.equal(delayed.cached,null);
+const state={settings:{themeRegion:weatherRegion(region),syncEnabled:true}};
+const document=syncDocument(state,{web:[],ai:[]});assert.deepEqual(document.settings.themeRegion,weatherRegion(region));
+const checkpoint={userId:'42',document};const values=syncValues(state,document,checkpoint,now);
+assert.deepEqual(values.settings.themeRegion,weatherRegion(region));assert.ok(values.syncOwnership.settings.includes('themeRegion'));
+console.log('Weather context: region, rule selection, cache, offline retry, owner-independent request, stale response, and shared sync passed.');
