@@ -8,6 +8,7 @@ import {inspectBackgroundFile} from './background-file-core.js';
 import {initializeBackgroundSync} from './background-sync.js';
 import {backgroundRuleEditor} from './background-rule-editor.js';
 import {WeatherContext,needsWeather} from './weather-context.js';
+import {BackgroundPlayback} from './background-playback.js';
 
 export function initializeBackground() {
     const panel=document.getElementById('settings-background'),settingsDialog=document.getElementById('search-settings');
@@ -79,8 +80,13 @@ export function initializeBackground() {
         switching.value=setting('backgroundSwitch','manual');if(document.activeElement!==interval)interval.value=String(setting('backgroundInterval',300));
     }
     let loggedIn=false,current=null,video=null,lastSwitch=0,signature='',objectUrl=null,mediaGeneration=0;
+    const playbackButton=node('button',t('background_play_video'),{type:'button',class:'secondary background-playback-control',hidden:''});
+    const playbackStatus=node('p','',{role:'status',class:'background-playback-control'});
+    document.getElementById('favorites-section').before(playbackButton,playbackStatus);
+    const playback=new BackgroundPlayback(state=>{playbackButton.hidden=!state.available;playbackButton.textContent=t(state.playing||state.pending?'background_pause_video':'background_play_video');playbackButton.setAttribute('aria-pressed',String(state.playing||state.pending));if(!state.available)playbackStatus.textContent='';},()=>{error.textContent=t('background_play_blocked');playbackStatus.textContent=t('background_play_blocked');});
+    playbackButton.addEventListener('click',()=>{playbackStatus.textContent='';playback.toggle();});
     const weather=new WeatherContext({changed:()=>apply(true)});
-    function clearMedia(){mediaGeneration++;video?.pause();video=null;media.replaceChildren();if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}}
+    function clearMedia(){mediaGeneration++;playback.clear();video=null;media.replaceChildren();if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}}
     syncUser().then(user=>{loggedIn=Boolean(user);apply(true);}).catch(()=>{});
     async function apply(force=false){
         const now=Date.now(),settings=get('settings',{});layer.hidden=settings.backgroundMode!=='library';if(layer.hidden){clearMedia();current=null;signature='';return;}
@@ -88,7 +94,7 @@ export function initializeBackground() {
         const rows=[...backgroundPresets,...storedBackgrounds()];
         const width=innerWidth,context={now:new Date(),loggedIn,width,height:innerHeight,device:width<=600?'mobile':width<=1024?'tablet':'desktop',...weather.read(settings.themeRegion,settings.backgroundSwitch==='rules' && needsWeather(rows))};
         const selected=selectBackground(rows,settings,context);if(!selected)return;
-        current=selected;lastSwitch=now;const next=JSON.stringify([selected,width<=600]);if(signature===next){if(video){if(document.hidden||selected.paused)video.pause();else if(selected.autoplay)video.play().catch(()=>{});}return;}signature=next;
+        current=selected;lastSwitch=now;const next=JSON.stringify([selected,width<=600]);if(signature===next){playback.sync(document.hidden);return;}signature=next;
         clearMedia();const generation=mediaGeneration;media.style.background='';
         media.style.filter=`blur(${selected.blur}px) brightness(${selected.brightness})`;media.style.transform=`scale(${selected.scale})`;layer.style.position=selected.fixed?'fixed':'absolute';
         const rgb=[1,3,5].map(offset=>parseInt(color(selected.overlayColor,'#000000').slice(offset,offset+2),16)).join(',');overlay.style.background=`rgba(${rgb},${selected.overlay})`;
@@ -101,8 +107,8 @@ export function initializeBackground() {
         if(type==='gradient')media.style.background=`linear-gradient(${selected.angle}deg,${selected.color},${selected.colorEnd})`;
         if(type==='image'||type==='video'){
             const element=node(type==='image'?'img':'video',undefined,{src:url,...type==='image'?{alt:''}:{playsinline:'',preload:'metadata'}});element.style.objectFit=selected.fit;element.style.objectPosition=selected.position;
-            element.addEventListener('error',()=>{error.textContent=t('background_load_failed');media.style.background=selected.color;element.remove();});media.append(element);
-            if(type==='video'){video=element;element.muted=selected.mute;element.loop=selected.loop;element.playbackRate=selected.speed;if(selected.autoplay&&!selected.paused&&!document.hidden)element.play().catch(()=>{error.textContent=t('background_play_blocked');});}
+            element.addEventListener('error',()=>{error.textContent=t('background_load_failed');media.style.background=selected.color;element.remove();if(type==='video')playback.clear();});media.append(element);
+            if(type==='video'){video=element;element.muted=selected.mute;element.loop=selected.loop;element.playbackRate=selected.speed;playback.attach(element,selected,document.hidden);}
         }
     }
     window.addEventListener('data-change',event=>{if(['settings','backgrounds'].includes(event.detail)){renderLibrary();apply(true);}});window.addEventListener('resize',()=>apply(true));document.addEventListener('visibilitychange',()=>apply(true));

@@ -179,4 +179,5 @@ return [
     'region_unsupported'=>'Location is unavailable in this environment. Enter coordinates manually.',
     'region_shared_help'=>'This region is shared by the solar theme and weather background conditions. Coordinates are saved to two decimal places and included in signed-in settings sync. When you use weather conditions, this region is sent to the weather provider. Location is requested only when you press the button.',
     'region_weather_source'=>'Weather data provided by',
+    'background_play_video'=>'Play background video','background_pause_video'=>'Pause background video',
 ];

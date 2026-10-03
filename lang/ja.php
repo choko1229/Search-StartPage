@@ -179,4 +179,5 @@ return [
     'region_unsupported'=>'この環境では位置情報を取得できません。手動で入力してください。',
     'region_shared_help'=>'太陽時テーマと天気による背景切替で共通の地域です。座標は小数2桁で保存し、ログイン時の設定同期に含めます。天気条件を使う場合、この地域を天気提供元へ送信します。位置取得はボタンを押したときだけ行います。',
     'region_weather_source'=>'天気データの提供元：',
+    'background_play_video'=>'背景動画を再生','background_pause_video'=>'背景動画を一時停止',
 ];

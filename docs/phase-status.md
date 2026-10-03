@@ -608,3 +608,15 @@ region-core.js/region-settings.jsを追加しappearanceへ接続。現在地ボ�
 public/assets/langは8082〜8086の5アプリ環境へ反映済み。config/ユーザーデータ/ボリュームは保持。docs/weather.mdを現状へ更新。Phase7途中の保存、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 製品画面で天気AND気温条件による背景切替を確認（公開都市・生成背景のみ、気象データ非表示）。位置取得UIの保存/拒否/解除中の古い応答は専用生成fixtureで追加検証し実OS許可と区別する。その後動画手動再生、背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、Phase7ゲート監査へ進む。新weather付きInstallerの新規実実行もゲートで確認。Admin圧縮不足警告はPhase9、実OAuthと認証済み実UIは未確認留保を継続。
+
+## Phase 7 背景動画の手動再生（2026-10-03）
+
+background-playback.jsと検索画面の再生/一時停止ボタンを追加。動画選択時だけボタンを表示、画像/色/モバイル代替画像/ライブラリ無効時は非表示。動画がaria-hiddenの背景層にあるため操作はその外の通常画面へ配置。再生失敗も通常画面のstatusで案内。手動操作は現在の再生sessionだけへ適用し、ライブラリのAuto Play/Loop/Mute/Speed/Pause設定は保持。非表示時pause、元々の再生意図がある場合だけ表示復帰で再開。手動停止を10秒再判定で取り消さない。Loop OFFの終了は勝手に再生しない。再生拒否を自動連打せず手動retry可能。非同期play完了後の背景切替/停止をrevisionで検査し、旧動画をpauseする。DB/API/Migration変更なし。
+
+検証1: 新playback単体で手動play/pause、非表示pause/復帰、Loop OFF終了、再生拒否/retry、設定Pauseから手動play、遅いplay完了/切替後pauseを成功。全JS単体25ファイル/追加JS構文成功。
+検証2: 隔離MySQL8085/MariaDB8086で基盤39/翻訳key一致/PHP構文107成功。直前APIと全9Migration往復の証拠を維持、今回変更なし。git diff --check成功。
+検証3: 圧縮検証専用コンテナFFmpegで6秒の単色MP4を生成（ユーザーファイル不使用）、8083のpublic/_testにだけ配置。製品UIからURL動画/Auto Play OFF/Cloud Sync OFFとして保存。実video readyState4/paused=true/time0、再生クリックでpaused=false/time進行、一時停止paused=true、再開paused=falseを確認。reload後time0/paused=trueを保持（Auto Play OFF）。390pxでも実再生・停止、document375/scroll375、console warn/error0。画像.test-output/phase7-video-playback.pngとphase7-video-playback-mobile.png（Git除外）。初回mobile操作は未完了onboardingのmodalが出て次ボタンを見つけられず失敗、表示状態を確認し「あとで続ける」で閉じて再成功。許可や認証を緩和していない。IABタブ14保持、viewport reset、通常JAトップへ戻しLocal upload retainedを再選択、video0/操作ボタンhidden/image naturalWidth1を確認。生成検証動画とVideo playback verification背景（同期OFF）は隔離8083に保持。実動画Upload、非表示復帰の実ブラウザ、Loop OFF終端の実ブラウザ、EN操作は今回未確認（単体/翻訳一致と区別）。
+
+public/assets/langは8082〜8086へ反映済み。背景設定/元Blob/ユーザーデータ/ボリュームを保持。Phase7途中コミット、8〜12未着手、Version1.0未完成。
+
+次に実行すること: 天気AND気温の製品実画面切替、位置取得UIの生成fixtureによる保存/拒否/解除中の旧応答拒否を確認（実OS位置許可と区別）。動画のEN・Loop OFF終端・表示復帰/モバイル代替を実ブラウザで追加検証。その後背景競合ルールの他端末共有、巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather設定付き新規Installer、Phase7ゲート監査へ進む。Admin圧縮不足警告はPhase9、実OAuth/認証済みUIは未確認留保を継続。
