@@ -792,3 +792,17 @@ app/public/langを8082/8083/8084/8089/8090へ反映。DB/config/storage/既存�
 実OAuth/認証済み実UIはユーザー指定の進行前提による留保。実OS位置許可/実非表示動画復帰/巨大FFmpeg変換/実ブラウザquota枯渇も未確認のままPhase12へ追跡。Admin codec不足警告はPhase9接続。Version1.0未完成。
 
 次に実行すること: Phase8 spec§48〜52/添付全文に従い拡張可能なcommand registryを実装。8カテゴリ横断検索、初期recent/frequent/favorites/search/AI、exact/prefix/relevance/usage/recency/categoryランキング、列挙された実操作と操作別confirm/次回確認なし、Ctrl+Kとキーボード/JA/EN/mobileを順に検証。Phase8未完了、9〜12未着手。
+
+## Phase8 Registry・Ranking・確認実行基盤（2026-10-03）
+
+command-registry.jsを実装。Commands/Favorites/Search/AI/Settings/History/Tags/Foldersの8カテゴリ、実callback登録/解除・ID/effect/key検査・重複拒否、NFKC/大小文字/空白正規化、title/keywordsのexact/prefix/部分一致/部分列検索。ランキングは一致強度→usage/recency/category weight（Commands/Favorites/Search-AI/Settings/Tags-Folders/History）、安定tie順序。初期recent/frequent/favorites/search/AI groups、usage500件上限を導出。検索でcallbackを実行しない。
+
+command-executor.jsを実装。state操作は既定confirm、操作ごとのfalseだけ確認省略。Cancelは副作用なし、次回確認なしの保存が失敗したら操作を中止。await確認中に登録が削除された場合も拒否、非同期run中の二重実行拒否、例外後にbusy解除。confirm/preferences/atomic rememberはUI adapter経由。サーバー権限/CSRFを緩和しない。
+
+検証1: registry専用単体成功。8カテゴリ、exactが高usage prefixより優先、prefix/keyword/部分列、usageとrecency、未来時刻/不正usage、初期groups、結果上限/順序、重複/不正登録/危険ID/入力変更耐性、解除後再登録の古い解除callback無害、確認設定、usage上限を確認。
+検証2: executor専用単体成功。取消/実行/操作別skip、保存失敗で副作用0、設定未保存時は次も確認、並行実行拒否、確認中解除拒否、callback失敗後に再実行可能を確認。
+検証3: 全JS30単体・新規4JS構文・git diff --check成功。PHP/DB/API/Migration/製品既存UIに変更なし、直前PHP構文/両DB基盤39/API56/Installer9往復40/実UI証拠維持、今回は再実行なし。画面へ未接続のため新UI/Console成功とは扱わない。
+
+docs/phase8-gate.mdに7完了条件の実装・未実装を記録。新規coreは実装済みだがsearch.jsにimportされず、Palette画面/データ登録/列挙操作/確認設定の永続化は未実装。Phase8途中保存、Phase9〜12未着手、Version1.0未完成。Phase7機能ゲート確定コミット7bb4832。実OAuth等の未確認留保は継続。
+
+次に実行すること: command-palette.jsでCtrl+K/modal/キーボード/8カテゴリ検索結果/5初期groupsを製品へ接続。既存Favorites/Providers/History/Settingsの公開関数・イベントを確認して列挙実操作を登録する。command executorへ実確認dialogとsaveSettingsによる操作別confirm設定を接続し、成功後のusage永続化、登録解除/データ変更に追従。JA/EN/mobile実UIと両DB回帰を検証してからPhase8完了判定。
