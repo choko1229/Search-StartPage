@@ -559,3 +559,17 @@ onboarding-coreに有効な背景候補を導出するonboardingBackgroundsを�
 docs/phase7-gate.mdでWizard持越しを確認済みへ更新、docs/spec-audit.mdの古いPhase7状態を最新証拠へ更新。Phase7の最終機能ゲートはまだ監査中、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 生成MP4のブラウザfilechooserから製品Local Upload UI→実IndexedDB保存→描画→reload→編集保持の経路を確認（file-uploads documentationを読む）。既存画像の証拠と動画URL/動画HTTP試験を区別する。必要な修正後にPhase7ゲート判定、環境依存未確認をPhase12監査へ追跡しPhase8へ進む。実OAuth/認証済み実UI/実OS位置許可/非表示復帰/巨大FFmpeg変換/実quota枯渇は未確認留保。
+
+## Phase 7 ブラウザからのローカル動画保存（2026-10-03）
+
+生成済み6秒320x180 MP4（4131 bytes）を隔離8083のゲスト・Cloud Sync OFFで実filechooserから選択し、製品背景追加画面でLocal video upload verificationとして保存。ユーザーファイル/本番DB/実OAuthを不使用。製品コードの修正なし。
+
+検証1: 動画/端末のファイル、Auto Play OFF/Loop OFF/Mute ONで保存成功、ライブラリに同期OFFとして表示。製品videoはblob URL、readyState4/duration6/320x180/paused true。画面の再生ボタンでpaused false/currentTime進行を確認。filechooser setFiles後の読み取り専用DOMでinput.filesを読む試みは観測APIが公開せずTypeError。保存成功と実動画デコードでファイル選択を確認し、観測エラーを製品不具合として扱わない。
+
+検証2: reloadで新しいblob URLが生成され、readyState4/duration6/320x180/paused true/currentTime0。永続Blobからの再描画を確認。再開Wizardは4/8で開き「あとで続ける」で閉じた。設定の編集でvideo/upload/Loop OFF/Cloud Sync OFFを維持。ファイルを再選択せず速度1.5を保存し、実video playbackRate1.5/readyState4/duration6を確認。
+
+検証3: console warn/error0、画面画像.test-output/phase7-local-video-reloaded.pngを保存・目視確認。通常JAのLocal upload retainedへ戻してnaturalWidth1を確認、tab16 handoff保持。新規動画は再検査できるようテストライブラリへ保持。仕様Phase7のImage/Video Upload・Compression・Library・Sync・Rules・Weatherを再確認。PHP/DB/API/Migration変更なしのため既存両DB各40 Installer/114構文/39基盤・全JS27の証拠維持、今回再実行なし。git diff --checkを記録保存後に確認。
+
+Phase7最終ゲート監査中、Phase8〜12未着手、Version1.0未完成。実OAuth/認証済みUI/実OS位置許可/非表示動画復帰/巨大FFmpeg変換/実ブラウザquota枯渇は留保。先頭Phase一覧を最新状態に合わせ、過去記録と現状の混同を解消。
+
+次に実行すること: docs/phase7-gate.mdと添付Phase7完了条件を照合し、未処理の実装がないことを確認して機能ゲート判定。留保項目をPhase12の個別監査へ追跡。Phase8はspec§48〜52のRegistry/Search/Ranking/Commands/Confirmationsを仕様通り実装する。Phase7の確定前にPhase8へ進まない。

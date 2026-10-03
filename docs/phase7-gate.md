@@ -7,7 +7,7 @@
 | Solid/Gradient/Image/Video (§57) | background-core/background.js、プリセットと保存済みライブラリ、実画像/動画描画 | 機能確認済み |
 | Blur/Brightness/Overlay/Color/Position/Scale/Fit/Fixed (§58) | editor/core/PHP Validation、単体41、編集・再読込・390px実画面 | 機能確認済み |
 | Auto Play/Loop/Mute/Speed/Pause/Mobile Fallback (§58) | playback、実動画Play/Pause/再開、Auto Play OFF再読込、Loop OFF終端、英語ボタン、390px代替画像 | 機能確認済み、実非表示復帰は最終監査へ留保 |
-| URL/Local Upload/Preset/複数保存 (§59) | ファイル入力→検査→Blob/metadata原子保存、ライブラリ編集/保管/復元。IDBと実画像UI、実動画HTTP | 実ブラウザの動画ファイル選択は未確認 |
+| URL/Local Upload/Preset/複数保存 (§59) | ファイル入力→検査→Blob/metadata原子保存、ライブラリ編集/保管/復元。IDBと実画像UI、実動画HTTP | 実filechooser→動画Blob保存→再生→reload→ファイル再選択なし編集を確認 |
 | 背景単位Cloud Sync・URL/metadataとfile (§60) | owner限定APIと背景session/3-way/CAS/初回3択。実HTTP2端末各8グループ、原子的ACK、durable upload intentとreceipt回復 | 機能確認済み、認証済み実UIは留保 |
 | 画像25MiB/動画500MiB・最終size課金 (§61) | 検査/JS/サーバー上限、実500MiB multipart各12、圧縮quota各8、圧縮付きHTTP各15 | 入力境界/実圧縮/課金確認済み、巨大入力のFFmpeg変換と実ブラウザquota枯渇は未確認 |
 | Imagick→GD/FFmpeg・不足時継続 (§62) | 実codec 17/16/12項目、失敗/codecなしwarningと元file保持、API capability | 機能確認済み、Admin警告画面はPhase 9 |
@@ -23,4 +23,4 @@
 
 仕様は永久削除ボタンを背景の必須操作として明記していない。保管は復元可能でfile/容量を保持する。孤立回収は保管背景のfileを消す代替操作にしない。
 
-次は生成MP4の実ブラウザfile選択からIndexedDB保存・再読込まで確認し、Phase 7の実装と検証範囲を確定する。環境依存の未確認事項はPhase 12監査で追跡し、主要未処理を残したままPhase 7を完了扱いにしない。
+生成MP4の実ブラウザfile選択からIndexedDB保存・再読込まで確認済み。次は添付Phase別完了条件を照合し、Phase 7の実装と検証範囲を確定する。環境依存の未確認事項はPhase 12監査で追跡し、主要未処理を残したままPhase 7を完了扱いにしない。
