@@ -55,7 +55,7 @@ export class BackgroundSyncSession {
             for(let step=0;step<budget;step++) {
                 checkpoint=this.io.checkpoint(owner);
                 const documents=backgroundDocuments(this.io.local(),cloudRows,checkpoint,owner);
-                const rules=checkpoint.rules||{};let target,selectedRules={};
+                const rules=this.io.rules?.(owner)??checkpoint.rules??{};let target,selectedRules={};
                 if(checkpoint.pendingInitial==='local') {
                     target={...documents.local};
                     for(const [id,row] of Object.entries(documents.cloud))if(!target[id])target[id]={...row,deleted:true};

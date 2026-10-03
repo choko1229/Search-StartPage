@@ -32,7 +32,7 @@ Phase 2のAI頻度/最近順、検索・履歴キー変更、URL方針、クリ�
 
 ## 次に実行すること
 
-1. Phase 7は末尾の最新記録から再開。背景Cloud Sync・中断回復・全11条件編集・天気/気温の実APIと製品選択処理の接続を検証済み。次はBrowser Geolocationの入力ボタン、太陽時テーマ/天気共通の地域設定画面と提供元案内、実ブラウザでの地域入力/条件切替を実装・検証する。その後動画手動再生・背景競合ルール共有・巨大ファイル・実圧縮+容量・耐久的孤立清掃・Phase7ゲートへ進む。OSファイル選択と巨大ファイルの実操作は未確認。
+1. Phase 7は末尾の最新記録から再開。背景Cloud Sync・中断回復・全11条件・天気/地域UI・動画手動操作・背景競合ルール共有を実装検証済み。次は巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。未確認事項は最新記録を参照。
 2. Phase 6機能ゲートはdocs/phase6-gate.md。実OAuth/認証済み名前/Profileと実OS reduced motion切替は未確認を最終品質監査へ留保。ユーザーのログイン成功前提を維持、認証バイパスを追加しない。
 3. Phase 5は下記最新のゲート記録を参照。IndexedDBへ移行済み、300件長文+checkpoint、原子的ACK/失敗/保存中編集、旧データ移行/複数タブ/検索遷移/所有権削除を確認。背景ファイル本体はPhase 7へ。
 4. 各Phaseを3回以上検証してコミット。Phase 4実OAuth/実認証済みブラウザは未確認を最終監査へ留保し、認証バイパスを追加しない。Version 1.0は全DoDまで未完成。
@@ -465,3 +465,17 @@ JSは8082〜8086へ反映。fixture公開はSEARCH_TEST_MODE付き8083のみ、�
 Video playback verificationはLoop OFF/fallback追加を保存して隔離8083に保持（同期OFF）。生成PNGを.test-outputからpublic/_testに配置。通常config/ユーザーデータ/ボリュームを保持。Phase7未完了、8〜12未着手、Version1.0未完成。
 
 次に実行すること: 背景競合解決の保存ルールを他端末へ共有する。現状background checkpoint.rulesのみ、一般同期のsettings.syncRulesの共有方式と整合させる。アカウント混同/履歴・一般競合ルールの破壊/並行同期を避け、両DB実HTTP2端末と単体で確認。その後巨大500MiB実HTTP/実圧縮+DB容量、耐久的孤立ファイル清掃、weather付き新規Installer、Phase7ゲート監査。動画非表示復帰、実OS位置許可、認証済み地域同期/実OAuthは未確認留保を維持。Admin圧縮不足警告はPhase9。
+
+## Phase 7 背景競合ルールの他端末共有（2026-10-03）
+
+background-sync-rules.jsを追加し、背景競合の保存ルールを一般同期settings.syncRulesへ接続。一般同期checkpointが現在ownerと一致する場合だけ共有設定を使用し、それまではowner別backgroundCheckpoint.rulesを維持。旧ルールは一度だけ共有設定へ昇格、共有設定の明示削除後に旧checkpointから復活させない。共有済みルールは背景JSON pathだけを読み、一般競合ルール・他の設定を保持。背景ACKとルール保存を同じsetMany transactionへ組込み、latest stateから再計算。背景変更なしでもfinishで旧ルールを移行し、同一settingsの再保存を省略して250ms同期ループを防止。BackgroundSyncSessionは毎処理段階で現在の共有ルールを参照。DB/API/Migration変更なし、既存sync settings Validation/認証/CSRF/owner照合を維持。
+
+検証1: 全JS単体26ファイル成功。新shared-rules試験で旧ルール昇格、共有優先、個別削除/設定全体削除後の非復活、一般ルール保持、未同期accountの遅延昇格、他owner不使用、不正JSON path/選択の除外、背景選択、ACKとの原子計画を確認。変更JS/HTTP試験の構文成功。追加path制限後の専用試験も再成功。
+
+検証2: 隔離MySQL8083/MariaDB8084の実HTTP・製品BackgroundSyncSession/SyncSessionで各8グループ成功。片端末の競合Cloud選択とremember→一般sync APIで共有→別端末の背景競合をdialogなしでCloudへ解決→共有ルール削除と非復活を確認。一般同期の通信中に背景ルールを保存してもACK後に保持、次回実通信で他端末へ共有されることも確認。既存のmultipart/private bytes/409/オフライン/同期OFF/他owner拒否/アカウント切替/ACK失敗・通信応答喪失のreceipt回復/重複uploadを再成功。テスト用rememberログインとstate/Blobモデルによる端末試験であり、実Discord/認証済み実ブラウザ・実IndexedDBの同時sync検証とは区別する。最初の追加試験は試験adapterのString ownerと数値user.idの比較でfalseとなり両DB失敗、adapterの型を合わせ再成功。製品認証やCSRFを緩和していない。専用テストアカウント/ファイル/一時認証JSONはfinallyで清掃、秘密値は記録しない。
+
+検証3: 隔離新規MySQL8085/MariaDB8086で基盤各39（翻訳key一致含む）とapp/public/tests内PHP構文成功。今回PHP変更なし、全9Migration往復の直前証拠を維持（今回再実行なし）。git diff --check成功。今回新規UI操作なし、既存競合UIの証拠を維持。ローカル5アプリ8082〜8086へpublic/assets/js反映、config/ユーザーデータ/ボリューム保持。
+
+Phase7途中の保存。Phase8〜12未着手、Version1.0未完成。
+
+次に実行すること: 巨大500MiB実HTTPと実圧縮+DB容量、耐久的孤立ファイル清掃、weather設定付き新規Installer実行、Phase7ゲート監査へ進む。動画非表示復帰の実ブラウザ、実OS位置許可、認証済み地域/背景ルール共有UI、実OAuthは未確認留保。Admin圧縮不足警告はPhase9。

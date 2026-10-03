@@ -1,4 +1,5 @@
-import {get,setMany,setting,backgroundFile,flush} from './store.js';
+import {get,setMany,setting,backgroundFile,flush,snapshot} from './store.js';
+import {readBackgroundRules,shareBackgroundRules} from './background-sync-rules.js';
 import {BackgroundSyncSession} from './background-sync-session.js';
 import {backgroundAcknowledgement} from './background-sync-ack.js';
 import {backgroundRecord} from './background-sync-core.js';
@@ -15,7 +16,7 @@ export function initializeBackgroundSync(panel) {
     const checkpoint=owner=>{const value=get('backgroundCheckpoint',null);return String(value?.userId)===String(owner)?value:null;};
     const session=new BackgroundSyncSession({
         user:syncUser,current:async owner=>setting('syncEnabled',true)&&String((await syncUser())?.id)===String(owner),
-        local:()=>get('backgrounds',[]),checkpoint,
+        local:()=>get('backgrounds',[]),checkpoint,rules:owner=>readBackgroundRules(snapshot(),owner),
         read:async owner=>{const result=await readBackgrounds(owner);if(result.status!==200||!Array.isArray(result.data?.items))throw new Error('background_sync_failed');return result.data.items;},
         initial:()=>syncDialog('initial',[],t('background_cloud_sync')),conflicts:items=>syncDialog('conflicts',items,t('background_cloud_sync')),
         begin:async(owner,choice)=>setMany({backgroundCheckpoint:{userId:owner,document:{},pendingInitial:choice}}),
@@ -32,7 +33,9 @@ export function initializeBackgroundSync(panel) {
         accept:async options=>{applying=true;try{await setMany(state=>backgroundAcknowledgement(state,options).values,state=>backgroundAcknowledgement(state,options).files,options.intent?uploadGuard:null);}finally{applying=false;}},
         finish:async owner=>setMany(state=>{
             if(String(state.backgroundCheckpoint?.userId)!==owner)throw new Error('BACKGROUND_OWNER_CHANGED');
-            const next={...state.backgroundCheckpoint};delete next.pendingInitial;return {backgroundCheckpoint:next};
+            const preferences=shareBackgroundRules(state,owner);
+            if(equal(preferences.settings,state.settings))delete preferences.settings;
+            const next={...preferences.backgroundCheckpoint};delete next.pendingInitial;return {...preferences,backgroundCheckpoint:next};
         }),status:value=>{status.textContent=t('sync_'+value);},
     });
     function schedule(delay){clearTimeout(timer);timer=setTimeout(run,delay);}

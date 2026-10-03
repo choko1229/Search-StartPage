@@ -1,6 +1,7 @@
 import {backgroundRecord,backgroundPayload,mergeBackgrounds} from './background-sync-core.js';
 import {equal} from './sync-core.js';
 import {clearUpload} from './background-upload-intent.js';
+import {shareBackgroundRules} from './background-sync-rules.js';
 
 // Pure transaction planner. Recalculate from the latest state every time the
 // store retries a write so a received Blob cannot replace an in-flight edit.
@@ -47,8 +48,9 @@ export function backgroundAcknowledgement(state,{userId,before,target,acknowledg
     const ownership=state.backgroundOwnership&&String(state.backgroundOwnership.userId)===owner?state.backgroundOwnership.ids:[];
     const cleared=intent?clearUpload(state,intent):{values:{},files:[]};
     if(intent&&intent.userId!==owner)throw new Error('BACKGROUND_OWNER_CHANGED');
+    const preferences=shareBackgroundRules(state,owner,rules);
     return {values:{...cleared.values,backgrounds:row?[...list.filter(item=>item.id!==id),row]:list.filter(item=>item.id!==id),
-        backgroundCheckpoint:{...previous,userId:owner,document:{...previous.document,[id]:cloud},rules:{...previous.rules,...rules}},
+        ...preferences,backgroundCheckpoint:{...previous,...preferences.backgroundCheckpoint,userId:owner,document:{...previous.document,[id]:cloud}},
         backgroundOwnership:{userId:owner,ids:[...new Set([...(ownership||[]),id])]}}
         ,files:[...files,...cleared.files]};
 }
