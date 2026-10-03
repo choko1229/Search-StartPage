@@ -866,3 +866,17 @@ Phase8未完了、Phase9〜12未着手、Version1.0未完成。実OAuth/認証�
 Phase8未完了、Phase9〜12未着手、Version1.0未完成。実OAuth/認証済み実UI等の留保継続。
 
 次に実行すること: 確認設定reset/同期共有、拡張登録とARIAを検証。隔離した専用履歴をUI検索で生成してPalette再検索を確認（外部への個人データ送信なし）。履歴消去・favorite削除は実データの永久削除をUIから無確認で行わず、専用adapter試験で原子保存失敗/成功を確認。製品adapter/実IndexedDB回復と残るPhase8ゲートを監査する。
+
+## Phase8 確認設定の同期・初期化とEsc補修（2026-10-03）
+
+前のGoalターンは実UI検証と履歴原子保存修正42f035fによりprogress。再開記録/status/gitを確認しtab18の生存をinventoryで確認。
+
+検証1: JA実UIでPalette→ショートカット設定、AI変更確認OFF→カテゴリ初期化のconfirm→7項目すべてON。reload後も7項目ON。Ctrl+K実起動、Endで3件目/aria-activedescendant参照一致、Home→ArrowUpで末尾循環、該当なしでactive参照削除/status表示を確認。Escは検索文字ありで初回に文字のみ消去されるnative search入力動作を発見。command-palette input keydownでEscapeをpreventDefaultしてshutし、reload後の文字ありEsc1回でdialog open false/起動buttonへfocus復帰を確認。console warn/error0。画像.test-output/phase8-confirmations-reset.png保存・目視確認。tab18/設定ショートカット/JA/Web/Google/Light/既存背景/AI Claude保持、handoff。
+
+検証2: 新tests/palette-preferences-http.mjsを隔離MySQL8083/MariaDB8084で各4グループ成功。製品SyncSession/sync-data/sync-api/confirmation判定を使用し、2モデル端末＋実APIで操作別false伝播、true再有効化/独立AI設定、削除reset伝播/既定confirm復帰、別account分離を確認。実認証済みブラウザ・実OAuthの証明とは区別。fixture秘密JSON/専用accountはfinally清掃。
+
+検証3: registry/executor/settings-history19/sync-data28回帰成功、変更JS/新HTTP試験構文/git diff --check成功。JSを8083/8084へ反映、DB/PHP/API/Migration変更なし、全9Installer往復40/全JS31の前回証拠を維持（今回全体再実行なし）。
+
+Phase8未完了、Phase9〜12未着手、Version1.0未完成。未確認: Palette履歴再検索、永久削除・履歴消去成功/失敗の製品adapter、実拡張登録、製品IndexedDB回復、実読み上げ/全browser。実OAuth等留保継続。
+
+次に実行すること: 既存UIを使って隔離localhost専用検索先と履歴を作りPalette再検索を確認。新機能の登録/解除を専用プレビューで実画面検証。履歴消去/favorite削除と保存故障を製品adapter試験で確認し、実データをUIから無確認で永久削除しない。残るPhase8完了条件7項目を監査してゲート判定する。
