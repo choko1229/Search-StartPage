@@ -763,3 +763,23 @@ Phase9進行中、Version1.0未完成。残りUsers/Storage/Presets/Flags/Mainte
 Phase9進行中、Version1.0未完成。Users/Storageの一覧・検索は実装済み、管理変更/audit/limits/容量設定/cleanup等と他管理項目は未完了。Phase10〜12未着手、実OAuth留保継続。
 
 次に実行すること: 管理操作の監査ログ・DB設定Migrationを追加し、Maintenance/Feature Flags/Limitsの編集をCSRF/権限/validation付きで実装する。Maintenanceは一般user full stop/admin通常利用という仕様を全routeと照合する。管理者追加/失効操作もauditと競合/最後の管理者保護を考慮して実装。Presets/匿名Statistics/file+DB Logs/90日保持/Privacy/Updater導線を残りPhase9ゲートへ接続し、全10以降Migration Installer往復と実日英/mobileUI検証を進める。
+
+## Phase9 メンテナンス制御・監査基盤（2026-10-03）
+
+前のGoalターンはUsers/Storage実装2adb9a4と両DB検証によりprogress。progress/status/git/spec§90〜100を確認して継続。
+
+実装: 011_admin_settings_logs（site_settings/log_entries、FK・date/type/user indexes）。GET/POST /admin/maintenance と /api/admin/maintenance。AdminMiddleware→Csrf、bool/version検証、version不一致409。設定更新とadmin_auditを同じDB transactionで保存。監査はDB outbox/file_written経由でFileLoggerへ配送し、file失敗はDBに保持して次の管理訪問/変更で再試行。contextはsetting/before/after/version/actor/audit IDのみ、秘密/リクエスト本文なし。現在はmaintenanceの監査のみで全Logs要件の完成ではない。
+
+全動的routeの前にMaintenanceを適用しguest/一般userに503、HTMLは日英のメンテナンス文とReloadボタンのみ（通常header非表示）、APIは日英error+Retry-After。DB membership/admin_flag=1の管理者は通常利用。入力JSON解析より前にgateを置き、正常/不正mutationも停止する。private storage/runtime/maintenance.jsonとflockを用い、enableはDB commit前にsignal true、disableはcommit後にfalse。設定変更とsnapshot再取得を共通lockで直列化。missing/corrupt signalはDBで確認するまでpublicを許可しない。通常false snapshotではguestローカル画面にDB接続を追加しない。実DB障害HTTPは今回未検証（DB不要signal単体は確認）。
+
+検証1: 既存隔離8083/8084へcode/Migration反映、各1適用。最初の実HTTP maintenance各53成功。新規専用search-phase9-gate-20261003（MySQL8091/MariaDB8092、新volumes）をbuild/startし全11Migration up/down/up＋Web Installer各40成功。秘密は環境変数/専用configのみ、既存DB/storage/configを保持。
+
+検証2: 新規両DBでwww-dataとしてmaintenance最終62成功、signal8、admin64、基盤39、認証43。一般全route/unknownroute/API停止、admin継続、CSRF/validation/staleversion、DB失敗rollback、file監査再試行、日英/フォーム303/private snapshot拒否を確認。専用fixtureはfinally清掃、生成監査はDB/fileに保持、actor削除でDB user_idはNULL。試験file sinkの故障は意図した注入、error_logのpending文は実障害とは区別。
+
+失敗と補修: private signal拒否の試験が403固定で失敗。既存InstallerとApache DocumentRootにより実際は404、403/404かつ値非露出へ修正して再成功。mutation POST []の試験が入力400で失敗し、製品gateがRequest::capture後だったことを発見。gateを入力解析前へ移してPOST/PUT/DELETEすべて503を再成功。両失敗を成功扱いにしない。
+
+検証3: 最終新規両DB PHP各132ファイル構文/git diff --check成功。最終修正前の既存8083/84 lintは135/131（個別テストfixture配置差）、最終bootstrap/testsを既存環境にも反映。tests/docker.ps1の通常回帰へadmin/maintenance/signalを追加。実管理者ブラウザUI/mobile/console・実OAuthはまだ未確認。11Migration Installer40の証拠はbootstrap最終入力順修正前、その後基盤/認証を再成功。
+
+Phase9進行中、10〜12未着手、Version1.0未完成。Maintenanceと監査保存基盤を実装したが、Feature Flags/Limits/Presets/Statistics/全Logs/90日保持/Privacy/管理者操作/容量操作/Update導線は残る。
+
+次に実行すること: 最新専用環境8091/8092を利用。admin_audit/log_entriesの閲覧・検索/type/date/user/errorcode/keyword filterと90日DB/file保持を実装し、ErrorHandler/OAuth/Sync/Securityなどへ安全な記録を接続。Feature Flags/Limitsとサーバー・UI制御、Presetsとanonymous event Statistics/Privacyを順に実装。設定ファイル/DB/secretを保持してUpdater導線をPhase10へ引き渡す。実管理日英/mobileUI/consoleとsnapshot障害時のHTTPを検証。Phase9機能ゲートを満たすまでPhase10へ進まない。

@@ -15,7 +15,7 @@ use App\Auth\Session;
 </head>
 <body>
     <a class="skip-link" href="#main"><?= $e($t->get('skip_content')) ?></a>
-    <header class="site-header">
+    <?php if (empty($data['maintenance_only'])): ?><header class="site-header">
         <a class="brand" data-header-item="brand" href="/"><?= $e($t->get('app_name')) ?></a>
         <a data-header-item="settings" href="/#settings"><?= $e($t->get('settings_title')) ?></a>
         <a data-header-item="history" href="/#history" aria-label="<?= $e($t->get('history')) ?>" title="<?= $e($t->get('history')) ?>">
@@ -31,7 +31,7 @@ use App\Auth\Session;
             </select>
             <button type="submit" class="secondary"><?= $e($t->get('apply')) ?></button>
         </form>
-    </header>
+    </header><?php endif; ?>
     <main id="main" tabindex="-1"><?= $content ?></main>
 </body>
 </html>

@@ -26,22 +26,23 @@ $core = new CoreController($config, $view);
 $installer = new InstallerController(new InstallationService($root), new EnvironmentCheck($root), $view, new FileLogger($root . '/storage/logs'));
 $router = new Router();
 if ($config->get('installed')) {
+    $maintenanceSignal=new App\Services\MaintenanceState($root.'/storage/runtime');
     $adminContext = null;
-    $resolveAdmin = static function () use (&$adminContext, $config): array {
+    $resolveAdmin = static function () use (&$adminContext, $config,$maintenanceSignal): array {
         if ($adminContext === null) {
             try { $pdo = App\Database\Database::connect($config->get('database')); }
             catch (PDOException) { throw new App\Http\HttpException(503, 'DATABASE_UNAVAILABLE'); }
             $auth = new App\Auth\Auth($config, new App\Repositories\AuthRepository($pdo));
             $auth->restore();
-            $adminContext = [$auth, new App\Repositories\AdminRepository($pdo)];
+            $adminContext = [$auth, new App\Repositories\AdminRepository($pdo),new App\Repositories\AdminSettingsRepository($pdo,$maintenanceSignal),new App\Services\AdminAuditLogger($pdo,new FileLogger(dirname(__DIR__).'/storage/logs'))];
         }
         return $adminContext;
     };
     $adminMiddleware = new App\Middleware\AdminMiddleware($resolveAdmin);
     $adminHandler = static function (string $method) use ($resolveAdmin, $view): Closure {
         return static function (Request $request) use ($resolveAdmin, $view, $method): App\Http\Response {
-            [, $repository] = $resolveAdmin();
-            return (new App\Controllers\AdminController($repository, $view))->$method($request);
+            [$auth, $repository,$settings,$audit] = $resolveAdmin();
+            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit))->$method($request);
         };
     };
     $router->add('GET', '/admin', $adminHandler('page'), [$adminMiddleware]);
@@ -50,6 +51,10 @@ if ($config->get('installed')) {
     $router->add('GET', '/admin/storage', $adminHandler('storagePage'), [$adminMiddleware]);
     $router->add('GET', '/api/admin/users', $adminHandler('users'), [$adminMiddleware]);
     $router->add('GET', '/api/admin/storage', $adminHandler('storage'), [$adminMiddleware]);
+    $router->add('GET','/admin/maintenance',$adminHandler('maintenancePage'),[$adminMiddleware]);
+    $router->add('POST','/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
+    $router->add('GET','/api/admin/maintenance',$adminHandler('maintenance'),[$adminMiddleware]);
+    $router->add('POST','/api/admin/maintenance',$adminHandler('updateMaintenance'),[$adminMiddleware,new Csrf()]);
     // Authentication is resolved only for routes that need it. Local search and
     // favorites remain available when the database cannot be reached.
     $account = null;
@@ -137,4 +142,11 @@ $router->add('GET', '/api/favorites/metadata', (new App\Controllers\FavoriteMeta
 $router->add('POST', '/locale', $core->locale(...), [new Csrf()]);
 $router->add('GET', '/installer', $installer->handle(...));
 $router->add('POST', '/installer', $installer->handle(...), [new Csrf()]);
-$router->dispatch(Request::capture())->send();
+// Apply the full stop before parsing JSON or reaching route middleware.
+// Malformed mutation bodies must not expose a normal API during maintenance.
+$request=new Request($_SERVER['REQUEST_METHOD'] ?? 'GET',parse_url($_SERVER['REQUEST_URI'] ?? '/',PHP_URL_PATH) ?: '/');
+$dispatch=static fn(Request $request):App\Http\Response=>$router->dispatch(Request::capture());
+if ($config->get('installed') && $maintenanceSignal->active()) {
+    [,,$maintenanceSettings]=$resolveAdmin();
+    (new App\Middleware\Maintenance($maintenanceSettings,$resolveAdmin,$view,$maintenanceSignal,$translator))($request,$dispatch)->send();
+} else $dispatch($request)->send();

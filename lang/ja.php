@@ -2,6 +2,9 @@
 declare(strict_types=1);
 
 return [
+    'admin_maintenance'=>'メンテナンス設定','admin_maintenance_help'=>'有効にすると一般ユーザーの画面・APIを停止します。管理者は引き続き利用できます。',
+    'admin_maintenance_off'=>'通常運用','admin_maintenance_on'=>'メンテナンスを有効にする','maintenance_message'=>'メンテナンス中です','maintenance_reload'=>'再読み込み',
+    'ADMIN_SETTINGS_CONFLICT'=>'設定が別の操作で変更されました。画面を読み込み直してください。','ADMIN_SETTINGS_UNAVAILABLE'=>'管理設定を読み込めません。',
     'admin_users'=>'ユーザー管理','admin_storage'=>'容量管理','admin_user_search'=>'Discord ID・ユーザー名で検索',
     'admin_search'=>'検索','admin_total'=>'該当件数','admin_no_results'=>'該当するユーザーはいません。',
     'admin_username'=>'ユーザー名','admin_role'=>'権限','admin_administrator'=>'管理者','admin_regular_user'=>'一般ユーザー',

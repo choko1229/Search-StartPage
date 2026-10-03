@@ -2,6 +2,9 @@
 declare(strict_types=1);
 
 return [
+    'admin_maintenance'=>'Maintenance settings','admin_maintenance_help'=>'Enabling maintenance stops public pages and APIs. Administrators can continue using the service.',
+    'admin_maintenance_off'=>'Normal operation','admin_maintenance_on'=>'Enable maintenance','maintenance_message'=>'Under maintenance','maintenance_reload'=>'Reload',
+    'ADMIN_SETTINGS_CONFLICT'=>'Another operation changed the settings. Reload this page.','ADMIN_SETTINGS_UNAVAILABLE'=>'Admin settings are unavailable.',
     'admin_users'=>'User management','admin_storage'=>'Storage management','admin_user_search'=>'Search by Discord ID or username',
     'admin_search'=>'Search','admin_total'=>'Matching users','admin_no_results'=>'No matching users.',
     'admin_username'=>'Username','admin_role'=>'Role','admin_administrator'=>'Administrator','admin_regular_user'=>'Regular user',

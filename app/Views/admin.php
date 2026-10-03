@@ -2,6 +2,7 @@
 <section class="panel">
 <h1><?= $e($t->get('admin_dashboard')) ?></h1>
 <nav aria-label="<?= $e($t->get('admin_dashboard')) ?>"><a href="/admin/users"><?= $e($t->get('admin_users')) ?></a> · <a href="/admin/storage"><?= $e($t->get('admin_storage')) ?></a></nav>
+<a href="/admin/maintenance"><?= $e($t->get('admin_maintenance')) ?></a>
 <dl>
 <?php foreach ($data['counts'] as $key=>$value): ?>
 <dt><?= $e($t->get('admin_count_'.$key)) ?></dt><dd><?= $e($value) ?></dd>
