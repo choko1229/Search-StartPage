@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・独立2保存領域の実UI同期と停止復旧）
+
+前ターン2144731はMaintenance連携の進捗。このターン45d41a0で専用同期環境を準備し再試行確認待ちを保存した後、ユーザーが同じ範囲の再試行を明示許可。IABのnavigationは成功し実画面検証・清掃を完了した。前回の利用上限を今回の操作が継続拒否されたとは扱わない。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+検証1〜3: 準備harness70392 exit0で両専用DB fresh全17/repeat、sync17/基盤40各3回成功。実UIはMySQL日本語/MariaDB英語、同一IABの専用A/B hostでCookie/IndexedDB保存領域を分離、各device2/同一生成owner。Aで公開東京地域→Bの初回クラウド選択/受信、Bで公開大阪地域→A今すぐ同期/受信。両cloud_version4/大阪一致trueをobserve。
+
+停止復旧: 生成adminに限定したhelper/製品PolicyRepository/outboxでcloud_sync停止。Bに東京地域を保存・再読込で保持、JA/EN停止理由表示、両DBは停止中version4/大阪保持。helperで再開→B再読込で同期成功→A今すぐ同期/東京受信。最終両cloud_sync true/version5/東京一致true/大阪false。地域保存警告なし、4tab Console warn/error0。JA停止画面とEN復帰画面でpage375/viewport390、ENではdesktop1280も確認。画像sync-ui-disabled-ja/en、sync-ui-restored-ja/en。最終EN mobile画像を目視確認。
+
+Issues/限界: EN初回案内が前面にあり、reload後Appearance locatorが一度no match。画面を確認しContinue later→Settingsへ進み解消、未操作を成功扱いにしない。viewport操作は選択中tabへ反映され、A1280の観測を390と称さずBの実390/375を確認した。同一browserの2独立originであり、実2台端末/全browser/OAuthの証明ではない。過去の地域保存警告の原因は今回未再現という範囲で、因果解明は未確認。
+
+清掃/Security: viewport reset、新規4tab close、既存user tab保持。専用app2、HostConfig.Tmpfs一致を確認したDB2を削除しprefix空。生成user/admin/device/config/login入口清掃。通常8099/8100/DB/users/権限/config/worker非変更、Secret/spec.md非保存、push/本番公開/再起動なし。
+
+次に実行すること:
+1. Phase9の仕様に明記された各完了条件と実証を照合し、機能ゲートとPhase12の全browser/性能検証、Phase10の運用/実配布元依存を混同せず監査する。独立保存領域の今回実UI範囲は確認済み。
+2. 不足があればPhase9内で修正・検証。サービスboot/restart/manager stop/長時間運用、実GitHub/OAuth/OS chooser/過去警告因果は未確認として追跡し、成功と推測しない。
+3. Phase9合格後にPhase10正式移行。Glass/全browser/Phase11〜12/全DoD未達を保持。ブラウザ利用上限を根拠に無期限停止せず、今回の許可と成功範囲を保持する。
+
 ## 最新の再開地点（2026-10-04・同期UIの再試行確認待ち）
 
 前ターン2144731はMaintenance/実更新連携の検証・保存で進捗。今回は前回のbrowser review利用上限拒否を無断再試行せず、専用同期環境を再準備して再試行確認を提示した。Phase9進行中、Phase10正式移行前、Version1.0未完成。

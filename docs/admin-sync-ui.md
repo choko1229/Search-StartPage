@@ -1,5 +1,11 @@
 # 独立したブラウザ保存領域の同期検証準備
 
+2026-10-04 完了追記: 再試行についてユーザーの明示許可を受け、同じIAB/専用hostへの移動が成功。MySQL日本語/MariaDB英語でAの公開東京地域をBが初回Cloud選択で受信し、Bの公開大阪地域をAが今すぐ同期で受信した。両cloud4/大阪一致true。生成adminだけのhelperで停止すると、Bの東京変更は再読込後も端末に残り、日英停止理由が表示され、両cloud4/大阪のまま。再開後Bが送信しAが受信、両cloud5/東京一致trueとなった。
+
+4tab Console warn/error0、保存警告なし。JA停止画面とEN復帰画面でviewport390/page375、EN desktop1280も確認。新規tab生成後のviewportは選択tabに適用されるため、A1280の観測をmobile証拠にはしない。EN初回案内が再読込時に前面へ出てAppearance locatorが一度no matchとなったが、画面からContinue later→Settingsへ進み確認した。画像sync-ui-disabled-ja/en・sync-ui-restored-ja/en、EN復帰mobile画像を目視確認。
+
+viewport reset/new4tab close/既存tab保持、専用app2/配置確認済みtmpfs DB2を除去しprefix空。今回準備分も生成user/admin/device/config/入口を清掃済み。通常DB/users/権限/config/worker非変更。これで独立originの往復同期/初回Cloud選択/停止復旧の限定実UI範囲は確認済み。実2台端末/全browser/実Discord OAuth/過去警告の因果は未確認。以下の確認待ち/未実行/稼働中は中断時点の履歴であり、この完了追記が最新状態。
+
 2026-10-04 再準備: 同じharnessが70392 exit0で完了し、両DB fresh17/repeat・sync17/基盤40各3回成功。専用app2/DB2は現在稼働中、両device2/cloud0/公開都市一致false。前回中断時のIAB空tab20だけ特定してcloseした。拒否navigationは再試行せず、生成ログイン→A→B→A公開テスト都市同期→停止復旧→清掃の具体的な再試行確認をユーザーへ提示し、回答待ち。下の「清掃済み」は前回の環境の記録で、今回の稼働環境とは区別する。read/close成功をnavigation review利用上限解消の証拠にはしない。
 
 2026-10-04。Phase9進行中。実画面の往復同期は未実行。ブラウザの最初のnavigationが自動承認レビューの利用上限で拒否され、操作は実行されなかった。安全性の否認とは区別し、別ブラウザ・raw commands・直接通信で同じ画面操作を回避していない。

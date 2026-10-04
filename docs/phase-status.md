@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## Phase9 独立保存領域の実UI同期と停止復旧（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。45d41a0の確認待ち後、ユーザーの明示許可で同じnavigation再試行が成功し検証完了。
+- 実装/検証1〜3: 製品変更なし。70392 exit0の準備で両DB fresh17/repeat/sync17/基盤40各3回。MySQL JA/MariaDB ENの同一IAB・専用2origin/owner1/device2でA東京→B初回Cloud選択/受信、B大阪→A受信、両cloud4/大阪一致true。
+- 停止復旧/UI: helperの製品PolicyRepositoryで停止→B東京保存/reload保持/日英停止理由→両cloud4/大阪保持。再開→B同期→A受信、両cloud5/東京一致true。保存警告なし、4tab Console0、JA停止とEN復帰の390px/375page、EN desktop1280。画像sync-ui-disabled-ja/en・sync-ui-restored-ja/en、EN mobile目視確認。
+- Issues: EN初回案内でreload後のAppearance操作が一度no match、画面確認後Continue later→Settingsで解消。viewportは選択tabへ適用、A1280をmobileと誤記せずBの390を実測。過去保存警告の因果は未確認、今回未再現。実2台/全browser/実OAuthの証明ではない。
+- Security/清掃: viewport reset/new4tab close/既存tab保持、専用app2/配置確認済みtmpfs DB2除去/prefix空、生成権限/入口/config清掃。通常DB/user権限/config/worker/Secret/spec.md非変更、push/本番公開/再起動なし。
+- Next: Phase9の明記DoDと実証を照合し、後続Phaseの環境依存との境界を監査。サービス運用/実GitHub/OAuth/OS chooser/Glass/全browser/Phase11〜12/全DoD未達。
+
 ## Phase9 同期UI再試行の確認待ち（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン2144731は実更新/Maintenance連携の進捗。

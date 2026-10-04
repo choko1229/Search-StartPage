@@ -19,6 +19,8 @@
 
 2026-10-04サービス設定追記: 出荷unitを専用PHP8.3/Debian Bookwormのsystemd-analyzeで診断なしと確認。欠落実行ファイル/無効Type/不明設定名の負例を含む静的9項目と、既存CLI実プロセス25項目を各3回成功。Windowsコピーの実行権限警告を0644へ修正して全3回再検証。managerは起動せず、実enable/boot/restart/manager stop/長時間運用は上表の未確認を維持。docs/update-execution-service.md参照。
 
+2026-10-04同期UI追記: navigation再試行のユーザー明示許可後、MySQL JA/MariaDB EN・同一IABの独立2originで初回Cloud選択/A→B→A地域同期、停止中の端末変更/reload保持/日英理由、再開後の送信/受信を確認。両cloud4/大阪保持→再開後cloud5/東京一致true、Console4tab0、JA/EN390px/375page。専用環境/生成権限/入口清掃済み。上表の「他端末認証済みUI」は独立origin限定で確認済み、実2台/全browser/OAuth/過去警告因果は残る。docs/admin-sync-ui.md参照。
+
 ## 匿名統計の実ブラウザ証拠
 
 2026-10-04、browser2/tab28、127.0.0.1:8099の専用originで通常UIからWeb/AI各1件の生成検索先を追加し、URLは同じローカルサイトを指定。Web検索とAI検索で同一タブのURL遷移と履歴2件を確認。生成お気に入りを保存して開き、Paletteの「履歴を開く」を実行した。最終DB集計は上表の7集計区分・計11イベント。Web/AIのproviderはcustomで、query/URL/provider名を統計へ送らない。
