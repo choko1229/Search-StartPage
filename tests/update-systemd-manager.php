@@ -2,14 +2,38 @@
 declare(strict_types=1);
 // Executes only inside the networkless disposable VM, never on a normal deployment.
 $root='/srv/search-startpage';$storage=$root.'/storage';$unit='search-update-execution.service';
-if(PHP_SAPI!=='cli'||dirname(__DIR__)!==$root||!is_file('/etc/search-systemd-vm-test-only')||trim(file_get_contents('/proc/1/comm'))!=='systemd')exit(1);
+$commandTest=PHP_SAPI==='cli'&&__DIR__==='/seed'&&getenv('SEARCH_TEST_MODE')==='1'&&is_file('/tmp/search-systemd-vm-test-only')&&count($argv)===2&&$argv[1]==='--test-command';
+if(!$commandTest&&(PHP_SAPI!=='cli'||dirname(__DIR__)!==$root||!is_file('/etc/search-systemd-vm-test-only')||trim(file_get_contents('/proc/1/comm'))!=='systemd'))exit(1);
 $count=0;
 $command=static function(array $args,bool $required=true):array{
- $p=proc_open($args,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);if(!is_resource($p))throw new RuntimeException('VM command unavailable');fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($p);if($required&&$exit!==0)throw new RuntimeException('VM command failed');return [$exit,trim($out),$err];
+ $p=proc_open($args,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);if(!is_resource($p))throw new RuntimeException('VM command unavailable');fclose($pipes[0]);unset($pipes[0]);$out='';$err='';$exit=-1;
+ try{
+  foreach($pipes as $pipe)stream_set_blocking($pipe,false);$deadline=microtime(true)+60;
+  do{
+   $out.=stream_get_contents($pipes[1]);$err.=stream_get_contents($pipes[2]);
+   if(strlen($out)>1048576||strlen($err)>1048576)throw new RuntimeException('VM command output limit');
+   $status=proc_get_status($p);if(!$status['running']){$exit=$status['exitcode'];break;}
+   if(microtime(true)>$deadline)throw new RuntimeException('VM command timeout');usleep(10000);
+  }while(true);
+  // Descendants can retain the pipes after the command exits; do not wait for their EOF.
+  $out.=stream_get_contents($pipes[1]);$err.=stream_get_contents($pipes[2]);
+ }finally{
+  if(proc_get_status($p)['running']){proc_terminate($p);usleep(100000);if(proc_get_status($p)['running'])proc_terminate($p,9);}
+  foreach($pipes as $pipe)fclose($pipe);$closed=proc_close($p);if($exit<0)$exit=$closed;
+ }
+ if($required&&$exit!==0)throw new RuntimeException('VM command failed');return [$exit,trim($out),$err];
 };
 $property=static fn(string $name):string=>$command(['systemctl','show',$unit,'--property='.$name,'--value'])[1];
 $check=static function(bool $ok,string $label)use(&$count):void{if(!$ok)throw new RuntimeException($label);++$count;echo "PASS: $label\n";};
 $wait=static function(callable $ready,int $seconds=30):void{$until=microtime(true)+$seconds;while(!$ready()){if(microtime(true)>$until)throw new RuntimeException('VM observation timeout');usleep(100000);}};
+if($commandTest){
+ [$exit,$out,$err]=$command([PHP_BINARY,'-r','echo "generated-out";']);$check($exit===0&&$out==='generated-out'&&$err==='','command captures exit and stdout');
+ $started=microtime(true);[$exit,$out,$err]=$command(['sh','-c','sleep 2 & printf generated-out; printf generated-err >&2; exit 0']);
+ $check($exit===0&&$out==='generated-out'&&$err==='generated-err'&&microtime(true)-$started<1.5,'command completion does not wait for inherited descendant pipes');
+ [$exit,$out,$err]=$command([PHP_BINARY,'-r','fwrite(STDERR,"generated-error");exit(7);'],false);$check($exit===7&&$out===''&&$err==='generated-error','optional failed command preserves exit and stderr');
+ try{$command([PHP_BINARY,'-r','exit(7);']);throw new RuntimeException('Expected command failure');}catch(RuntimeException $e){$check($e->getMessage()==='VM command failed','required failed command is rejected');}
+ echo "$count isolated command checks passed.\n";exit(0);
+}
 try{
  $check(version_compare(PHP_VERSION,'8.3.0','>='),'VM uses PHP 8.3 or newer');
  if(is_file($storage.'/verify-second-boot')){

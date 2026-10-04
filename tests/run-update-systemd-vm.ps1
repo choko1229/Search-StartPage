@@ -15,6 +15,7 @@ foreach($roundVmProof in 1..$Rounds){
   Invoke-VmProofDocker @('exec',$containerVmProof,'sed','-i','s/\r$//','/seed/bootstrap.sh','/seed/run-vm.sh')
   Invoke-VmProofDocker @('exec',$containerVmProof,'touch','/tmp/search-systemd-vm-test-only')
   Invoke-VmProofDocker @('exec',$containerVmProof,'php','-l','/seed/update-systemd-manager.php')
+  foreach($commandRoundVmProof in 1..3){Invoke-VmProofDocker @('exec',$containerVmProof,'php','/seed/update-systemd-manager.php','--test-command')}
   Invoke-VmProofDocker @('exec',$containerVmProof,'bash','/seed/run-vm.sh')
   Write-Output "Systemd VM round $roundVmProof completed."
  }finally{if($createdVmProof){Invoke-VmProofDocker @('rm','-f',$containerVmProof) | Out-Null}}

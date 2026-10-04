@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 VMコマンド出力の待機対策）
+
+前ターン67648beの66830を再開し、first boot9/second boot3項目成功、検証用unit Type=simple/SubState=running/Job空を確認。停止検証のコマンド回収が完了せず、起動待ちが原因とは断定できない。生成VMのみ意図的停止し66830 exit1/finally清掃。実サービス停止の合格は未確認。
+
+Files: tests/update-systemd-manager.phpのcommandを非同期pipe読取り・proc_get_statusで終了判定・出力上限/60秒限度へ変更。対象コマンド終了後に子孫が保持するpipe EOFを待たない。tests/run-update-systemd-vm.ps1へ隔離marker/env/seed限定--test-commandを追加。終了/出力、継承pipe、exit7/stderr、必須失敗拒否4項目を各3回成功。これはプロセス補助の証拠で、VM停止原因の確定や全サービス合格ではない。
+
+現在: 新session66698で全3roundのVM試験を実行中。round1のcommand4項目各3回とPHP構文成功。専用search-systemd-vm-1-20261004、VM first/second/全3round/清掃はまだ未確認。生存中のjobを再起動せず、同じhandleを追跡する。
+
+Security: 製品worker/unit/DB/API/UI非変更。実config/Token/DBなし、Docker network none/cap-drop ALL/no-new-privileges/no mounts/no ports、VM NICなし。通常8099/8100/DB/権限/config/worker非変更、Secret/spec非保存、push/公開/Windows再起動なし。非公開GitHubの設定質問は未回答、実取得未確認。
+
+次に実行すること:
+1. write_stdin session66698を再開。同じ専用containerの/tmp/search-systemd-vm-console.logのVM_PROOF_STATE/VM_FAILURE_STATE/ISOLATED_SYSTEMDマーカーとQEMUを確認する。観測timeoutを停止と推測しない。途中停止の前試験を成功扱いにしない。
+2. 全3round/first・second marker/exit/finally清掃とprefix空を確認して記録。失敗なら終了状態診断で原因を切り分けて修正し、全3roundを再試行。合格条件を縮小しない。
+3. Token設定完了後に秘密なしreadiness→非公開実release/asset取得。Phase10進行中、Phase11〜12未着手、Version1.0/Glass/全browser/全DoD未達。長時間運用/ExecStop故障も未確認。
+
 ## 最新の再開地点（2026-10-05・Phase10 再起動後停止の診断追加）
 
 前ターン207be5dのsession50725を再開。first boot9項目とsecond boot PHP/自動起動/設定制約3項目成功を確認したが、second bootの同期systemctl stopが完了しなかった。Type=simple変更だけで解消とは証明できず、原因は未確定。生成VMのみ意図的停止、50725 exit1/finally清掃。試験を成功扱いにしない。
