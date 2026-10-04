@@ -17,10 +17,12 @@ try{
   $check($command(['systemctl','is-enabled',$unit])[1]==='enabled','enabled worker starts on second VM boot');
   $wait(fn()=>is_file($storage.'/completed'));
   $check($property('User')==='www-data'&&$property('NoNewPrivileges')==='yes','booted service retains user and privilege restrictions');
-  $command(['systemctl','stop',$unit]);
+  echo "VM_PROOF_STATE ".$command(['systemctl','show','search-isolated-boot-proof.service','--property=Type','--property=SubState','--property=Job'])[1]."\n";flush();
+  $command(['systemctl','stop','--no-block',$unit]);
+  $wait(fn()=>$property('ActiveState')==='inactive',60);
   $check($property('ActiveState')==='inactive'&&$property('Result')==='success','booted worker stops through manager');
   $check(!is_file($storage.'/update-execution-worker.stop')&&filesize($storage.'/update-execution-worker.lock')===0,'booted worker clears singleton identity and stop marker');
-  echo "ISOLATED_SYSTEMD_BOOT_PASSED $count\n";flush();$command(['systemctl','poweroff']);exit(0);
+  echo "ISOLATED_SYSTEMD_BOOT_PASSED $count\n";flush();$command(['systemctl','poweroff','--no-block']);exit(0);
  }
  $runner='<?php $s=__DIR__."/../storage";file_put_contents($s."/started","yes");if(is_file($s."/slow"))usleep(8000000);file_put_contents($s."/completed","yes");echo "generated-private-child-output";';
  file_put_contents($root.'/bin/run-update.php',$runner);chmod($root.'/bin/run-update.php',0644);chown($root.'/bin/run-update.php','www-data');
@@ -47,4 +49,4 @@ try{
  $check(!str_contains($journal,'generated-private-child-output'),'service journal excludes child private output');
  unlink($storage.'/completed');file_put_contents($storage.'/verify-second-boot','yes');
  echo "ISOLATED_SYSTEMD_FIRST_PASSED $count\n";flush();$command(['systemctl','reboot']);
-}catch(Throwable $e){echo "ISOLATED_SYSTEMD_FAILED ".$e->getMessage()."\n";flush();$command(['systemctl','poweroff'],false);exit(1);}
+}catch(Throwable $e){echo "ISOLATED_SYSTEMD_FAILED ".$e->getMessage()."\n";echo "VM_FAILURE_STATE ".$command(['systemctl','show',$unit,'--property=ActiveState','--property=SubState','--property=Job','--property=ControlPID'],false)[1]."\n";flush();$command(['systemctl','poweroff','--no-block'],false);exit(1);}

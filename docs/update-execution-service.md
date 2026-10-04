@@ -33,3 +33,5 @@ Ubuntu24.04の公式cloud imageをHTTPS取得し、同じ公式配布元のSHA25
 参考: [Ubuntu公式cloud images](https://cloud-images.ubuntu.com/noble/current/)、[cloud-init NoCloud](https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html)。この段落は検証手順の説明で、実行成功記録は別途追記する。
 
 2026-10-05追記: 55011のfirst boot9項目とsecond boot PHP/自動起動/設定制約3項目は成功。second bootの検証用oneshot内でsystemctl stopを同期実行し、起動完了と停止の依存順序で待ち合わせた。生成VMを意図的停止（exit1/finally清掃）し、bootstrapの検証用unitのみType=simpleへ修正。出荷unitは変更せず、50725で全3round再試行中。現在round1 first marker9成功/QEMU生存確認、second/全3round/清掃未確認。これを全サービス運用合格としない。
+
+2026-10-05再追記: 50725もfirst boot9項目/second boot3項目成功後、同期stopが完了しなかった。Type=simple変更のみで原因・解消を断定しない。生成VMを意図的停止（exit1/finally清掃）、second bootをstop --no-block後のinactive最大60秒観測へ変更し、unit状態の診断を追加した。Result success/制御清掃/identity空の合格条件は維持、first bootの同期drain試験も維持。66830で全3round再試行中、成功は未確認。これまでの部分成功・修正意図を全合格へ拡張しない。

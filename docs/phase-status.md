@@ -1,4 +1,19 @@
 # 実装と検証の記録
+## 最新の再開地点（2026-10-05・Phase10 再起動後停止の診断追加）
+
+前ターン207be5dのsession50725を再開。first boot9項目とsecond boot PHP/自動起動/設定制約3項目成功を確認したが、second bootの同期systemctl stopが完了しなかった。Type=simple変更だけで解消とは証明できず、原因は未確定。生成VMのみ意図的停止、50725 exit1/finally清掃。試験を成功扱いにしない。
+
+Files: tests/update-systemd-manager.phpのsecond bootだけstop --no-block→inactiveを最大60秒観測、検証用unit Type/SubState/Jobと失敗時worker ActiveState/SubState/Job/ControlPIDの診断を追加。Result success/stop marker除去/lock identity空の合格条件は維持。first bootの同期ExecStop drainは維持。製品worker/unit/DB/API/UI非変更。
+
+現在: 新しい実行session66830で全3roundを再試行、専用search-systemd-vm-1-20261004が実行中。新PHP構文成功。round1のISOLATED_SYSTEMD_FIRST_PASSED 9とQEMU生存を確認済み。second marker/全3round/清掃は未確認。VMソフトウェア起動は遅いため、観測timeoutを停止と推測せず同じhandle/QEMU/consoleを確認し、重複起動しない。
+
+Security: 生成fixtureだけ、実config/Token/DBなし。Docker network none/cap-drop ALL/no-new-privileges/no mounts/no ports、VM NICなし。通常8099/8100/DB/権限/config/worker非変更、Secret/spec非保存、push/公開/Windows再起動なし。非公開GitHubの設定質問は未回答、前回のreadiness falseを設定済みとしない。
+
+次に実行すること:
+1. write_stdin session66830を再開。専用container内/tmp/search-systemd-vm-console.log、VM_PROOF_STATE/VM_FAILURE_STATEとISOLATED_SYSTEMD_FIRST/BOOT/FAILEDマーカーを確認する。失敗なら診断から製品か試験環境かを切り分け、修正後に全3roundを確認する。未確認を成功としない。
+2. 各3round/exit/専用prefix空を確認後にdocs/update-execution-service.mdとPhase10記録を更新。生存中のjobを再起動せず、同じhandleを追跡する。phase10-gateのサービス未確認はまだ解消しない。
+3. Token設定完了後に秘密なしreadiness→非公開実release/asset取得。Phase10進行中、Phase11〜12未着手、Version1.0/Glass/全browser/全DoD未達。長時間運用/ExecStop故障も未確認。
+
 ## 最新の再開地点（2026-10-05・Phase10 VM試験の起動順序修正）
 
 前ターン2cd651eの実行55011を再開し、first boot9項目成功とsecond bootでPHP/自動起動/設定制約の3項目を確認。second bootの検証用oneshot内から停止を待つ構造で、After依存の起動完了と停止が待ち合わせた。生成VMを意図的停止し55011 exit1/finally清掃。出荷unitではなくbootstrapの検証用unitだけType=simpleへ修正し、50725で全3roundを再実行中。
