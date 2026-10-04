@@ -32,10 +32,10 @@ cleanup failureは停止を維持する。complete後なら更新を再度戻さ
 
 tests/update-engine.phpは通常配置を変更せず、実配布物のcloneと専用tmpfs DBだけを使う。全17本の初期Migration、cloneだけの18/19番fixtureでDDL/行変更、正常apply、manual rollback、世代置換と失敗後の旧世代保持、部分file failure、DDL後exception、view health failure、実process exit7後の別instance recovery、破損file snapshot/manifestで停止維持とDB回復・修復後retry、config/upload/manual maintenance保持を確認する。
 
-Journalはmanifest hashを含むformat2。未公開のformat1は自動初期化・自動変換せず安全に拒否する。通常隔離アプリにjournalがないことを確認し、この変更で既存世代を消していない。秘密・SQL・例外本文をjournalへ保存しない。
+Journalはmanifest hashと受付/手動復元IDを含むformat3。format2は既存metadataを保持して読取り可能。未公開のformat1は自動初期化・自動変換せず安全に拒否する。通常隔離アプリにjournalがないことを確認し、この変更で既存世代を消していない。秘密・SQL・例外本文をjournalへ保存しない。
 
 書き込み不可の管理directoryはbacked_upでpreflightし、replacingより前にUPDATE_TARGET_NOT_WRITABLEで拒否する。旧healthとcleanupが成功すれば停止を解除し、file/DBは変更しない。通常の隔離開発アプリはwww-dataからroot/appへ書き込めないことを確認した。通常配置の権限は変更しておらず、実Web更新に対応した配置設計は残る。
 
-最終tests/update-engine.phpはMySQL 8/MariaDB 10.11で各26項目成功。独立入口による主要PHP破損後の回復と手動復元を含む。書き込み不可の配置から安全に復帰する試験も含む。ファイル単体44、journal43、package64、stage29、asset94、access34、task20、基盤40も両環境で成功。
+最終tests/update-engine.phpはMySQL 8/MariaDB 10.11で各32項目成功。独立入口による主要PHP破損後の回復と手動復元を含む。書き込み不可の配置から安全に復帰する試験も含む。ファイル単体44、journal43、package64、stage29、asset94、access34、task20、基盤40も両環境で成功。
 
-独立rescue入口はdocs/update-rescue.md参照。主要なlive PHPを壊した後のCLI復旧も専用DBで確認する。web OPcache刷新、FPM/実HTTPの更新適用、管理UI/適用worker/DB監査履歴は未接続・未確認。完全な停電時のdirectory fsync耐久性、Windows native/networkFSも未確認。現在の確認をVersion1.0 DoDの合格へ拡張しない。
+独立rescue入口はdocs/update-rescue.md参照。主要なlive PHPを壊した後のCLI復旧も専用DBで確認する。web OPcache刷新、FPM/実HTTPの更新適用、CLI適用worker/DB監査は接続・検証済み（docs/update-runner.md）。管理UI操作は未接続。完全な停電時のdirectory fsync耐久性、Windows native/networkFSも未確認。現在の確認をVersion1.0 DoDの合格へ拡張しない。

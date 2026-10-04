@@ -37,9 +37,11 @@ final class UpdateJournal
     }
     private static function job(mixed $job): bool
     {
-        if(!is_array($job)||!self::keys($job,['id','phase','from_version','to_version','created_at','updated_at','error','backup','manifest_sha256'])||!self::id($job['id'])||!is_string($job['phase'])||!isset(self::TRANSITIONS[$job['phase']])
+        if(!is_array($job)||!self::keys($job,['id','phase','from_version','to_version','created_at','updated_at','error','backup','manifest_sha256','request_id','rollback_request_id'])||!self::id($job['id'])||!is_string($job['phase'])||!isset(self::TRANSITIONS[$job['phase']])
             ||!self::version($job['from_version'])||!self::version($job['to_version'])||!is_int($job['created_at'])||$job['created_at']<1||!is_int($job['updated_at'])||$job['updated_at']<$job['created_at']
             ||($job['error']!==null&&!in_array($job['error'],self::ERRORS,true))||($job['manifest_sha256']!==null&&!self::digest($job['manifest_sha256'])))return false;
+        foreach(['request_id','rollback_request_id'] as $field)if($job[$field]!==null&&!self::id($job[$field]))return false;
+        if($job['rollback_request_id']!==null&&(!in_array($job['phase'],['rolling_back','rolled_back','rollback_failed'],true)||$job['rollback_request_id']===$job['request_id']))return false;
         if($job['backup']!==null&&(!self::backup($job['backup'])||$job['backup']['files']['version']!==$job['from_version']))return false;
         if(in_array($job['phase'],['backed_up','replacing','migrating','checking','complete','rolling_back','rolled_back','rollback_failed'],true)&&$job['backup']===null)return false;
         if(in_array($job['phase'],['queued','verified','backing_up','backed_up','replacing','migrating','checking','complete'],true)&&$job['error']!==null)return false;
@@ -48,10 +50,11 @@ final class UpdateJournal
     }
     private static function validate(mixed $state): array
     {
-        if(!is_array($state)||!self::keys($state,['format','revision','job','backup','history'])||$state['format']!==2||!is_int($state['revision'])||$state['revision']<0||$state['revision']>9007199254740990
+        if(!is_array($state)||!self::keys($state,['format','revision','job','backup','history'])||$state['format']!==3||!is_int($state['revision'])||$state['revision']<0||$state['revision']>9007199254740990
             ||($state['job']!==null&&!self::job($state['job']))||!is_array($state['history'])||!array_is_list($state['history'])||count($state['history'])>20)throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
         $seen=[];foreach($state['history'] as $job){if(!self::job($job)||!in_array($job['phase'],['complete','failed','rolled_back'],true)||isset($seen[$job['id']]))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');$seen[$job['id']]=true;}
         if($state['job']!==null&&isset($seen[$state['job']['id']]))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
+        $requests=[];foreach([$state['job'],...$state['history']] as $job)if($job!==null)foreach(['request_id','rollback_request_id'] as $field){$id=$job[$field];if($id!==null){if(isset($requests[$id]))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');$requests[$id]=true;}}
         if(($state['job']['phase']??null)==='complete'&&($state['backup']['id']??null)!==$state['job']['id'])throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
         if($state['backup']!==null){
             $backup=$state['backup'];if(!is_array($backup)||!self::keys($backup,['id','from_version','to_version','snapshot'])||!self::id($backup['id'])||!self::version($backup['from_version'])||!self::version($backup['to_version'])||!self::backup($backup['snapshot'])||$backup['snapshot']['files']['version']!==$backup['from_version'])throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
@@ -64,9 +67,20 @@ final class UpdateJournal
     {
         $path=$this->directory.'/journal.json';clearstatcache(true,$path);
         if(is_link($path))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
-        if(!file_exists($path))return ['format'=>2,'revision'=>0,'job'=>null,'backup'=>null,'history'=>[]];
+        if(!file_exists($path))return ['format'=>3,'revision'=>0,'job'=>null,'backup'=>null,'history'=>[]];
         if(!is_file($path)||filesize($path)>2097152)throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
         try{$json=file_get_contents($path);$state=json_decode($json,true,24,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(503,'UPDATE_JOURNAL_INVALID');}
+        // Preserve legacy metadata; status never rewrites the stored format.
+        if(is_array($state)&&($state['format']??null)===2){
+            if(!self::keys($state,['format','revision','job','backup','history']))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
+            $upgrade=static function(mixed $job):mixed{
+                if($job===null)return null;
+                if(!is_array($job)||array_key_exists('request_id',$job)||array_key_exists('rollback_request_id',$job))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
+                return [...$job,'request_id'=>null,'rollback_request_id'=>null];
+            };
+            if(!is_array($state['history']??null))throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
+            $state['job']=$upgrade($state['job']??null);$state['history']=array_map($upgrade,$state['history']);$state['format']=3;
+        }
         return self::validate($state);
     }
     private function write(array $state): array
@@ -83,11 +97,18 @@ final class UpdateJournal
         }finally{if(is_resource($stream))fclose($stream);if(is_file($temporary)&&!unlink($temporary))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');}
     }
     public function status(): array {return $this->synchronized(fn()=>$this->read());}
-    public function start(string $fromVersion,string $toVersion,int $revision,?string $manifestHash=null): array
+    private static function unusedRequest(array $state,?string $requestId):void
+    {
+        if($requestId===null)return;
+        if(!self::id($requestId))throw new HttpException(422,'INVALID_INPUT');
+        foreach([$state['job'],...$state['history']] as $job)if($job!==null&&in_array($requestId,[$job['request_id'],$job['rollback_request_id']],true))throw new HttpException(409,'UPDATE_STATE_CHANGED');
+    }
+    public function start(string $fromVersion,string $toVersion,int $revision,?string $manifestHash=null,?string $requestId=null): array
     {
         if(!self::version($fromVersion)||!self::version($toVersion)||($manifestHash!==null&&!self::digest($manifestHash)))throw new HttpException(422,'INVALID_UPDATE_VERSION');
-        return $this->synchronized(function()use($fromVersion,$toVersion,$revision,$manifestHash){
+        return $this->synchronized(function()use($fromVersion,$toVersion,$revision,$manifestHash,$requestId){
             $state=$this->read();if($state['revision']!==$revision)throw new HttpException(409,'UPDATE_STATE_CHANGED');
+            self::unusedRequest($state,$requestId);
             if($state['job']!==null){
                 if(!in_array($state['job']['phase'],['complete','failed','rolled_back'],true))throw new HttpException(409,'UPDATE_IN_PROGRESS');
                 array_unshift($state['history'],$state['job']);$state['history']=array_slice($state['history'],0,20);
@@ -96,20 +117,21 @@ final class UpdateJournal
                     $previous=$this->read();foreach($previous['history'] as $job)if($job['id']===$state['backup']['id']){$state['history'][19]=$job;break;}
                 }
             }
-            $now=$this->now();$state['job']=['id'=>bin2hex(random_bytes(16)),'phase'=>'queued','from_version'=>$fromVersion,'to_version'=>$toVersion,'created_at'=>$now,'updated_at'=>$now,'error'=>null,'backup'=>null,'manifest_sha256'=>$manifestHash];return $this->write($state);
+            $now=$this->now();$state['job']=['id'=>bin2hex(random_bytes(16)),'phase'=>'queued','from_version'=>$fromVersion,'to_version'=>$toVersion,'created_at'=>$now,'updated_at'=>$now,'error'=>null,'backup'=>null,'manifest_sha256'=>$manifestHash,'request_id'=>$requestId,'rollback_request_id'=>null];return $this->write($state);
         });
     }
-    public function beginRollback(int $revision): array
+    public function beginRollback(int $revision,?string $requestId=null): array
     {
-        return $this->synchronized(function()use($revision){
+        return $this->synchronized(function()use($revision,$requestId){
             $state=$this->read();if($state['revision']!==$revision)throw new HttpException(409,'UPDATE_STATE_CHANGED');
+            self::unusedRequest($state,$requestId);
             if($state['backup']===null)throw new HttpException(409,'UPDATE_BACKUP_UNAVAILABLE');
             if($state['job']!==null&&!in_array($state['job']['phase'],['complete','failed','rolled_back'],true))throw new HttpException(409,'UPDATE_IN_PROGRESS');
             $id=$state['backup']['id'];$owner=null;$history=[];
             foreach($state['history'] as $job){if($job['id']===$id)$owner=$job;else $history[]=$job;}
             if(($state['job']['id']??null)===$id)$owner=$state['job'];elseif($state['job']!==null)array_unshift($history,$state['job']);
             if($owner===null)throw new HttpException(503,'UPDATE_JOURNAL_INVALID');
-            $owner['phase']='rolling_back';$owner['error']=null;$owner['updated_at']=max($owner['updated_at'],$this->now());$state['job']=$owner;$state['history']=array_slice($history,0,20);return $this->write($state);
+            $owner['phase']='rolling_back';$owner['error']=null;$owner['rollback_request_id']=$requestId;$owner['updated_at']=max($owner['updated_at'],$this->now());$state['job']=$owner;$state['history']=array_slice($history,0,20);return $this->write($state);
         });
     }
     public function advance(string $id,int $revision,string $phase,?array $backup=null,?string $error=null): array

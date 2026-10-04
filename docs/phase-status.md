@@ -1554,3 +1554,27 @@ UpdateFilesはroot内のstorage/updates/jobs/32hex/candidate|restore|previousだ
 環境清掃: 専用DB exact2のHostConfig tmpfs rw,size=512mを確認してrm成功。Installer専用exact4をstop成功、volumesは保持。session55483をpollしてexit0。通常8099/8100、通常DB/config/ユーザー権限/workerは保持。実browserログインfixtureは新規作成せずHTTP試験の一時生成管理者のみ使用。Secretを記録していない。Git除外.test-output内のlocal snapshotは証拠として保持、Chrome fullPageの画像にはcaptureの継ぎ目があるため完成画面証拠には使わない。
 
 次に実行すること: 内部受付request IDとEngine journal job IDを永続的に対応付け、専用workerとCSRF付き管理適用/手動Rollback操作を接続。DB復元で消えた受付/監査をprivate台帳から再投影し、別jobの結果を結び付けず、中断後も二重実行しないことを実証。HTTP応答後のlease解放、Web OPcache刷新、書込み可能な隔離配置の実HTTP確認まで残る。Phase9の旧残ゲート（認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UI）、Glass仕上げ、Phase11〜12、実OAuth/実配布元/全browser/全DoDも未達を維持。spec.md変更/stageなし。
+
+## Phase9 更新受付と実行workerの接続（2026-10-04）
+
+前ターン7895e26は受付/DB履歴/管理履歴表示の実装・検証・コミットによる進捗。progress/status/git/spec更新・復元要件から再開。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: Journal format3にrequest_id/rollback_request_idを分離し、元のapply IDを手動復元後にも保持。同一受付の再使用と異なる受付でのrecoverを拒否。format2はmetadataを保持して読取り、statusで書換えず次の原子更新でformat3保存、format1/不正旧schemaは拒否。Engine排他内で受付のfrom_version/復元世代を照合してから変更する。UpdateRunnerとCLI bin/run-update.phpがprivate worker lock下でclaim→GitHub asset取得/検査→実Engine→DB outcomeを接続。runningは再取得/再適用せず正しいbindingだけrecover、claim後Engine開始前の中断は失敗として処理。結果のDB投影は別で再試行。通常HTTPから実行不可、管理POST/定期起動はまだ未接続。
+
+DB巻戻し対応: Commands.reprojectが台帳の保持履歴と現在受付を再投影。HistoryRepositoryは受付監査をcreated_atと決定的event IDで再保存し、結果と同じtransactionで投影する。復元により消える手動復元の受付/結果と、runningへ戻る前のapply結果を実DB試験で確認。常駐workerは追加せず1process1操作で終了する設計。取得tokenはconfigだけ、出力はrequest/status/fixed errorのみ。
+
+候補保護: UpdateCompatibilityが候補Journalのformat3/受付ID保存と新instance再読込を実childで検証。次のworker入口・受付/履歴サービス欠落も拒否。未知releaseコードのsandboxではなく信頼するreleaseの事前検査。HTTP/worker/Gateと合わせて10probe、両compatibility14。Asset fixtureに必要な実Journal/worker依存を追加し、初回94の途中で発生したfixture不足UPDATE_GATE_INCOMPATIBLEを修正後、両最終94成功。失敗を成功扱いにしていない。
+
+検証1: 両Journal52、専用tmpfs/no host port/生成passwordのMySQL8/MariaDB10.11でEngine32成功（25003/54333をpollしexit0）。pinned source/世代不一致、重複受付、別受付recoverの変更前拒否、既存実file/DB復元・独立rescue成功を確認。受付45も両成功。Runner初回16→専用実CLI入口追加で最終17両成功（30778/87655をpollしexit0）。実apply/手動rollback/DB履歴・受付/結果監査再投影/完了後重複なし/権限失効/取得失敗/実process exit7→別worker回復/再downloadなし/incoming清掃/Gate復帰。取得は試験用archiveを供給し、file replace/DB snapshot/DDL/health/restoreは実処理。
+検証2: 両compatibility最終14/asset94/rescue17/HTTP停止復帰30/管理更新36/基盤40成功。54773/86999と最終84538/76973をpollしexit0。最新PHP構文は実配布物で検査。今回UI外観/JS変更なし、前ターン日英/mobileの外観証拠を維持し、実HTTPの認証/CSRF/escapeも回帰。
+検証3: 最終両実配布物226files/3437568bytes/PHP156構文成功、独立tar一覧/hash/config不変、保護領域非包含。DB Migration追加なし、全17本fresh/repeat/往復の既存Installer証拠を維持。専用DBのHostConfig tmpfs rw,size=512mを確認しexact2だけrm成功。通常アプリ/DB/config/user/volumes/workerを保持。Git diff --check成功、spec.md変更/stageなし。
+
+自動承認レビュー: 通常開発アプリでbin/run-update.phpを起動する試験が「キュー済み要求があれば実更新/復元を始める可能性」を理由に拒否。通常両appの台帳不存在だけを読み取り確認したが、通常配置でCLI workerを起動せず使い捨てclone/専用DBへ実CLI試験を限定。併送したMaria回帰もasset fixture不足で終わり、binには到達していない。拒否を回避して通常workerを実行していない。安全な代替でCLI検証を完了し、追加承認待ちにはしていない。
+
+重要な未達: 現在の手動復元は更新前のDB全体snapshotを戻すため、成功後のユーザーDB変更やprivate保持20件を超えて追加された更新監査を巻戻し得る。現試験はsnapshot復元を確認しているだけで、成功後の変更保持を証明しない。管理手動復元を有効にする前に、更新による変更と後のユーザー変更を区別して保持する保存/復元を実装し、20件を超える監査もprivateへ永続保存・再投影する。Version1.0のユーザーデータ保護を合格扱いにしない。
+
+次に実行すること:
+1. 上記の手動復元後のユーザー変更保持と全受付/監査のprivate永続保存を先に実装・専用DBで検証。自動失敗復元との意味を区別し、復元可能と証明できないschema変更は変更前に拒否する。
+2. 管理画面/APIの適用/手動復元受付・CSRF・状態表示、HTTP応答後のlease解放と専用worker起動を接続。
+3. Web OPcache刷新と書込み可能な隔離Apache/FPM配置で実HTTPの停止/実更新/復帰を検証。通常readonly配置の権限を無断変更しない。
+4. Phase9旧残ゲート（認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UI）を閉じてPhase10正式移行。実OAuth/実GitHub配布元404/Glass仕上げ/全browser/Extension/全DoD未達を維持。Goal継続。

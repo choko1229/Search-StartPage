@@ -23,3 +23,5 @@ hashは保存内容の破損を検出するもので独立署名ではない。�
 tests/update-rescue.phpは両PHP環境で17項目成功。生成/tmpだけで独立起動、live PHP破損、hash/manifest/path/link/permission拒否、秘密非出力、不正prepare時の旧pointer保持、旧世代清掃、実processの公開lock待機と逆順lock待ち回避を確認する。tests/update-engine.phpは専用tmpfs MySQL/MariaDBと実source cloneで更新を中断し、liveのautoload/Engine/Journal/UpdateDatabase/update-taskを壊した後、private launcherだけで全managed hash・DB rows/schema・config/uploads/manual maintenanceを回復する。更新失敗後にも以前の成功ownerからprivate launcherで手動復元する試験を含む。
 
 Web OPcache/FPMのキャッシュ刷新、実HTTPでの更新適用、管理UI/適用worker/DB監査履歴への接続、Windows native/networkFSと完全な停電時directory fsync耐久性は未確認。CLI復旧成功をこれらやVersion1.0 DoD全体の成功扱いにしない。
+
+CLI適用worker/DB監査はdocs/update-runner.mdのとおり接続・検証済み。管理HTTP操作/実Web OPcacheはまだ未確認。live PHP破損時はprivate rescueで先にコード/DBを回復してからworkerでDB監査を再投影する。

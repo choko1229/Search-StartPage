@@ -10,7 +10,7 @@ $remove=function($path)use(&$remove){if(is_dir($path)&&!is_link($path)){foreach(
 try{
     $before=hash_file('sha256',$root.'/config/config.php');(new ReleasePackageBuilder())->build($root,$directory.'/release.tar');$version=trim(file_get_contents($root.'/VERSION'));
     $manifest=(new UpdatePackage())->verify($directory.'/release.tar',$directory.'/stage',$version,true);$validator=new UpdateCompatibility();$stage=$directory.'/stage';
-    $check($validator->validate($stage,$manifest)===9,'real candidate HTTP worker and descriptor protocol checks');
+    $check($validator->validate($stage,$manifest)===10,'real candidate HTTP worker descriptor and journal binding checks');
     $check(!file_exists($stage.'/config/config.php')&&!file_exists($stage.'/storage'),'probe configuration and storage removed');
     foreach($manifest['files'] as $path=>$meta)if(hash_file('sha256',$stage.'/'.$path)!==$meta['sha256'])throw new RuntimeException('Candidate changed');$check(true,'all managed candidate hashes unchanged');
     $check(hash_file('sha256',$root.'/config/config.php')===$before,'real application configuration untouched');
@@ -20,6 +20,10 @@ try{
     try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate worker without pause rejected');}file_put_contents($worker,$originalWorker);
     file_put_contents($stage.'/config/config.php','existing config');try{$validator->validate($stage,$manifest);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','existing stage configuration never overwritten');}$check(file_get_contents($stage.'/config/config.php')==='existing config','existing stage config preserved');unlink($stage.'/config/config.php');
     mkdir($stage.'/storage');file_put_contents($stage.'/storage/existing','preserve');try{$validator->validate($stage,$manifest);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','existing stage storage rejected');}$check(file_get_contents($stage.'/storage/existing')==='preserve','existing stage storage preserved');unlink($stage.'/storage/existing');rmdir($stage.'/storage');
-    $check($validator->validate($stage,$manifest)===9,'clean candidate reusable after rejected probes');
+    $journalPath=$stage.'/app/Services/UpdateJournal.php';$journalSource=file_get_contents($journalPath);$legacyBody='<?php namespace App\Services; final class UpdateJournal { public function __construct($directory){} public function start($from,$to,$revision){return ["format"=>2];} public function status(){return ["format"=>2];} }';file_put_contents($journalPath,$legacyBody);$bad=$manifest;$bad['files']['app/Services/UpdateJournal.php']=['bytes'=>strlen($legacyBody),'sha256'=>hash('sha256',$legacyBody)];
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate without durable request binding refused');}file_put_contents($journalPath,$journalSource);
+    $runnerPath=$stage.'/bin/run-update.php';$runnerSource=file_get_contents($runnerPath);unlink($runnerPath);$bad=$manifest;unset($bad['files']['bin/run-update.php']);
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate cannot remove next worker entry');}file_put_contents($runnerPath,$runnerSource);
+    $check($validator->validate($stage,$manifest)===10,'clean candidate reusable after rejected probes');
     echo "$count candidate compatibility checks passed.\n";
 }finally{$remove($directory);}

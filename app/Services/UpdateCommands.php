@@ -116,4 +116,22 @@ final class UpdateCommands
     {
         return $this->run(function()use($revision){$state=$this->read();self::revision($state,$revision);if($state['request']!==null&&$state['request']['status']!=='prepared'&&!$state['request']['audited'])$this->audit($state,$state['request']['status']==='running'?'started':'finished');return $state;});
     }
+    /** DB rollback can remove an already acknowledged projection; replay without executing. */
+    public function reproject(int $revision):array
+    {
+        return $this->run(function()use($revision){
+            $state=$this->read();self::revision($state,$revision);
+            try{
+                foreach(array_reverse($state['history']) as $request)($this->audit)($request,'finished');
+                $request=$state['request'];
+                if($request!==null&&$request['status']!=='prepared'){
+                    $event=$request['status']==='queued'?'requested':($request['status']==='running'?'started':'finished');
+                    if($event==='requested')$request['status']='prepared';
+                    ($this->audit)($request,$event);
+                    if(!$state['request']['audited']){$state['request']['audited']=true;$this->save($state);}
+                }
+            }catch(\Throwable){throw new HttpException(503,'UPDATE_AUDIT_FAILED');}
+            return $state;
+        });
+    }
 }

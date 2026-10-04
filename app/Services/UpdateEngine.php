@@ -102,14 +102,14 @@ final class UpdateEngine
         if($errors){$this->advance($state,'rollback_failed',error:'UPDATE_ROLLBACK_FAILED');throw new HttpException(503,'UPDATE_ROLLBACK_FAILED');}
         $this->advance($state,'rolled_back',error:$cause);
     }
-    public function apply(string $archive,array $manifest): array
+    public function apply(string $archive,array $manifest,?string $requestId=null,?string $fromVersion=null): array
     {
-        return $this->locked(fn()=>$this->executeApply($archive,$manifest));
+        return $this->locked(fn()=>$this->executeApply($archive,$manifest,$requestId,$fromVersion));
     }
-    private function executeApply(string $archive,array $manifest): array
+    private function executeApply(string $archive,array $manifest,?string $requestId,?string $fromVersion): array
     {
         $json=self::manifestJson($manifest);$manifest=UpdateManifest::decode($json,$manifest['version']);$lease=$this->access->enter();if($lease===null)throw new HttpException(409,'UPDATE_IN_PROGRESS');
-        try{$version=trim(file_get_contents($this->root.'/VERSION'));$state=$this->journal->status();$state=$this->journal->start($version,$manifest['version'],$state['revision'],hash('sha256',$json));}finally{$lease->release();}$directory=$this->job($state);
+        try{$version=trim(file_get_contents($this->root.'/VERSION'));if($fromVersion!==null&&$version!==$fromVersion)throw new HttpException(409,'UPDATE_SOURCE_CHANGED');$state=$this->journal->status();$state=$this->journal->start($version,$manifest['version'],$state['revision'],hash('sha256',$json),$requestId);}finally{$lease->release();}$directory=$this->job($state);
         try{
             $this->privateDirectory($directory);$this->archive($archive,$directory.'/candidate.tar');
             $actual=(new UpdatePackage())->verify($directory.'/candidate.tar',$directory.'/candidate',$manifest['version'],false,static fn(string $stage,array $candidate)=>(new UpdateCompatibility())->validate($stage,$candidate));
@@ -139,13 +139,14 @@ final class UpdateEngine
             $this->cleanup($state);return $state;
         });
     }
-    public function recover(): array
+    public function recover(?string $requestId=null): array
     {
-        return $this->locked(fn()=>$this->executeRecovery());
+        return $this->locked(fn()=>$this->executeRecovery($requestId));
     }
-    private function executeRecovery(): array
+    private function executeRecovery(?string $requestId): array
     {
         $state=$this->journal->status();if($state['job']===null)throw new HttpException(409,'UPDATE_BACKUP_UNAVAILABLE');
+        if($requestId!==null&&($state['job']['rollback_request_id']??$state['job']['request_id'])!==$requestId)throw new HttpException(409,'UPDATE_STATE_CHANGED');
         return $this->access->exclusive(function()use(&$state){
             $phase=$state['job']['phase'];
             if(in_array($phase,['replacing','migrating','checking','rolling_back','rollback_failed'],true))$this->restore($state,'UPDATE_INTERRUPTED');
@@ -156,14 +157,15 @@ final class UpdateEngine
             $this->cleanup($state);return $state;
         },true);
     }
-    public function rollback(): array
+    public function rollback(?string $requestId=null,?string $fromVersion=null,?string $toVersion=null): array
     {
-        return $this->locked(fn()=>$this->executeRollback());
+        return $this->locked(fn()=>$this->executeRollback($requestId,$fromVersion,$toVersion));
     }
-    private function executeRollback(): array
+    private function executeRollback(?string $requestId,?string $fromVersion,?string $toVersion): array
     {
         $state=$this->journal->status();if($state['backup']===null||trim(file_get_contents($this->root.'/VERSION'))!==$state['backup']['to_version'])throw new HttpException(409,'UPDATE_BACKUP_UNAVAILABLE');
-        return $this->access->exclusive(function()use(&$state){$state=$this->journal->beginRollback($state['revision']);$this->restore($state,null);$this->cleanup($state);return $state;});
+        if(($fromVersion!==null&&$fromVersion!==$state['backup']['to_version'])||($toVersion!==null&&$toVersion!==$state['backup']['from_version']))throw new HttpException(409,'UPDATE_SOURCE_CHANGED');
+        return $this->access->exclusive(function()use(&$state,$requestId){$state=$this->journal->beginRollback($state['revision'],$requestId);$this->restore($state,null);$this->cleanup($state);return $state;});
     }
     public function status(): array {return $this->journal->status();}
 }

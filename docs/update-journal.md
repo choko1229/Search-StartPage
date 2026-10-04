@@ -1,6 +1,6 @@
 # 更新処理の永続記録
 
-`UpdateJournal` は更新段階とバックアップの識別情報を記録する内部サービス。UpdateEngineの適用・清掃・復元へ接続した。公開API/管理UI/DB監査履歴はまだ未接続。
+`UpdateJournal` は更新段階とバックアップの識別情報を記録する内部サービス。UpdateEngineの適用・清掃・復元へ接続した。CLI workerとDB監査履歴へ接続した。公開API/管理UIの実行操作はまだ未接続。
 
 ## 保存と並列実行
 
@@ -14,7 +14,7 @@ backed_upにはfile/DB snapshot descriptorが必須。completeで初めて直前
 
 descriptorは形式・version・hash・件数の検証だけを行う。実archive/DB snapshotの存在とhash、Migration/healthの実行成功をこのサービスが証明するものではない。呼び出し側は実データを検証してから段階を進める。旧世代の物理ファイルの削除は更新engineの責任であり、本サービスは削除しない。
 
-Engine接続時にformat2へ変更し、jobにnullableなmanifest_sha256を追加。Engineが作るjobでは必須の正規化manifest hashを固定する。beginRollbackはCASで既存成功ownerを履歴から再アクティブ化する。format1等の不一致は初期化・自動変換せず拒否する。現在のjournal単体試験は両43項目。
+Engine接続時にformat2へ変更し、jobにnullableなmanifest_sha256を追加。Engineが作るjobでは必須の正規化manifest hashを固定する。beginRollbackはCASで既存成功ownerを履歴から再アクティブ化する。format1等の不一致は初期化・自動変換せず拒否する。現在はformat3でrequest_idとrollback_request_idを分けて保持する。format2の既存metadataを保持し、読取りでは書き換えず次の正常な原子更新でformat3へ保存する。format1や不正な旧metadataは拒否する。現在のjournal単体試験は両52項目。
 
 ## 検証
 

@@ -29,3 +29,5 @@ GET /admin/updateとGET /api/admin/updateは既存の認証・サーバー側管
 ## 次の接続条件
 
 request IDとEngineのjob IDを永続的に対応付け、process中断後に別の更新結果を受付へ結び付けないこと。HTTPの通常leaseを解放した後、専用workerが排他を取得して更新を実行すること。DB restoreが監査履歴を巻き戻した場合はprivate台帳から正しい結果を再投影すること。Web OPcache刷新・書込み可能な隔離配置・実HTTPの停止/更新/復帰も検証してから管理画面の実行操作を有効にする。
+
+CLI workerとrequest/job IDの対応付け・DB巻戻し後の再投影を実装し、両専用DBで受付45/runner17/engine32項目を確認した。docs/update-runner.md参照。管理POST/実Web更新は引き続き未接続・未確認。

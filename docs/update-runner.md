@@ -1,0 +1,33 @@
+# 更新実行worker
+
+`bin/run-update.php`は一つの受付を処理して終了するCLI入口。HTTPからは実行できない。現時点では管理画面の適用/手動Rollback POSTと定期起動へ接続していないので、通常画面の更新確認は情報確認だけのまま。
+
+## 動作
+
+UpdateRunnerがprivate runner lockを取得し、UpdateCommandsの受付をclaimする。claim時に現在の管理権限とDB記録を再確認する。新しいapplyだけが、configのGitHub repository/tokenを使い固定リリースIDのassetを取得する。受付と現在のrepositoryが異なる場合は拒否する。Secret、任意URL、例外本文を受付や結果へ保存しない。
+
+取得物はprivate incoming/受付IDへ保存し、digest・manifest・構文・停止互換性を検査してEngineへ渡す。Engineは排他内で受付時のfrom_versionと配置のVERSIONを再確認し、request_idをjobへ永続化する。手動復元は別rollback_request_idを保存し、受付時の直前世代を排他内で照合する。終了時に一時archive/stageを清掃する。
+
+既にrunningの受付は再取得・再実行しない。受付IDと向き付きのfrom/toが一致するjobだけをrecoverする。claim後、Engine開始前の中断はUPDATE_INTERRUPTEDとして終了する。Engineの回復に失敗するとrecovery_requiredと停止を維持し、次回workerが同じjobを再回復する。異なる受付のjobを代わりに復元しない。
+
+DB snapshotは後の受付・結果を巻き戻す。完了後はprivate台帳の現在受付と保持履歴をDBへ再投影する。UpdateHistoryRepositoryは受付監査と完了監査を決定的event IDで復元する。受付監査の時刻はprivateに保持したcreated_atを使う。DB投影の再試行は実更新を起動しない。台帳の保持上限20件を超える過去のDB履歴はこの再投影では再構築しない。
+
+CLI出力はformat/request_id/status/errorのみ。idle/complete/rolled_backはexit 0、failed/recovery_requiredはexit 1。例外時は固定codeだけをstderrへ出す。configやtokenをコマンド引数へ渡さない。root/appが書込み不可の通常開発配置は変更前に拒否される。
+
+## 起動と復旧
+
+管理画面の受付機能と実Web更新の検証が済んだ配置で、アプリのrootから `php bin/run-update.php` を実行する。通常HTTPと同じプロセスで実行せず、HTTP応答を完了し通常leaseを解放してから別processを起動する。常駐processが更新後も古いclassを使い続けないよう、一つの処理で終了させる。
+
+liveのPHPが壊れた場合、この入口自体は起動できない。先にprivate `php storage/updates/rescue.php recover` でコード/DBを復旧し、その後workerで受付結果をDBへ投影する。private capsuleの制約はupdate-rescue.md参照。
+
+## 検証
+
+MySQL 8/MariaDB 10.11の専用tmpfs DBと使い捨てアプリ配置で `tests/update-runner.php` 各17項目成功。実CLIのidle、実更新、別IDの手動復元、DB復元後の両履歴と受付/結果監査再投影、完了後の再実行/重複監査なし、claim直後の中断、管理権限失効、取得失敗、実process exit7後の別worker回復、incoming清掃、アクセス復帰を確認する。取得だけは試験用の検証済みarchiveを供給し、Engine/file replace/Migration/DB snapshot/restore/healthは実処理を使う。GitHub transport/digest/取得統合は別のupdate-asset94で検証する。
+
+Journal52、Engine32、受付45、候補互換性14、rescue17、HTTP停止復帰30、管理更新36、基盤40も両環境で成功。最終配布物226files/PHP156構文検査成功。
+
+## 残る範囲
+
+実GitHub配布元は404のため本物のreleaseによる一連のWeb適用は未確認。管理POST/CSRF/状態表示への接続、定期起動、書込み可能な隔離Web配置、Apache/FPMのOPcache刷新と実HTTP更新/復帰が残る。内部CLI検証をWeb実更新やPhase10/V1.0完成と扱わない。通常開発アプリでworkerを試す操作は自動承認レビューが実更新の可能性を理由に拒否したため、実CLI試験を専用使い捨て配置へ限定した。通常配置の台帳は読み取りで不存在を確認し、そこでworkerを起動していない。
+
+手動復元は現時点で更新前のDB全体snapshotを復元する。成功した更新の後にユーザーが行ったDB変更や、private保持20件を超えて追加された更新履歴まで保持する検証は未実施で、現在の全DB復元では巻戻し得る。管理画面の手動復元を有効にする前に、更新由来の変更と後のユーザー変更を区別する保存・復元方針を実装/検証し、保持20件を超える監査履歴もprivateに保存して復元できるようにする。これはVersion1.0のユーザーデータ保護について未達のまま扱う。

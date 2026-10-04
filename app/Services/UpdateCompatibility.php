@@ -16,7 +16,7 @@ final class UpdateCompatibility
     public function validate(string $stage,array $manifest): int
     {
         (new UpdateStage())->validate($stage,$manifest);$stage=realpath($stage);
-        foreach(['app/Services/UpdateAccess.php','bin/update-task.php','bin/log-maintenance.php','bin/update-check-worker.php'] as $path)if(!isset($manifest['files'][$path]))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
+        foreach(['app/Services/UpdateAccess.php','app/Services/UpdateJournal.php','app/Services/UpdateCommands.php','app/Services/UpdateRunner.php','app/Repositories/UpdateHistoryRepository.php','bin/run-update.php','bin/update-task.php','bin/log-maintenance.php','bin/update-check-worker.php'] as $path)if(!isset($manifest['files'][$path]))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
         $storage=$stage.'/storage';$config=$stage.'/config/config.php';
         if(file_exists($storage)||is_link($storage)||file_exists($config)||is_link($config))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
         if(!mkdir($storage,0700))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
@@ -47,6 +47,12 @@ final class UpdateCompatibility
             if(file_put_contents($wrapper,$source)!==strlen($source)||!chmod($wrapper,0600))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
             try{$result=json_decode($process->script($wrapper,[],10),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');}
             if($result!==['protocol'=>1,'descriptors'=>[3,4],'stopped'=>true]||is_file($marker))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');++$count;
+            // The newly installed code must retain request identity in our durable journal.
+            $requestId=str_repeat('a',32);
+            $source='<?php require '.var_export($stage.'/app/autoload.php',true).';$directory='.var_export($storage.'/updates/journal',true).';$journal=new App\\Services\\UpdateJournal($directory);$state=$journal->start("1.0.0","2.0.0",0,requestId:'.var_export($requestId,true).');$saved=(new App\\Services\\UpdateJournal($directory))->status();echo json_encode(["format"=>$saved["format"],"request_id"=>$saved["job"]["request_id"]??null,"same"=>$state===$saved]);';
+            if(file_put_contents($wrapper,$source)!==strlen($source)||!chmod($wrapper,0600))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
+            try{$result=json_decode($process->script($wrapper,[],10),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');}
+            if($result!==['format'=>3,'request_id'=>$requestId,'same'=>true]||is_file($marker))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');++$count;
         }finally{
             if($createdConfig&&!unlink($config))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
             $this->remove($storage);
