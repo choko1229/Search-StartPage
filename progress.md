@@ -1243,3 +1243,18 @@ DB設計確認: 公式MySQL/MariaDBのconsistent snapshot資料を確認。現�
 制限: journalは実snapshotの存在/hashやhealth成功を証明しない。物理旧世代清掃、UpdateAccessとfile/DB一括更新・自動復元・process中断回復、Migration-health新process、管理UI操作/update_historyは未接続。file replaceのstage/live非重複契約に合わせたprivate作業領域設計が必要。対象GitHub404/質問、Phase9残UI/故障検証、実OAuth/Glass/各browser/Extension/全DoD未達を維持。
 
 次に実行すること: stage lint/gate互換性と新process Migration-healthを準備し、専用clone/DBでUpdateAccess.exclusiveとJournal、実file/DB snapshotを接続する。差替え中の例外/process終了でも両snapshotを復元し、health成功まで停止markerを維持する。直前1世代物理清掃/手動Rollback/管理UI/CSRF/監査/update_historyへ接続。Phase9残ゲートを解消してからPhase10正式移行。spec.md変更/stageなし、Goal未完成。
+
+
+## Phase9 更新候補PHP検査・制限付き子プロセス（2026-10-04）
+
+前ターンfcaf9ebは永続journal実装・両環境検証・保存による進捗。progress/status/git/spec§104〜109を確認して再開。Phase9ゲート未達、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateStageがmanifest全size/hash/VERSION/linksを検査し、PHP/phtml/incを別CLI PHPの-n -lで実行せず構文検査、終了後全hash再照合。UpdateProcessはPHP_BINARY/array command/shell非経由、CLI限定、script canonical path、引数list/string/NUL/長さ制限、両pipe非blocking/合計64KiB/1〜300秒/失敗terminate-reap/安全error code。子stderrを公開しない。UpdatePackage.verify第4引数lintを追加し、GitHubUpdateAsset.prepareは必須trueへ接続。digest整合済みでも構文不正ならarchive/stage清掃、既存stage保持。新Migration/公開API/UI/認証変更なし。docs/update-stage.mdへ範囲/制約を記録。
+
+検証1: 両新PHP3file構文、stage/process初回28・相対path補修後29成功。候補runtime非実行、syntax/hash/version/link拒否、実PID差・literal shell記号、異常exit/stderr秘密非露出、両pipe大量出力、1秒timeout/後続書込み阻止、失敗後正常processを確認。生成/tmpのみ清掃。
+検証2: 両asset91成功。実生成packageのdownload→外側digest→manifest→lint、構文不正のarchive/stage清掃、既存stage保持を検証。package63/file36/journal40/基盤40回帰成功、session27780 poll exit0。実GitHub対象source404の解消や実asset/CDN取得成功を証明した扱いなし。
+検証3: 最終両実source214files/3351040bytes/stagePHP144構文、独立GNU tar一覧/全hash/config不変/保護領域非包含。相対scriptは子cwd変更前にcanonical化。最終session73726 poll exit0。appへ追加service/testと取得/展開変更だけcopy、DB/user/config/volumes/worker再作成なし。全16Migrationの既存往復証拠維持、Git diff --check確認。
+
+制限: script runnerはsandboxでなく内部の検証済みscript用、子孫process killは未保証。syntaxだけではgate互換性やMigration/health成功を証明しない。更新排他下の内部CLI task、OPcache、実file+DB/journalの一括engine・中断回復・手動Rollback/世代清掃/管理UI/update_historyは未接続。通常migrate CLIは共有leaseが必要で排他中に直接呼ばない。Phase9旧残件/実OAuth/各browser/Glass/Extension/全DoDも維持。
+
+次に実行すること: 候補UpdateAccess/HTTP/workerの停止protocolを検証し、排他取得後のみ生成するprivate capabilityにより新process Migration-healthを許可する内部taskへ接続。専用clone/DBでJournalと実snapshotを使う更新engine、失敗/exit後file+DB復元/healthまで停止維持を実証する。既存stage/live分離契約と直前1世代物理清掃を設計し、手動Rollback/管理UI/CSRF/監査/update_historyへ接続。Phase9残ゲートを閉じてから正式Phase10へ。spec.md変更/stageなし、Goal未完成。

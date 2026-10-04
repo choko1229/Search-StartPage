@@ -37,6 +37,10 @@ try{
     $client=$source(function($url,$headers,$consume)use(&$body,&$asset){$consume(str_contains($url,'?')?json_encode([$asset]):$body);return ['status'=>200];});
     $manifest=$client->prepare(8,'v1.0.0',$archive,$root.'/stage');$check($manifest['version']==='1.0.0'&&file_get_contents($root.'/stage/VERSION')==='1.0.0','download digest then package manifest stage integration');unlink($archive);
     $reject(fn()=>$client->prepare(8,'v2.0.0',$archive,$root.'/bad-stage'),'INVALID_UPDATE_PACKAGE');$check(!file_exists($root.'/bad-stage'),'bad version never leaves stage');
+    file_put_contents($sourceRoot.'/app/bootstrap.php','<?php function broken( { /* generated secret */');
+    (new ReleasePackageBuilder())->build($sourceRoot,$root.'/invalid-syntax.tar');$body=file_get_contents($root.'/invalid-syntax.tar');$asset['size']=strlen($body);$asset['digest']='sha256:'.hash('sha256',$body);
+    $reject(fn()=>$client->prepare(8,'1.0.0',$archive,$root.'/syntax-stage'),'UPDATE_PROCESS_FAILED');$check(!file_exists($archive)&&!file_exists($root.'/syntax-stage'),'valid digest with invalid PHP removes archive and stage');
+    $reject(fn()=>$client->prepare(8,'1.0.0',$archive,$root.'/stage'),'INVALID_UPDATE_PACKAGE');$check(file_get_contents($root.'/stage/app/bootstrap.php')==='<?php'&&!file_exists($archive),'existing verified stage retained after rejected preparation');
     file_put_contents($archive,'existing');try{$client->download($asset,$archive);throw new LogicException('overwrite');}catch(HttpException $e){$check($e->errorCode==='UPDATE_PACKAGE_EXISTS'&&file_get_contents($archive)==='existing','existing archive retained');}unlink($archive);
     echo "$count asset checks passed.\n";
 }finally{$remove($root);}

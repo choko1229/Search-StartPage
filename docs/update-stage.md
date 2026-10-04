@@ -1,0 +1,15 @@
+# 更新候補のPHP構文検査と子プロセス
+
+`UpdateStage.validate(stage, manifest)` はmanifestを再検証し、対象の全size/hash、リンクを含む親directory、VERSIONを確認する。PHP・phtml・incは `UpdateProcess.lint` の別PHPプロセスで構文検査し、その後全hashを再確認する。候補のbootstrap/config/runtimeを実行しない。各lintは10秒、検査全体は300秒を上限とする（進行中の最後のlintは最大10秒追加）。privateなstageを他のwriterが変更しないことが前提で、後続replaceも独立してhashを検査する。
+
+`UpdatePackage.verify` の第4引数をtrueにすると、展開後の構文検査も同じ失敗時清掃の範囲で行う。GitHubUpdateAsset.prepareはこの検査を必須にする。外側digestや内部manifestが正しくても構文不正ならarchive/stageを除去する。既存stageは上書きも清掃もしない。低水準のarchive検証だけを呼ぶ経路では第4引数がfalseなので、構文検査を行ったと推測しない。
+
+`UpdateProcess.script` は呼出し側で検証した内部CLI scriptを新PHPプロセスで実行する。コマンドと引数を配列で渡してshellを経由しない。引数はlist/string/NULなし/各4096bytes以下。stdout/stderr合計64KiB、実行時間1〜300秒、失敗時terminate/reap、scriptと親directoryのリンク拒否。childの生stderrを例外や公開応答へ渡さず、固定error codeを返す。成功stdoutは内部データであり、呼出し側はschema検証して秘密を公開しない。これはsandboxではなく、任意に選んだ候補scriptを信頼せず実行してよいという契約ではない。子孫processのkillや独立した悪意あるコードの隔離は保証しない。
+
+Migration/health script、UpdateAccessの排他下での実行、gateの候補互換性、OPcache、全体Updaterの失敗復元にはまだ接続していない。一般のbin/migrate.phpは共有leaseを必要とするため、更新排他中に直接呼ばない。
+
+## 検証
+
+`SEARCH_TEST_MODE=1 php tests/update-stage.php` は両環境29項目成功。候補がthrow/書込みを含んでもlintでは実行されない、syntax/hash/VERSION/link拒否、PIDの異なる実PHP子プロセス、shell記号のliteral引数、相対script pathの解決、stderr秘密非露出、異常exit、両pipe出力過多、timeout後の後続書込み阻止・次の正常実行を確認。`tests/update-asset.php` は91項目でdigest整合済み構文不正packageのarchive/stage清掃と既存stage保持を含む。`tests/update-package-live.php` は両実source214files、PHP144構文、独立tar一覧/全hash/config不変/保護領域非包含を確認した。
+
+プロセス実行はCLIのみ。PHP_BINARYがFPMの場合に誤ってFPMを子プロセスとして起動しない。HTTPの管理操作からはjobを登録し、CLI更新workerで検査・適用する設計へ接続する。

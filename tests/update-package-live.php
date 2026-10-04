@@ -12,11 +12,11 @@ $run=static function(array $command):string{
 };
 try{
     $built=(new App\Services\ReleasePackageBuilder())->build($root,$archive);
-    $manifest=(new App\Services\UpdatePackage())->verify($archive,$stage,trim(file_get_contents($root.'/VERSION')));
+    $manifest=(new App\Services\UpdatePackage())->verify($archive,$stage,trim(file_get_contents($root.'/VERSION')),true);
     $names=array_filter(explode("\n",trim($run(['tar','-tf',$archive]))));$expected=['release-manifest.json',...array_keys($manifest['files'])];sort($names);sort($expected);
     if($names!==$expected)throw new RuntimeException('Independent tar listing differs');
     $php=0;foreach(array_keys($manifest['files']) as $path){
-        if(str_ends_with($path,'.php')){$run([PHP_BINARY,'-l',$stage.'/'.$path]);++$php;}
+        if(str_ends_with($path,'.php'))++$php;
         if(!hash_equals($manifest['files'][$path]['sha256'],hash_file('sha256',$stage.'/'.$path)))throw new RuntimeException('Staged file changed');
     }
     if(!hash_equals($before,hash_file('sha256',$root.'/config/config.php'))||is_file($stage.'/config/config.php')||is_dir($stage.'/storage')||is_dir($stage.'/tests')||is_dir($stage.'/public/_test'))throw new RuntimeException('Protected data included or changed');

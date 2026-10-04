@@ -31,7 +31,7 @@ final class UpdatePackage
         return [$prefix===''?$name:$prefix.'/'.$name,self::octal(substr($header,124,12))];
     }
     /** Stage must not already exist. All callers use a private, generated path. */
-    public function verify(string $archive,string $stage,string $expectedVersion): array
+    public function verify(string $archive,string $stage,string $expectedVersion,bool $lint=false): array
     {
         UpdatePackagePaths::directory(dirname($stage));
         if(file_exists($stage)||is_link($stage)||is_link($archive)||!is_file($archive)||filesize($archive)>UpdateManifest::TOTAL_LIMIT+12582912)throw new HttpException(422,'INVALID_UPDATE_PACKAGE');
@@ -59,6 +59,7 @@ final class UpdatePackage
                 if($size%512&&self::block($stream,512-$size%512)!==str_repeat("\0",512-$size%512))throw new HttpException(422,'INVALID_UPDATE_PACKAGE');
             }
             if(count($seen)!==count($manifest['files'])||trim(file_get_contents($stage.'/VERSION'))!==$manifest['version'])throw new HttpException(422,'INVALID_UPDATE_PACKAGE');
+            if($lint)(new UpdateStage())->validate($stage,$manifest);
             return $manifest;
         }catch(\Throwable $error){if($created)$this->removeStage($stage);throw $error;}
         finally{fclose($stream);}
