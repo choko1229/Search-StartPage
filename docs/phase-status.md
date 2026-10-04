@@ -15,7 +15,7 @@
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
 | 9 | Admin | 進行中（管理基盤・一覧・メンテナンス・ログ収集/保持・機能制御/動的制限を実装、残る管理機能とUI検証を継続） |
-| 10 | Updater | 正式移行前。Phase9更新管理と共通の取得/検証・file/DB保存復元・アクセス停止・永続記録基盤を実装。更新engine全体は未接続 |
+| 10 | Updater | 正式移行前。Phase9共通の一括更新・自動/手動復元を内部CLIで検証。管理UI・実配布元・Web運用の確認が残る |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
 
@@ -1489,3 +1489,21 @@ UpdateFilesはroot内のstorage/updates/jobs/32hex/candidate|restore|previousだ
 制限: 停止プロトコルの事前検査は追加できたが、file+DB/journal/runtime一括engine、例外/exit後の自動復元、世代清掃、管理UI/update_historyは未接続。web OPcache/FPM/Windows native/実GitHub対象repo404、Phase9旧残UI/故障/旧role実UI、Glass/実OAuth/各browser/Extension/全DoD未達も維持。
 
 次に実行すること: private jobs内にcandidate manifest/archiveとfile/DB snapshotを永続化し、JournalとGate/UpdateRuntimeを接続する更新engineを実装。専用clone/DBでapply→migrate→health→completeと、file途中/DDL後/health失敗/exit後の両snapshot復元・healthまで停止維持を実証。復元失敗も停止を維持し再試行、直前1世代の物理清掃・手動Rollback・管理UI/CSRF/audit/update_historyへ接続。Phase9残ゲートを閉じてからPhase10正式移行。spec.md変更/stageなし、Goal未完成。
+
+## Phase9 一括更新・自動/手動復元・中断回復の内部engine（2026-10-04）
+
+直前ターンはユーザーへの進捗表報告で実装進捗なし。progress/status/git/spec§107〜109を再確認し、未コミットのUpdateEngineと権限preflightを検証。前コミットae78646の候補互換性から接続。Phase9ゲート未達、Phase10正式移行前、11〜12/Version1.0未完成。
+
+実装: CLI限定UpdateEngineのapply/recover/rollback。private engine lockでpreflightからcleanupまで直列化し、job内candidate archive/正規化manifest hashを永続化。Gateのdrain/排他下で旧health→file/DB snapshot→同期/hash検査→replace→別process Migration/health→complete。変更後の例外はfile/DBを独立して両方復元し、両復元と旧health成功まで停止維持。process exit後のrecover、復元失敗後のretry、直前1世代の物理清掃、失敗後にも以前の成功ownerから手動Rollbackを実装。manifest改変拒否、complete後cleanup失敗はrecoverで前進復旧。通常manual maintenance/config/uploads保持。Journal format2/hash/beginRollback、履歴20件/sole owner保持。未公開format1は自動破棄しない。通常appにjournalなしを確認済み。
+
+権限検出: 通常開発appはwww-dataからroot/app書込み不可、storageのみ可。通常sourceの権限は変更せず、UpdateFiles.preflightが最も近い既存親directoryの書込みを検査。backed_up後/replacing前にUPDATE_TARGET_NOT_WRITABLEとして失敗し、旧health/cleanup成功でアクセス再開する。実Web更新に対応する配置設計は残る。
+
+検証1: 両PHP engine構文、file44/journal43成功。専用tmpfs512MiB/no host port/生成passwordのMySQL8/MariaDB10.11でengine各23成功。正常更新、clone限定017/018による実DDL/行変更と例外、自動/手動復元、成功世代置換/失敗後保持、readonly配置の非変更・再開、file途中例外、health失敗、実child exit7→別instance復旧、壊れたfile snapshot/manifest拒否→DB復元は試行→停止維持→修復後retry、全managed hash/全行・列schema/config/upload/manual stop保持を確認。session75524/47770をpollし各exit0。通常DBへ復元していない。両専用DBのHostConfig tmpfsを確認しexact2コンテナだけ削除、exit0。
+
+検証2: 最終両package64/stage29/asset94/access34/task20/基盤40成功。初回に存在しないgithub-update-asset試験名を指定し未実行、実在するupdate-assetへ訂正して再成功。session50428をpollしexit0。実source配布物は両219files/3386880bytes/PHP149構文、独立GNU tar一覧/hash/config不変/protected領域非包含成功。
+
+検証3: 両実HTTP access30成功、通常home復帰/config不変。前段新process runtime23と全16Migrationのfresh/repeat証拠を維持し、通常アプリへの新Migrationなし。アプリにはサービス/testsだけcopy、DB/config/user/volumes/worker再作成なし、認証/UI外観変更なし。git diff --check成功。docs/update-engine.md/update-files.md/update-journal.mdへ契約・結果・制限を保存。
+
+制限: 内部engineの検証であり、管理UIからの適用・適用worker・DB update_history/監査への接続、Web OPcache/FPM更新検証、更新途中の任意コード破損から独立して起動するrescue入口は未実装/未確認。directory fsync停電耐久性/Windows native/networkFS、実GitHub対象source404、Phase9旧ゲート/実OAuth/Glass仕上げ/各browser/Extension/全DoD未達も維持。
+
+次に実行すること: 独立rescueとWeb実行時のキャッシュ/配置条件を整備し、更新job登録・worker・管理UI適用/手動Rollback・CSRF/監査/update_historyへ内部engineを接続する。最初の管理操作HTTPは応答終了して通常leaseを解放し、別processが排他を取得する設計を維持する。Phase9認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UIの残件を閉じてからPhase10正式移行。ユーザー許可はlocalhost8099更新確認の一時生成管理者準備/清掃に限り、旧roles許可へ拡大しない。実配布元/実OAuthは未確認のまま、spec.mdを変更/stageしない。Goal未完成。

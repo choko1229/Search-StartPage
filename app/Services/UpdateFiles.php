@@ -28,7 +28,7 @@ final class UpdateFiles
         return UpdateManifest::decode(json_encode($manifest,JSON_THROW_ON_ERROR),$manifest['version']??'');
     }
     /** Full preflight before the first mutation. A later I/O error must trigger engine rollback. */
-    public function replace(string $stage,string $root,array $manifest,array $previous,?\Closure $afterFile=null): void
+    public function preflight(string $stage,string $root,array $manifest,array $previous): void
     {
         $manifest=self::manifest($manifest);$previous=self::manifest($previous);UpdatePackagePaths::directory($stage);UpdatePackagePaths::directory($root);
         $stagePath=str_replace('\\','/',realpath($stage));$rootPath=str_replace('\\','/',realpath($root));
@@ -51,6 +51,14 @@ final class UpdateFiles
         }
         foreach(array_keys($previous['files']) as $path)self::target($root,$path);
         if(trim(file_get_contents(self::target($stage,'VERSION')))!==$manifest['version'])throw new HttpException(422,'INVALID_UPDATE_PACKAGE');
+        foreach(array_unique([...array_keys($manifest['files']),...array_keys($previous['files'])]) as $path){
+            $parent=dirname(self::target($root,$path));while(!is_dir($parent))$parent=dirname($parent);clearstatcache(true,$parent);
+            if(!is_writable($parent))throw new HttpException(503,'UPDATE_TARGET_NOT_WRITABLE');
+        }
+    }
+    public function replace(string $stage,string $root,array $manifest,array $previous,?\Closure $afterFile=null): void
+    {
+        $this->preflight($stage,$root,$manifest,$previous);
         foreach($manifest['files'] as $path=>$metadata){
             $target=self::target($root,$path,true);$temporary=tempnam(dirname($target),'.update-');
             if($temporary===false)throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');

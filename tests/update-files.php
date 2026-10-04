@@ -30,6 +30,7 @@ try{
     $bad=$next;$bad['files']['config/config.php']=['bytes'=>13,'sha256'=>hash('sha256','secret marker')];try{$files->replace($directory.'/new-stage',$live,$bad,$old);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='INVALID_UPDATE_PACKAGE','protected manifest path rejected');}
     try{$files->replace($live,$live,$old,$old);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='INVALID_UPDATE_PATH','stage and live cannot overlap');}
     $bad=$next;$bad['version']='3.0.0';try{$files->replace($directory.'/new-stage',$live,$bad,$old);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='INVALID_UPDATE_PACKAGE','manifest and VERSION cannot differ');}
+    chmod($live.'/app',0555);try{$files->replace($directory.'/new-stage',$live,$next,$old);throw new LogicException('Unexpected writable target');}catch(HttpException $error){$check($error->errorCode==='UPDATE_TARGET_NOT_WRITABLE','readonly managed directory rejected before file mutation');}finally{chmod($live.'/app',0700);}$check(file_get_contents($live.'/VERSION')==='1.0.0','readonly target failure cannot partially update VERSION');
     $check(glob($live.'/.update-*')===[]&&glob($live.'/app/.update-*')===[],'no temporary replacement files remain');
     echo "$checks update file checks passed.\n";
 }finally{$remove($directory);}
