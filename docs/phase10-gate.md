@@ -12,7 +12,7 @@
 | migration | 両DB fresh17/repeat、実Engine更新、transaction/復元と後発データ保持 | 実配布物によるmigration |
 | rollback | 自動/手動、実CLI/HTTP/UI、旧PHP反映、後発fav/sync/log/policy保持。停止中の実Migration失敗→自動復元も専用両DB/FPMで29項目/基盤40各3回成功（1594 exit0）、停止version/signal/事前fav/sync/config/upload保持 | 実配布物による通し検証、故障原因全般の運用確認 |
 | history | DB履歴/監査/失敗error同一transaction、再投影/配送 | 実配布物更新の履歴 |
-| admin UI | 管理者check/通知/更新/復元、guest排除、CSRF/CAS、日英390px | 全browserはPhase12、実MariaDB UI更新は未確認 |
+| admin UI | 管理者check/通知/更新/復元、guest排除、CSRF/CAS、日英390px | MariaDB実UI更新/復元も日英/390px/worker停止で確認済み（docs/update-management-ui.md）。全browserはPhase12 |
 
 主な証拠: docs/update-check.md、update-package.md、update-engine.md、update-database-merge.md、update-outcome-logsはdocs/admin-logs.md、update-fpm-http.md、update-management-ui.md、update-execution-service.md。各文書の初期「未実装」は当時の記録で、最新実装状態は本表とprogress.mdを参照する。
 

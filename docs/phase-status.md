@@ -1,4 +1,23 @@
 # 実装と検証の記録
+## 最新の再開地点（2026-10-04・Phase10 MariaDB実管理UI）
+
+Phase10進行中、Phase11〜12未着手、Version1.0未完成。専用MariaDB実UIで更新2.0.0→復元0.1.0-devを確認。候補/archive取得だけfixtureで、実GitHub/Discordの証明ではない。
+
+Files: tests/update-ui-development.phpの両DB/private proof対応、tests/run-update-mariadb-ui.ps1、tests/update-ui-observe.php、docs/update-management-ui.md。製品/schema/API変更なし。
+
+検証1〜3: setup87781 exit0、HTTP23/基盤40各3回。実IAB UIは取消/EN確定/実更新/復元Esc取消/実復元/JA再取得/worker停止後ボタン無効。390px/page375/dialog358、Console warn/error0。最終observe: 旧版/config hash一致/job rolled_back/template v2なし/履歴rolled_back,complete,failedの3件。実UI一巡/再試行を3回UI成功としない。
+
+Issues: root observerのprivate lock所有者でgeneric error、生成archive所有者で初回INVALID_UPDATE_PACKAGE。専用live/storageをwww-dataへ修正、observerも同userへ変更後に成功。保存harnessへ反映、PHP構文/PowerShell parser確認。修正版harness全体3回の再実行は未確認。初期wizardはContinue later、失敗履歴保持。
+
+清掃/Security: worker停止/viewport reset/新規tab close、専用app search-update-mariadb-ui-20261004とtmpfs配置一致確認済みDB search-update-backup-mariadb-20261004削除/prefix空。生成admin/device/config/入口清掃、通常8099/8100/DB/権限/config/worker非変更、Secret/spec非保存、push/公開/再起動なし。画像.test-output/update-mariadb-restored-ja.pngを目視確認。
+
+実8099の値なしreadiness再確認はconfigured false。ユーザーは非公開repo設定予定と回答済み、設定完了とは扱わない。
+
+次に実行すること:
+1. bin/configure-updates.ps1による設定後、秘密を出さないreadiness→非公開実release/asset取得。実配布物/Actions未確認、公開/pushは自動実行しない。
+2. docs/phase10-gate.mdの実サービスboot/restart/manager stop/長時間運用、独立複数FPM masterでの実DB更新を監査。MariaDB実UIは今回の限定範囲で確認済み。
+3. Phase10合格後のみPhase11へ。Glass最終調整/全browser/全DoD未達を保持。
+
 ## Phase10 非公開更新元の設定支援（2026-10-04）
 
 - 状態: Phase10進行中。8099のDocker configを値なしで読取り、Token未設定。ホストconfigなし。ユーザーの設定予定を完了としない。
