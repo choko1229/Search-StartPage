@@ -1353,3 +1353,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 実定期環境: search-phase9-roles-20261004のupdates-mysql-1/updates-mariadb-1を専用www-data/config ro/no web port/restart unless-stoppedで起動。両running=true、初回2026-10-04T00:06:41/42Z failed/available null/next_run_in3600。対象source404は未解決。既存app/DB/volumes/logworkerを再作成していない。app側から同volumeでworker二重起動を実行し安全なエラー/exit1を確認。最終テストはcacheを退避/復元し、workerの実失敗状態を保持。24h/1hの実時間経過や本番配置は未確認。
 
 次に実行すること: Phase9の更新管理とPhase10処理境界を、Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackの実装へつなぎ、config/uploads/userdata保持を隔離環境で実証する。対象GitHub repository質問は未回答。安全な試験用リリースで処理本体を先に検証できる範囲を進める。Phase9の認証済み同期/地域・EN weather/upload・cleanup故障、旧管理者UI権限操作の承認待ち、Glass/実OAuth/各browser/Extension/最終DoDを維持。今回許可は更新画面用一時管理者の準備・清掃で、旧role操作の許可へ拡大しない。spec.md変更/stageなし、Goal未完成。
+
+## Phase9 更新配布物の作成・安全なstage検証（2026-10-04）
+
+前ターン7a41698は管理者更新確認/通知/workerの実装・検証による進捗。progress/status/git/spec104〜109から更新処理の準備へ再開。Phase9ゲートは未達のまま。10〜12/Version1.0完成扱いなし。
+
+実装: UpdatePackagePathsの管理対象allowlist、UpdateManifestのformat/version/PHP minimum/全files size+SHA-256/個数・合計制限、UpdatePackageのUSTAR限定stream検証・private新規stage展開、ReleasePackageBuilder/bin/build-release.phpを追加。GNU tar公式仕様を確認しdocs/update-package.mdへ出典/契約/未実装範囲を記録。config実値/setup key/storage全体/spec/progress/Git/tests/public/_testは配布/展開対象外。tarヘッダー整合、通常fileのみ、危険path/links/case collisions/重複/PAX/GNU extensions/過不足/改変/不一致VERSIONを拒否。Stage0700/file0600、失敗stage除去と清掃失敗の成功扱い拒否。圧縮やZip/PHP framework/npm build依存を追加しない。Custom SemVer+metadata tag、将来のcustom/tag VERSIONを更新確認側にも受理するよう形式を統一。DB/Migration/認証/主要UI変更なし。
+
+検証1: 両隔離PHP新6ファイル構文成功。最終update-package各63項目成功。generated sourceに配置したconfig/key/upload/userdata/spec/progress/test/preview markersがarchive/stageへ入らない、元data保持。同じサイズの改変をhashで拒否、VERSION内容の別version/最低PHP/単体64MiB/合計256MiB/VERSION512bytes制限、prefix付きlong filename、v接頭辞差、メタデータ差の拒否、reserved paths/links/duplicate/truncated/nonzero tail、失敗stage除去を確認。testsは固定生成/tmp領域のみをfinally清掃。
+検証2: 両専用www-dataで実アプリbuild→stage検証。207files/3292160bytes、stagePHP137の構文成功。独立GNU tar listingがmanifestの全ファイル+先頭manifestと一致。全staged hash再照合、実configが不変、storage/tests/preview非包含。実/tmp archive/stageは清掃済み。CLI bin/build-release.phpも両成功、private buildsへ0.1.0-devの生成archiveを各1件保持。公開/upload/download/本番適用なし。
+検証3: releases各45（custom+metadata追加）/update-checks各39/基盤各40成功。新Migrationなし、全16Installerの既存証拠を維持。worker両方でmbstring/curl/pdo_mysql trueを読み取り確認。ReleaseCatalog/UpdateChecksのタグ形式変更を定期workerのimageへ反映するため対象2workerだけcompose --no-deps rebuild/up、session20591をpollしexit0。app/DB/config/user volumes/logworkerは再作成/削除なし。config実値や秘密を出力しない。存在しないapp/Database/Migration.phpの探索は未読として既存Migratorから確認。git diff --check成功。
+
+制限: 内部manifest/hashは内容整合の検証であり配布者署名ではない。対象GitHub source404とrepository質問は未解決。Download/外側digest/認証、stage一般PHPのlint/health検証の本番入口、ファイル/DB backup、Maintenance、Replace/Migrate/Health、Automatic/Manual Rollback、update_history/UI install operationは未実装。現在のコードをstageへ展開できたことを更新適用やRollbackの成功扱いにしない。
+
+次に実行すること: GitHub release assetの厳格な選択と固定HTTPS取得/redirect時の認証非転送・サイズ/digest検証へこのpackage契約を接続する。続いて一世代のfile/DB backupとファイル差替え・Migration・失敗/手動Rollbackを隔離環境で実証。Phase9旧残件（認証済み同期/地域、EN weather/upload、cleanup故障、旧管理者role操作承認待ち）を維持しゲートを閉じてから次Phaseへ進む。実OAuth/各browser/Glass/Extension/全DoD未達を維持。spec.md変更/stageなし、Goal未完成。

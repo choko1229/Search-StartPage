@@ -18,7 +18,7 @@ final class UpdateChecks
     {
         $repo=$config->get('updates.repository','choko1229/Search-StartPage');
         $channel=$config->get('updates.channel','stable');$tag=$config->get('updates.custom_tag','');$token=$config->get('updates.token','');
-        if(!is_string($repo)||!is_string($channel)||!is_string($tag)||!is_string($token)||!preg_match('/^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$/D',$current))throw new HttpException(422,'INVALID_UPDATE_CONFIGURATION');
+        if(!is_string($repo)||!is_string($channel)||!is_string($tag)||!is_string($token)||!preg_match('~^[A-Za-z0-9][A-Za-z0-9.+_/-]{0,127}$~D',$current))throw new HttpException(422,'INVALID_UPDATE_CONFIGURATION');
         ReleaseCatalog::channel($channel,$tag);
         $this->repository=ReleaseCatalog::repository($repo);$this->channel=$channel;$this->tag=$channel==='custom'?$tag:'';
         $this->source=new GitHubReleases($repo,$transport,$token);

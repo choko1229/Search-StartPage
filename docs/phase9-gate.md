@@ -56,3 +56,5 @@ DB観測はCLI/testmodeの一時スクリプトでevent_type/source/event_data/�
 2026-10-04保存警告補修: 無関係な統計等の更新でsaveSettingsの再試行が枯渇する不具合を修正前Nodeで再現、依存collection限定後に保持/実quota警告回帰成功。実ブラウザ25回保存+更新12回/2tab存在下22回、警告0と別tab反映/reload保持を確認。以前の認証済み同期中の警告と同原因の断定や、異なる設定の同時tab編集の保持はまだ証明していない。
 
 2026-10-04追加: 通知前の古いtabからsaveSettings/setSettingが別tabの異なる設定を消す不具合を修正前Nodeで再現し条件付き保存へ補修。実IndexedDBの2tabでtest-only通知受信抑止を使い地域10/20とfont44、逆方向30/40とfont45の両方保持/reload/警告0を確認。製品の通知抑止ではない。認証済みcloud同時操作や任意collection全般の競合まで証明した扱いにしない。
+
+2026-10-04更新配布物基盤: 専用build CLI/USTAR manifest/管理対象allowlist/private stage検証を追加。両63項目、実207ファイル/3292160bytes・stagePHP137構文・独立tar一覧一致・実config保持。内部整合の準備であり、GitHub asset取得/外側検証/Backup/Replace/Migrate/Health/Rollbackは未達。Phase9ゲート未完了。docs/update-package.mdを参照。

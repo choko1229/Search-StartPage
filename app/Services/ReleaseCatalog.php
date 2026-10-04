@@ -13,7 +13,7 @@ final class ReleaseCatalog
     }
     public static function channel(string $channel,string $tag=''): void
     {
-        if(!in_array($channel,['stable','beta','nightly','custom'],true)||($channel==='custom'&&!preg_match('~^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$~D',$tag)))throw new HttpException(422,'INVALID_UPDATE_CHANNEL');
+        if(!in_array($channel,['stable','beta','nightly','custom'],true)||($channel==='custom'&&!preg_match('~^[A-Za-z0-9][A-Za-z0-9.+_/-]{0,127}$~D',$tag)))throw new HttpException(422,'INVALID_UPDATE_CHANNEL');
     }
     private static function version(string $tag): ?array
     {

@@ -12,6 +12,7 @@ $check(ReleaseCatalog::select([...$releases,$row(8,'v2.0.0')],'beta')['id']===8,
 $check(ReleaseCatalog::select($releases,'nightly')['id']===7,'nightly uses published time');
 $check(ReleaseCatalog::select($releases,'custom','v1.9.0')['id']===1,'custom exact tag');
 $check(ReleaseCatalog::select($releases,'custom','v3.0.0')===null,'custom cannot select draft');
+$check(ReleaseCatalog::select([$row(9,'v1.0.0+build')],'custom','v1.0.0+build')['id']===9,'custom accepts semantic build metadata');
 $check(ReleaseCatalog::select([])===null,'empty releases is distinct from a failure');
 $check(ReleaseCatalog::compare('v1.0.0+abc','1.0.0+def')===0,'build metadata does not change version order');
 $check(ReleaseCatalog::compare('1.0.0','1.0.0-rc.1')>0,'stable promotion is newer');
