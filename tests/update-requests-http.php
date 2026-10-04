@@ -6,6 +6,8 @@ use App\Database\{Database,Migrator};
 if(PHP_SAPI!=='cli'||getenv('SEARCH_TEST_MODE')!=='1'||!in_array(getenv('TEST_BACKUP_HOST'),['search-update-backup-mysql-20261004','search-update-backup-mariadb-20261004'],true))exit(1);
 $root=dirname(__DIR__);$apache=getenv('TEST_UPDATE_APACHE')==='1';$fpm=getenv('TEST_UPDATE_FPM')==='1';$externalWeb=$apache||$fpm;
 $maintenance=getenv('TEST_UPDATE_MAINTENANCE')==='1';
+$migrationFailure=getenv('TEST_UPDATE_MIGRATION_FAILURE')==='1';
+if($migrationFailure&&!$maintenance)throw new RuntimeException('Failure check requires maintenance');
 if(($apache&&$fpm)||($externalWeb&&(!is_file($root.'/storage/web-cache-test-only')||file_exists($root.'/config/config.php'))))throw new RuntimeException('Disposable web deployment required');
 $directory=$externalWeb?($fpm?'/tmp/update-request-fpm-fixture':'/tmp/update-request-apache-fixture'):sys_get_temp_dir().'/update-request-http-'.bin2hex(random_bytes(8));if(file_exists($directory)||is_link($directory)||!mkdir($directory,0700))throw new RuntimeException('Fresh fixture required');$pdo=null;$owned=false;$server=null;$count=0;$cookies=[];$csrf=null;
 $check=static function(bool $ok,string $name)use(&$count){if(!$ok)throw new RuntimeException($name);++$count;echo "PASS: $name\n";};
@@ -46,7 +48,16 @@ try{
  $check(trim(file_get_contents($live.'/VERSION'))===$initial&&(new UpdateJournal($live.'/storage/updates/journal'))->status()['job']===null,'HTTP request never replaces files or starts engine');
  [$status]=$http('/api/admin/update/apply','POST',$input);$check($status===409&&count($history->listing())===1,'repeated stale HTTP submit creates no duplicate request');
  foreach(['en'=>'Queued','ja'=>'受付済み'] as $locale=>$label){[$status,$html]=$http('/admin/update',locale:$locale);$check($status===200&&str_contains($html,$label),'queued status displayed '.$locale);}
- $candidate=$directory.'/candidate';(new UpdatePackage())->verify($directory.'/base.tar',$candidate,$initial,true);file_put_contents($candidate.'/VERSION','2.0.0');file_put_contents($candidate.'/app/Views/admin-update.php',"\n<!-- generated-update-code-v2 -->\n",FILE_APPEND);$builder->build($candidate,$directory.'/candidate.tar');
+ $candidate=$directory.'/candidate';(new UpdatePackage())->verify($directory.'/base.tar',$candidate,$initial,true);file_put_contents($candidate.'/VERSION','2.0.0');file_put_contents($candidate.'/app/Views/admin-update.php',"\n<!-- generated-update-code-v2 -->\n",FILE_APPEND);
+ if($migrationFailure){
+  $favoriteId='00000000-0000-4000-8000-000000000019';
+  $pdo->prepare('INSERT INTO favorites(id,user_id,client_id,name,url,created_at,updated_at) VALUES(?,?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([$favoriteId,$user,$favoriteId,'Before failed update','https://example.test/keep']);
+  $pdo->prepare('INSERT INTO sync_states(user_id,version,document,updated_at) VALUES(?,?,?,UTC_TIMESTAMP())')->execute([$user,9,'{"preferences":{"theme":"glass"}}']);
+  mkdir($live.'/storage/generated-upload',0700);file_put_contents($live.'/storage/generated-upload/keep.bin',"generated\0upload");$uploadHash=hash_file('sha256',$live.'/storage/generated-upload/keep.bin');
+  // Real candidate migration performs committed DDL and data changes before failing.
+  file_put_contents($candidate.'/database/migrations/999_generated_failure.php', '<?php return new class { public function up(PDO $pdo):void { $pdo->exec("CREATE TABLE generated_failed_update(id INT PRIMARY KEY) ENGINE=InnoDB"); $pdo->exec("UPDATE sync_states SET version=99"); throw new RuntimeException("Generated migration failure"); } public function down(PDO $pdo):void { $pdo->exec("DROP TABLE IF EXISTS generated_failed_update"); } };');
+ }
+ $builder->build($candidate,$directory.'/candidate.tar');
  $admin=new App\Repositories\AdminRepository($pdo);$commands=new UpdateCommands($live.'/storage/updates/commands',fn($id)=>$admin->isAdministrator($id),fn($request,$event)=>$history->record($request,$event),fn($request)=>$history->matches($request));$engine=new UpdateEngine($live);
  // Replace only the acquisition callback in the disposable runner entry, never the live project.
  $entry=file_get_contents($live.'/bin/run-update.php');$start=strpos($entry,'$prepare=static');$end=strpos($entry,'$state=(new',$start);if($start===false||$end===false)throw new RuntimeException('Fixture entry shape changed');
@@ -65,6 +76,25 @@ try{
  // The HTTP response is complete; the scheduler creates a fresh child for the actual Engine.
  [$exit,$result,$err,$drained]=$scheduled(true);$check($exit===0&&$result['status']==='finished'&&$err==='','scheduler runs accepted HTTP update in separate PHP child');
  $check($drained,'stop request drains actual Engine child before daemon exits');
+ if($migrationFailure){
+  $state=$commands->status();$job=$engine->status()['job'];
+  $check($state['request']['id']===$requestId&&$state['request']['status']==='rolled_back'&&$state['request']['error']==='UPDATE_MIGRATION_FAILED'&&$job['phase']==='rolled_back','migration failure automatically restores the bound accepted request');
+  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];
+  $check($status===200&&$data['current_version']===$initial&&$data['execution']['request']['status']==='rolled_back'&&count($data['history'])===1,'actual HTTP serves restored version and failure history');
+  [$status,$html]=$http('/admin/update');$check($status===200&&!str_contains($html,'generated-update-code-v2')&&!str_contains($html,'Stack trace'),'FPM renders restored template without exception details');
+  foreach(['ja'=>'メンテナンス中です','en'=>'Under maintenance'] as $locale=>$label){[$status,$html]=$http('/',locale:$locale,authenticated:false);$check($status===503&&str_contains($html,$label),'automatic rollback retains public maintenance '.$locale);}
+  $repository=new App\Repositories\AdminSettingsRepository($pdo,new App\Services\MaintenanceState($live.'/storage/runtime'));
+  $check($repository->maintenance()===['enabled'=>true,'version'=>$maintenanceEnabled['version']]&&(new App\Services\MaintenanceState($live.'/storage/runtime'))->active(),'automatic rollback retains exact maintenance version and signal');
+  $check($pdo->query("SHOW TABLES LIKE 'generated_failed_update'")->fetchAll()===[]&&$pdo->query('SELECT COUNT(*) FROM migrations')->fetchColumn()===17,'failed migration DDL and migration record are reverted');
+  $query=$pdo->prepare('SELECT version,document FROM sync_states WHERE user_id=?');$query->execute([$user]);$sync=$query->fetch(PDO::FETCH_ASSOC);
+  $query=$pdo->prepare('SELECT name FROM favorites WHERE id=?');$query->execute([$favoriteId]);
+  $check((int)$sync['version']===9&&$sync['document']==='{"preferences":{"theme":"glass"}}'&&$query->fetchColumn()==='Before failed update','automatic rollback preserves pre-update favorites and sync after candidate changes');
+  $check(hash_file('sha256',$live.'/config/config.php')===$configHash&&hash_file('sha256',$live.'/storage/generated-upload/keep.bin')===$uploadHash,'automatic rollback preserves private configuration and upload bytes');
+  $query=$pdo->prepare("SELECT COUNT(*) FROM log_entries WHERE type='update_error' AND error_code='UPDATE_MIGRATION_FAILED'");$query->execute();$check((int)$query->fetchColumn()===1,'automatic rollback projects one classified failure log');
+  $check(!is_file($live.'/database/migrations/999_generated_failure.php')&&array_diff(scandir($live.'/storage/updates/incoming'),['.','..'])===[],'failed candidate migration and incoming work are removed');
+  echo "$count isolated HTTP update request checks passed.\n";
+  return;
+ }
  $state=$commands->status();$check($state['request']['status']==='complete'&&$engine->status()['job']['request_id']===$requestId,'audited HTTP request reaches real update engine after response');
  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$check($status===200&&$data['current_version']==='2.0.0'&&$data['execution']['request']['status']==='complete','fresh HTTP serves updated version and completed outcome');
  [$status,$html]=$http('/admin/update');$check($status===200&&str_contains($html,'generated-update-code-v2'),'HTTP renders changed PHP template after actual Engine replacement');

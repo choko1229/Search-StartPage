@@ -30,3 +30,13 @@ docker build -t search-update-fpm-engine:20261004 tests/fixtures/update-fpm
 2026-10-04: 専用MySQL8/MariaDB10.11のFPM33項目と基盤40を各3回成功（72186 exit0）。最後に各DBのPHP HTTP server mode32でも成功。新しい9項目と既存の更新/復元/変更PHP表示/config保持/履歴/stop drainを合わせた結果。PHP構文/PowerShell parser/git diff --check成功、専用FPM app/配置確認済みtmpfs DBを清掃しprefix一覧空。製品コード/schema/API/UIは変更せず、通常8099/8100の設定・DB・ユーザー権限・workerへ操作していない。
 
 これは実HTTPでの停止→更新→解除→手動復元という経路。実ブラウザ表示、更新失敗の自動復元を停止中に起こす経路、独立複数FPM master、systemd運用、実GitHub/OAuthを今回の成功範囲へ拡張しない。
+
+## 停止中のMigration失敗と自動復元（Phase10）
+
+`./tests/run-update-fpm.ps1 -Maintenance -MigrationFailure` で再現する。専用候補のMigrationだけに生成テーブルのDDL・sync版の変更・例外を入れ、実HTTP受付→別worker子→製品Engine/Migrator→自動復元を通す。候補取得は従来のfixtureで、製品Engineに故障用callbackを追加しない。
+
+2026-10-04、1594 exit0: MySQL8/MariaDB10.11のFPM29項目/基盤40を各3回成功、最後にPHP HTTP server mode28を両DBで成功。初回17548はAPI応答の監査情報までDB設定と比較した試験側の誤りで停止。enabled/versionだけを比較するよう修正し、全3回を再実行した。失敗を成功に含めない。
+
+受け付けたrequestのrolled_back/UPDATE_MIGRATION_FAILED、旧版と旧PHP画面、DB履歴1件、日英匿名home503、停止enabled/version/signal保持を確認。生成DDLがなくMigration件数17、事前お気に入りとsync version9/document保持、config hashと生成upload bytes保持、分類失敗ログ1件、候補Migrationとincoming除去を確認。ユーザーデータ保持の範囲は更新開始前のデータで、更新中に別端末が書き込む経路はこの試験に含まない。
+
+新PHP構文/PowerShell parser/git diff --check成功。harness finallyで専用app/tmpfs確認済みDBを清掃し、専用prefix一覧空。通常8099/8100/DB/権限/config/workerは非変更。製品コード/schema/API/UI変更なし。実GitHub配布物、実OAuth、browser、systemd manager運用、任意の失敗原因全般は未確認。

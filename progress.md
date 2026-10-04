@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・Phase10 停止中の失敗自動復元）
+
+前ターンe04cd94でPhase9機能ゲート確定/Phase10開始。今回は専用実FPM/両DBでMaintenance中のMigration失敗→自動復元を確認。Phase10進行中、Phase11〜12未着手、Version1.0未完成。
+
+Files: tests/update-requests-http.phpにTEST_UPDATE_MIGRATION_FAILURE、tests/run-update-fpm.ps1に-MigrationFailure（-Maintenance必須）追加。候補だけに生成DDL/sync変更/例外Migrationを配置、製品Engine/Migrator/workerを実行。製品コード/schema/API/UI変更なし。
+
+検証1〜3: 1594 exit0、専用MySQL8/MariaDB10.11/FPM PHP8.3 timestamps0/static2/www-dataでHTTP29/基盤40各3回。最後にPHP HTTP server mode28両DB成功。受け付けたrequest rolled_back/UPDATE_MIGRATION_FAILED、旧PHP/版/DB履歴1、日英匿名503/停止DB version/signal保持。生成DDL撤回/Migration17、事前fav/sync9/document/config hash/upload bytes保持、失敗分類log1、候補/incoming除去。
+
+Issues: 初回17548はAPI監査情報を含む配列比較という検証側誤りで失敗。enabled/version比較へ修正後に全3回再実行。新構文/PowerShell parser/diffチェック成功。専用app/配置確認済みtmpfs DB清掃、prefix空。通常8099/8100/DB/権限/config/worker非変更、Secret/spec非保存、push/公開/再起動なし。
+
+次に実行すること:
+1. docs/phase10-gate.mdの対象GitHub配布元/実asset取得を監査。実配布元が404等なら理由・解消条件を明確にし、候補なし/成功と扱わない。既存製品実装を作り直さない。
+2. 実リリース通し検証とサービス運用の不足を確認。今回の自動復元はMigration失敗・事前データ保持の証拠で、任意の故障原因/更新中の端末書込み/全browser/OAuthの証明ではない。
+3. Phase10完了条件合格後にPhase11へ。Glass/Extension/全browser/全DoD未達を保持。本番公開/push/再起動は自動実行しない。
+
 ## 最新の再開地点（2026-10-04・Phase9ゲート確定とPhase10開始）
 
 ユーザーが許可した同期UI再試行は597f764で検証・清掃完了済み。今回は添付仕様のPhase9完了条件10項目とspec §90〜100/118、既存実装/両DB/API/UI/3回検証記録を照合し、Phase9を機能ゲート検証済みとしてPhase10へ正式移行。Version1.0は未完成。

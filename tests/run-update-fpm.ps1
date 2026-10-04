@@ -1,8 +1,10 @@
-param([ValidateRange(1,3)][int]$Rounds=3,[switch]$Maintenance)
+param([ValidateRange(1,3)][int]$Rounds=3,[switch]$Maintenance,[switch]$MigrationFailure)
 $ErrorActionPreference='Stop'
 $dockerFpmEngine='C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe'
 $workspaceFpmEngine=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $maintenanceFpmEngine=if($Maintenance){'1'}else{'0'}
+$failureFpmEngine=if($MigrationFailure){'1'}else{'0'}
+if($MigrationFailure -and !$Maintenance){throw 'Migration failure check requires maintenance mode'}
 function Invoke-FpmEngineDocker { param([string[]]$Arguments) & $dockerFpmEngine @Arguments; if($LASTEXITCODE -ne 0){throw 'Isolated FPM engine check failed'} }
 $createdFpmEngine=@();$dbFpmEngine=@()
 try {
@@ -16,7 +18,7 @@ try {
   foreach($roundFpmEngine in 1..$Rounds){
    $appFpmEngine="search-fpm-engine-$engineFpmEngine-$roundFpmEngine-20261004";$rootFpmEngine='/tmp/search-update-fpm-source'
    $existingFpmEngine=& $dockerFpmEngine ps -a --filter "name=^/$appFpmEngine`$" --format '{{.Names}}';if($existingFpmEngine){throw 'Dedicated app name already exists'}
-   Invoke-FpmEngineDocker @('run','-d','--name',$appFpmEngine,'--network','search-phase9-roles-20261004_default','-e','SEARCH_TEST_MODE=1','-e','TEST_UPDATE_FPM=1','-e',"TEST_UPDATE_MAINTENANCE=$maintenanceFpmEngine",'-e',"TEST_BACKUP_HOST=$databaseFpmEngine",'-e',"TEST_BACKUP_PASSWORD=$passwordFpmEngine",'search-update-fpm-engine:20261004','sleep','infinity') | Out-Null
+   Invoke-FpmEngineDocker @('run','-d','--name',$appFpmEngine,'--network','search-phase9-roles-20261004_default','-e','SEARCH_TEST_MODE=1','-e','TEST_UPDATE_FPM=1','-e',"TEST_UPDATE_MAINTENANCE=$maintenanceFpmEngine",'-e',"TEST_UPDATE_MIGRATION_FAILURE=$failureFpmEngine",'-e',"TEST_BACKUP_HOST=$databaseFpmEngine",'-e',"TEST_BACKUP_PASSWORD=$passwordFpmEngine",'search-update-fpm-engine:20261004','sleep','infinity') | Out-Null
    $createdFpmEngine+=$appFpmEngine
    Invoke-FpmEngineDocker @('exec',$appFpmEngine,'mkdir','-p',"$rootFpmEngine/config","$rootFpmEngine/storage")
    foreach($partFpmEngine in @('app','bin','database','tests','lang','public')){Invoke-FpmEngineDocker @('cp',"$workspaceFpmEngine/$partFpmEngine","${appFpmEngine}:$rootFpmEngine/")}

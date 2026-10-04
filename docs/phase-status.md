@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 Maintenance中のMigration失敗・自動復元（2026-10-04）
+
+- 状態: Phase10進行中/Phase11〜12未着手/Version1.0未完成。前ターンe04cd94から再開。
+- Files: tests/update-requests-http.php / tests/run-update-fpm.ps1 / docs/update-fpm-http.md / docs/phase10-gate.md / progress.md。本番製品/schema/API/UI変更なし。
+- 検証1〜3: 1594 exit0、専用両DB/FPM HTTP29/基盤40各3回、最後のPHP HTTP server28両DB成功。実MigrationでDDL/sync変更後例外→製品Engine自動復元、旧PHP/版/履歴/失敗分類log/日英匿名503/停止DB version/signalを確認。事前fav/sync/config/upload保持、生成DDL/候補Migration/incoming撤回。
+- Issues: 初回17548は監査情報を含むAPI配列比較で検証側失敗。設定値/version比較に修正し全3回やり直した。構文/PowerShell parser/diff確認成功。専用app/配置確認済みtmpfs DB清掃/prefix空、通常環境非変更。
+- Security/次: Secret/spec非保存、push/公開/再起動なし。実GitHub配布元/asset通し検証とサービス運用を監査。任意の故障原因/更新中データ変更/実browser/OAuthまで今回の証拠を広げない。
+
 ## Phase9ゲート確定・Phase10正式開始（2026-10-04）
 
 - 判定: 添付Phase9完了条件10項目とspec §90〜100/118を既存証拠へ照合、Phase9機能ゲート検証済み。Phase10進行中、Phase11〜12未着手、Version1.0未完成。
