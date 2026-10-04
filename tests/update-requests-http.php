@@ -7,29 +7,62 @@ if(PHP_SAPI!=='cli'||getenv('SEARCH_TEST_MODE')!=='1'||!in_array(getenv('TEST_BA
 $root=dirname(__DIR__);$apache=getenv('TEST_UPDATE_APACHE')==='1';$fpm=getenv('TEST_UPDATE_FPM')==='1';$externalWeb=$apache||$fpm;
 $maintenance=getenv('TEST_UPDATE_MAINTENANCE')==='1';
 $migrationFailure=getenv('TEST_UPDATE_MIGRATION_FAILURE')==='1';
+$multipleMasters=getenv('TEST_UPDATE_MULTIPLE_MASTERS')==='1';
+if($multipleMasters&&!$fpm)throw new RuntimeException('Multiple master check requires FPM');
 if($migrationFailure&&!$maintenance)throw new RuntimeException('Failure check requires maintenance');
 if(($apache&&$fpm)||($externalWeb&&(!is_file($root.'/storage/web-cache-test-only')||file_exists($root.'/config/config.php'))))throw new RuntimeException('Disposable web deployment required');
 $directory=$externalWeb?($fpm?'/tmp/update-request-fpm-fixture':'/tmp/update-request-apache-fixture'):sys_get_temp_dir().'/update-request-http-'.bin2hex(random_bytes(8));if(file_exists($directory)||is_link($directory)||!mkdir($directory,0700))throw new RuntimeException('Fresh fixture required');$pdo=null;$owned=false;$server=null;$count=0;$cookies=[];$csrf=null;
 $check=static function(bool $ok,string $name)use(&$count){if(!$ok)throw new RuntimeException($name);++$count;echo "PASS: $name\n";};
 $remove=function($path)use(&$remove){if(is_dir($path)&&!is_link($path)){foreach(scandir($path) as $name)if($name!=='.'&&$name!=='..')$remove($path.'/'.$name);rmdir($path);}else unlink($path);};
+$instrument=static function(string $deployment)use($multipleMasters):void{
+ if(!$multipleMasters)return;
+ $path=$deployment.'/public/index.php';$source=file_get_contents($path);$declaration='declare(strict_types=1);';
+ if(substr_count($source,$declaration)!==1)throw new RuntimeException('Disposable index shape changed');
+ file_put_contents($path,str_replace($declaration,$declaration.' header("X-Isolated-Fpm-Child: ".getmypid()); header("X-Isolated-Fpm-Master: ".posix_getppid());',$source));
+};
 try{
  $settings=require $root.'/config/config.example.php';$settings['installed']=true;$settings['database']=['host'=>getenv('TEST_BACKUP_HOST'),'port'=>3306,'name'=>'update_backup','user'=>'backup','password'=>getenv('TEST_BACKUP_PASSWORD')];$settings['session']=['name'=>'http_update_'.bin2hex(random_bytes(6)),'secure'=>false];$settings['updates']=['repository'=>'owner/repo','token'=>''];
  $until=time()+60;do{try{$pdo=Database::connect($settings['database']);break;}catch(PDOException){if(time()>=$until)throw new RuntimeException('Dedicated DB unavailable');usleep(200000);}}while(true);
  $check($pdo->query('SHOW TABLES')->fetchAll()===[],'HTTP update uses dedicated empty schema');$owned=true;
  $builder=new ReleasePackageBuilder();$builder->build($root,$directory.'/base.tar');$initial=trim(file_get_contents($root.'/VERSION'));$live=$directory.'/live';(new UpdatePackage())->verify($directory.'/base.tar',$live,$initial,true);mkdir($live.'/storage',0700);
+ $instrument($live);
  if($externalWeb)$address='127.0.0.1:80';else{$socket=stream_socket_server('tcp://127.0.0.1:0');if($socket===false)throw new RuntimeException('Test port unavailable');$address=stream_socket_get_name($socket,false);fclose($socket);}$settings['site']['url']='http://'.$address;
  file_put_contents($live.'/config/config.php','<?php return '.var_export($settings,true).';');chmod($live.'/config/config.php',0600);$configHash=hash_file('sha256',$live.'/config/config.php');(new Migrator($pdo,$live.'/database/migrations'))->migrate();
  $auth=new App\Repositories\AuthRepository($pdo);$user=$auth->upsertIdentity(['id'=>'999999999999999981','username'=>'Generated update admin','display_name'=>null,'avatar'=>null],'en');$pdo->prepare('INSERT INTO administrators(user_id,created_at,updated_at) VALUES (?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([$user]);
  $device=bin2hex(random_bytes(16));$token=bin2hex(random_bytes(32));$auth->createDevice($user,$device,hash('sha256',$token),App\Auth\DeviceAgent::parse('Windows Chrome/120'),time());$cookies['search_remember']=$device.'.'.$token;
  if(!$externalWeb){$server=proc_open([PHP_BINARY,'-d','display_errors=0','-d','log_errors=0','-S',$address,'-t',$live.'/public',$live.'/public/index.php'],[0=>['pipe','r'],1=>['file',$directory.'/server.out','a'],2=>['file',$directory.'/server.err','a']],$pipes,$live);if(!is_resource($server))throw new RuntimeException('HTTP test server unavailable');fclose($pipes[0]);}
  $until=time()+10;do{$ready=@fsockopen('127.0.0.1',(int)substr(strrchr($address,':'),1),$errorCode,$errorMessage,0.1);if($ready){fclose($ready);break;}if(time()>=$until)throw new RuntimeException('HTTP test server not ready');usleep(50000);}while(true);
- $http=static function(string $path,string $method='GET',?array $body=null,string $locale='en',bool $authenticated=true)use($address,&$cookies,&$csrf):array{
+ $http=static function(string $path,string $method='GET',?array $body=null,string $locale='en',bool $authenticated=true,?string $target=null)use($address,&$cookies,&$csrf):array{
   $headers=['Accept-Language: '.$locale,'Cookie: '.($authenticated?implode('; ',array_map(static fn($key,$value)=>$key.'='.$value,array_keys($cookies),$cookies)):'')];if($body!==null)$headers[]='Content-Type: application/json';if($authenticated&&$csrf!==null)$headers[]='X-CSRF-Token: '.$csrf;
   $options=['method'=>$method,'header'=>implode("\r\n",$headers),'ignore_errors'=>true,'follow_location'=>0,'timeout'=>60];if($body!==null)$options['content']=json_encode($body,JSON_THROW_ON_ERROR);
-  $response=file_get_contents('http://'.$address.$path,false,stream_context_create(['http'=>$options]));if($response===false||!preg_match('/^HTTP\/\S+\s+(\d{3})(?:\s|$)/',$http_response_header[0]??'',$status))throw new RuntimeException('HTTP response unavailable');foreach($http_response_header as $header)if($authenticated&&preg_match('/^Set-Cookie: ([^=]+)=([^;]*)/i',$header,$match))$cookies[$match[1]]=$match[2];return [(int)$status[1],$response];
+  $response=file_get_contents('http://'.($target??$address).$path,false,stream_context_create(['http'=>$options]));if($response===false||!preg_match('/^HTTP\/\S+\s+(\d{3})(?:\s|$)/',$http_response_header[0]??'',$status))throw new RuntimeException('HTTP response unavailable');foreach($http_response_header as $header)if($authenticated&&preg_match('/^Set-Cookie: ([^=]+)=([^;]*)/i',$header,$match))$cookies[$match[1]]=$match[2];return [(int)$status[1],$response,$http_response_header];
+ };
+ $baselineMasters=[];$baselineChildren=[];
+ $proveMasters=static function(string $version,bool $newTemplate)use($multipleMasters,$http,$check,&$baselineMasters,&$baselineChildren):void{
+  if(!$multipleMasters)return;$seenMasters=[];
+  foreach(['127.0.0.1:80','127.0.0.1:81'] as $target){
+   $children=[];$masters=[];
+   for($sample=0;$sample<16;$sample++){
+    // Three sequential requests avoid pinning the HTML observations to one static child.
+    [$runtimeStatus,$runtimeBody]=$http('/_test/runtime',target:$target);$runtime=json_decode($runtimeBody,true,flags:JSON_THROW_ON_ERROR);
+    if($runtimeStatus!==200||$runtime['sapi']!=='fpm-fcgi'||$runtime['timestamps']!=='0'||$runtime['opcache']!=='1')throw new RuntimeException('Independent runtime proof failed');
+    [$status,$html,$headers]=$http('/admin/update',target:$target);
+    if($status!==200||str_contains($html,'generated-update-code-v2')!==$newTemplate||str_contains($html,'Stack trace')||str_contains($html,'Warning:'))throw new RuntimeException('Master serves wrong PHP generation');
+    $child=$master=null;foreach($headers as $header){if(preg_match('/^X-Isolated-Fpm-Child: ([0-9]+)$/i',$header,$match))$child=(int)$match[1];if(preg_match('/^X-Isolated-Fpm-Master: ([0-9]+)$/i',$header,$match))$master=(int)$match[1];}
+    if(!$child||!$master)throw new RuntimeException('Isolated FPM process proof unavailable');$children[$child]=true;$masters[$master]=true;
+    [$status,$body]=$http('/api/admin/update',target:$target);$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR);
+    if($status!==200||$data['data']['current_version']!==$version)throw new RuntimeException('Master serves wrong version');
+   }
+   $check(count($children)===2&&count($masters)===1,'both children serve expected template and version '.$version.' on '.$target);
+   $seenMasters[]=array_key_first($masters);$currentChildren=array_keys($children);sort($currentChildren);
+   if(!isset($baselineMasters[$target])){$baselineMasters[$target]=array_key_first($masters);$baselineChildren[$target]=$currentChildren;}
+   else $check($baselineMasters[$target]===array_key_first($masters)&&$baselineChildren[$target]===$currentChildren,'same warmed master and children survive generation change on '.$target);
+  }
+  $check(count(array_unique($seenMasters))===2,'two independent FPM masters handle real application requests');
  };
  if($fpm){[$status,$body]=$http('/_test/runtime');$runtime=json_decode($body,true,flags:JSON_THROW_ON_ERROR);$check($status===200&&$runtime['sapi']==='fpm-fcgi'&&version_compare($runtime['version'],'8.3.0','>=')&&$runtime['opcache']==='1'&&$runtime['timestamps']==='0','actual HTTP proxy uses PHP FPM with timestamp checks disabled');}
  [, $body]=$http('/api/csrf');$csrf=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data']['csrf_token'];
+ $proveMasters($initial,false);
  if($maintenance){
   [$status,$body]=$http('/api/admin/maintenance');$maintenanceInitial=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];
   $check($status===200&&$maintenanceInitial['enabled']===false,'isolated maintenance begins disabled');
@@ -49,6 +82,7 @@ try{
  [$status]=$http('/api/admin/update/apply','POST',$input);$check($status===409&&count($history->listing())===1,'repeated stale HTTP submit creates no duplicate request');
  foreach(['en'=>'Queued','ja'=>'受付済み'] as $locale=>$label){[$status,$html]=$http('/admin/update',locale:$locale);$check($status===200&&str_contains($html,$label),'queued status displayed '.$locale);}
  $candidate=$directory.'/candidate';(new UpdatePackage())->verify($directory.'/base.tar',$candidate,$initial,true);file_put_contents($candidate.'/VERSION','2.0.0');file_put_contents($candidate.'/app/Views/admin-update.php',"\n<!-- generated-update-code-v2 -->\n",FILE_APPEND);
+ $instrument($candidate);
  if($migrationFailure){
   $favoriteId='00000000-0000-4000-8000-000000000019';
   $pdo->prepare('INSERT INTO favorites(id,user_id,client_id,name,url,created_at,updated_at) VALUES(?,?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([$favoriteId,$user,$favoriteId,'Before failed update','https://example.test/keep']);
@@ -98,6 +132,7 @@ try{
  $state=$commands->status();$check($state['request']['status']==='complete'&&$engine->status()['job']['request_id']===$requestId,'audited HTTP request reaches real update engine after response');
  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$check($status===200&&$data['current_version']==='2.0.0'&&$data['execution']['request']['status']==='complete','fresh HTTP serves updated version and completed outcome');
  [$status,$html]=$http('/admin/update');$check($status===200&&str_contains($html,'generated-update-code-v2'),'HTTP renders changed PHP template after actual Engine replacement');
+ $proveMasters('2.0.0',true);
  $check($data['execution']['rollback']===['from_version'=>'2.0.0','to_version'=>$initial],'HTTP exposes actual retained rollback generation');
  if($maintenance){
   $maintenanceRepository=new App\Repositories\AdminSettingsRepository($pdo,new App\Services\MaintenanceState($live.'/storage/runtime'));
@@ -114,6 +149,7 @@ try{
  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$check($status===200&&$data['execution']['request']['status']==='rolled_back'&&$data['execution']['rollback']===null&&count($data['history'])===2,'HTTP resumes with both outcomes and consumed generation');
  $check(hash_file('sha256',$live.'/config/config.php')===$configHash,'HTTP apply and rollback preserve private configuration');
  [$status,$html]=$http('/admin/update');$check($status===200&&!str_contains($html,'generated-update-code-v2'),'HTTP renders restored PHP template after actual rollback');
+ $proveMasters($initial,false);
  if($maintenance){
   [$status]=$http('/',authenticated:false);$currentMaintenance=$maintenanceRepository->maintenance();
   $check($status===200&&$currentMaintenance===['enabled'=>false,'version'=>$maintenanceDisabled['version']]&&!(new App\Services\MaintenanceState($live.'/storage/runtime'))->active()&&(int)$pdo->query("SELECT COUNT(*) FROM log_entries WHERE error_code='MAINTENANCE_CHANGED'")->fetchColumn()===2,'rollback preserves later reopening version signal and both maintenance audits');

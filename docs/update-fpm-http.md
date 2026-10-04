@@ -40,3 +40,15 @@ docker build -t search-update-fpm-engine:20261004 tests/fixtures/update-fpm
 受け付けたrequestのrolled_back/UPDATE_MIGRATION_FAILED、旧版と旧PHP画面、DB履歴1件、日英匿名home503、停止enabled/version/signal保持を確認。生成DDLがなくMigration件数17、事前お気に入りとsync version9/document保持、config hashと生成upload bytes保持、分類失敗ログ1件、候補Migrationとincoming除去を確認。ユーザーデータ保持の範囲は更新開始前のデータで、更新中に別端末が書き込む経路はこの試験に含まない。
 
 新PHP構文/PowerShell parser/git diff --check成功。harness finallyで専用app/tmpfs確認済みDBを清掃し、専用prefix一覧空。通常8099/8100/DB/権限/config/workerは非変更。製品コード/schema/API/UI変更なし。実GitHub配布物、実OAuth、browser、systemd manager運用、任意の失敗原因全般は未確認。
+
+## 独立2 masterでの実DB更新・復元
+
+`./tests/run-update-fpm.ps1 -MultipleMasters` は、同じ使い捨てlive配置と専用DBを共有する独立FPM masterを2つ起動する。各masterにstatic child2つ、OPcache有効/timestamps0。専用Nginxのloopback80/81から各masterへ固定接続し、通常の管理画面/APIを更新前・更新後・復元後にそれぞれ16回観測する。
+
+子PIDと親PIDを応答ヘッダーへ付けるのは、試験中の使い捨てindexだけ。製品public入口やreleaseソースには追加しない。各masterの両子が実際に新旧テンプレートを返し、同じmaster/子PIDのまま更新と復元を通ることを確認する。APIの版番号も各要求で確認する。HTML/APIだけを交互に送るとHTMLが一方のstatic childに偏るため、runtime読取りを加えた3要求単位で観測する。
+
+取得候補/archiveはfixture、Engine/worker/ファイル置換/Migration/DB履歴/config保護/HTTP認証・CSRF/復元は既存の実処理。DBはtmpfs512MiB/host portなし、アプリもhost portなし。通常環境のconfigやユーザーをコピーしない。新しいsecond-master.confとupdate-fpm-multiple-setup.phpは専用配置限定であり、本番Nginx設定を変更しない。
+
+2026-10-04: 53824 exit0、専用MySQL8/MariaDB10.11で複数master FPM HTTP37/基盤40各3回成功、各DBの最終PHP HTTP server mode23も成功。各masterの両子で新旧PHP/template/版を確認し、更新前後/復元後の親・子PIDが一致。実受付/worker/Engine/Migration/DB履歴/config hash保持/stop drainも確認。新PHP構文/PowerShell parser/diff確認済み、専用app6/tmpfs配置確認DB2を清掃しprefix空。
+
+初回96282 exit1はHTML/API交互の要求でHTML観測が一方のchildに偏る検証側誤り。runtimeを加えた3要求単位へ修正後に全3回をやり直した。CLI試験の例外診断をWebへの露出と混同せず、初回失敗を成功としない。今回の証拠はPHP8.3/Nginxの限定構成、実GitHub配布物/実OAuth/全browser/systemd manager/長時間運用/任意失敗経路は未確認。従来の独立master未確認記録に対して実DB更新・手動復元の範囲を追加する。

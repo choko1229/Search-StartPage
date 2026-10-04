@@ -1,4 +1,21 @@
 # 実装と検証の記録
+## 最新の再開地点（2026-10-04・Phase10 独立2 FPM masterの実DB更新）
+
+前ターン36faea4はMariaDB実UI。今回はPhase10残件の独立複数masterで実DB更新/復元を確認。Phase10進行中、Phase11〜12未着手、Version1.0未完成。
+
+Files: tests/run-update-fpm.ps1 -MultipleMasters / tests/update-requests-http.php / tests/update-fpm-multiple-setup.php / tests/fixtures/update-fpm/second-master.conf / docs/update-fpm-http.md。2独立master各static child2/OPcache timestamps0、同一使い捨てlive/DB。専用indexだけにPID観測headerを配置し、製品入口/配布ソースは非変更。DB/schema/API/UI製品変更なし。
+
+検証1〜3: 53824 exit0、専用MySQL8/MariaDB10.11でFPM HTTP37/基盤40各3回成功。各DB最終PHP HTTP server mode23も成功。実認証/CSRF/受付→worker別子/Engine→DB Migration/履歴→新PHP/版→製品runner復元/旧PHP、config hash保持、stop drain。各master両子を更新前/後/復元後16回観測し、親/子PID一致で再起動なしの反映確認。新PHP構文/PowerShell parser/diff成功。
+
+Issues: 初回96282 exit1はHTML/API交互の偶数要求によりHTML観測が一方のstatic childに偏る検証側誤り。runtimeを加え3要求単位へ修正後に全3回やり直した。初回失敗を成功扱いにしない。取得候補/archiveだけfixtureで、実GitHub/OAuth/browser/任意故障/サービスmanagerの証明ではない。
+
+清掃/Security: finallyで専用app6と配置一致確認tmpfs DB2を除去し、search-fpm-engine-/search-update-backup-一覧空。生成password/admin/device/config非保存、通常8099/8100/DB/権限/config/worker非変更、Secret/spec非保存、push/公開/再起動なし。前ターンreadiness未設定の記録は設定完了を意味せず、今回実Tokenは扱っていない。
+
+次に実行すること:
+1. docs/phase10-gate.mdとdocs/update-execution-service.mdの実サービスenable/boot/異常終了再起動/manager stop/長時間運用の不足を、安全な隔離環境で確認する。静的診断を実manager動作の証明にしない。
+2. ユーザーのbin/configure-updates.ps1設定後、秘密を出さないreadiness→非公開GitHub実release/asset取得。実配布物/Actions通し検証は未確認、公開/pushは自動実行しない。
+3. Phase10完了条件合格後だけPhase11へ。Glass最終調整/全browser/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・Phase10 MariaDB実管理UI）
 
 Phase10進行中、Phase11〜12未着手、Version1.0未完成。専用MariaDB実UIで更新2.0.0→復元0.1.0-devを確認。候補/archive取得だけfixtureで、実GitHub/Discordの証明ではない。
