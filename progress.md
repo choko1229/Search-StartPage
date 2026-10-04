@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 実systemd VM検証中）
+
+前ターン5f0a1aeは複数FPM実DB更新の証拠。今回はtests/run-update-systemd-vm.ps1 / tests/update-systemd-manager.php / tests/fixtures/update-systemd-vmを追加。ホスト登録なし/network none/cap-drop ALL/no-new-privileges/no host mount/no ports、内側QEMU TCG VMもNICなし。公式Ubuntu24.04 image/kernel/initrdをHTTPS+公式SHA256SUMS照合、公開PHP8.3/worker/unit/生成fixtureだけをseedへコピー。実config/DB/Tokenなし。
+
+現在: 実行session55011は生存確認済み、専用search-systemd-vm-1-20261004内でQEMU実起動中。manager起動/stop/restart/二度目bootの試験を3round予定、成功はまだ未確認。前の63363 exit1はネットワークなしVMのwait-online待機を確認し、生成QEMUだけ意図的停止後finally清掃。通信待機をkernelのsystemd.maskで無効化し再試行。88735はfirst boot9項目成功後の再起動観測が遅く意図的停止（exit1/finally清掃）。停止直前に次のkernel起動ログも出たため、再起動失敗の因果を断定しない。現在55011では-no-rebootでVM終了後、同じdiskの冷起動を別QEMUで行う方式へ変更し全3round再試行。予防的にPHP専用library検索をtransitive RPATHへ固定。Windows再起動/通常環境変更はしていない。
+
+Files/DB/API/UI: 製品/schema/API/UI非変更。PHP構文/PowerShell parser/diff確認済み。Docker build/hash照合成功だけをサービス成功としない。画像は不要なCLI/OS運用検証。docs/update-execution-service.mdは新手順と公式source参照を追記、実成功記録は未追記。
+
+次に実行すること:
+1. session55011をwrite_stdinで継続確認。timeoutだけで停止と推測せず、同じhandleと専用container/QEMU状態を確認。既存の稼働を無断重複起動しない。VM consoleは/tmp/search-systemd-vm-console.log、生成情報のみ。
+2. first/second boot両markerと各3round、manager正常停止/失敗再起動/boot起動を確認し、失敗はその原因を修正して全3回再試行。終了時finally清掃と専用prefix空を確認して実結果を記録/commit。
+3. 実GitHub Token/配布物/Actionsと長時間運用/ExecStop故障は未確認。Phase10合格前にPhase11へ進まない、全DoD/Glass/全browser未達。Secret/spec非保存、push/公開/Windows再起動なし。
+
 ## 最新の再開地点（2026-10-04・Phase10 独立2 FPM masterの実DB更新）
 
 前ターン36faea4はMariaDB実UI。今回はPhase10残件の独立複数masterで実DB更新/復元を確認。Phase10進行中、Phase11〜12未着手、Version1.0未完成。

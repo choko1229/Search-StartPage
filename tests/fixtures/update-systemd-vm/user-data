@@ -1,0 +1,8 @@
+#cloud-config
+users: []
+ssh_pwauth: false
+disable_root: true
+runcmd:
+  - [mkdir, -p, /mnt/isolated-seed]
+  - [mount, -o, ro, /dev/sr0, /mnt/isolated-seed]
+  - [bash, /mnt/isolated-seed/bootstrap.sh]

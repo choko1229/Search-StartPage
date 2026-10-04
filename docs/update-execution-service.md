@@ -17,3 +17,17 @@
 このharnessはnetwork none、公開port/DB/host mountなし、全capability除去、no-new-privilegesで動き、finallyで専用コンテナを除去する。コピーするのは公開unitとworker/試験だけ。PID1はsleepでありsystemd managerを起動せず、ホストへunitを登録しない。imageには検査ツールを残す。PHPの配布例パスを合わせるsymlinkはimage内だけに作る。
 
 未確認: サービスの実enable/OS boot/異常終了後のmanager再起動、manager経由の停止（ExecStop失敗を含む）、長時間運用。静的なWantedBy/Restart/TimeoutStopSecの検査をこれらの動作証明にしない。Linuxの隔離VMなどで、通常停止・処理中停止・異常終了・再起動後のsingleton/履歴回復を確認してから運用ゲートを閉じる。
+
+## 隔離VMによる実manager検証
+
+`tests/run-update-systemd-vm.ps1` はQEMUのソフトウェアエミュレーションを使う。外側のDockerはnetwork none、capability全除去、no-new-privileges、host mount/公開portなし。内側のVMもネットワークカードなし、共有フォルダなし。ホストのsystemdやWindowsサービスへ登録せず、VM内だけで出荷unitを配置する。Windows再起動は行わない。
+
+Ubuntu24.04の公式cloud imageをHTTPS取得し、同じ公式配布元のSHA256SUMSと照合する。検証用PHP8.3の実行ファイルと依存libraryは専用imageからVMへコピーし、製品依存へ追加しない。NoCloud seedには公開worker/unitと生成試験だけを入れる。実config/DB/Tokenは使用しない。
+
+実PID1がsystemdであることを必須にし、enable/start、実ExecStopによる子の完了待ち、停止後のsingleton清掃、待機中workerの強制異常終了後のRestart=on-failure、正常停止後の非再起動、journalへの子出力非露出を確認する。その後VM自体を再起動し、enabled unitの自動起動と停止を確認してpoweroffする。試験の子処理は生成fixtureであり、実Engine更新中の停止の証拠は別の両DB HTTP試験を参照する。長時間運用や任意障害の証明へ広げない。
+
+各roundは新しいqcow2差分diskとseed ISOを使い、終了時にコンテナとともに除去する。完了markerをfirst bootとsecond bootの両方で確認し、QEMUの終了コードだけを合格としない。ベースimageは検証専用Docker imageに残る。
+
+再現性のため、guestのreboot要求でQEMUを終了させ、同じ永続diskを別のQEMUプロセスで冷起動する。ネットワークなしVMのwait-onlineだけをkernel起動引数でmaskし、製品unitは変更しない。初回63363は通信待ちの設定修正で途中停止。88735ではfirst boot9項目が成功したが、再起動の観測が遅く途中停止した。停止直前に次kernel起動も出たため再起動失敗とは断定しない。現在55011で冷起動方式の全3roundを実行中、合格・清掃はまだ未確認。
+
+参考: [Ubuntu公式cloud images](https://cloud-images.ubuntu.com/noble/current/)、[cloud-init NoCloud](https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html)。この段落は検証手順の説明で、実行成功記録は別途追記する。
