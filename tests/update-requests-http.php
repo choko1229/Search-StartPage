@@ -36,13 +36,22 @@ try{
  foreach(['en'=>'Queued','ja'=>'受付済み'] as $locale=>$label){[$status,$html]=$http('/admin/update',locale:$locale);$check($status===200&&str_contains($html,$label),'queued status displayed '.$locale);}
  $candidate=$directory.'/candidate';(new UpdatePackage())->verify($directory.'/base.tar',$candidate,$initial,true);file_put_contents($candidate.'/VERSION','2.0.0');$builder->build($candidate,$directory.'/candidate.tar');
  $admin=new App\Repositories\AdminRepository($pdo);$commands=new UpdateCommands($live.'/storage/updates/commands',fn($id)=>$admin->isAdministrator($id),fn($request,$event)=>$history->record($request,$event),fn($request)=>$history->matches($request));$engine=new UpdateEngine($live);
- $prepare=static function($request,$archive,$stage)use($directory){copy($directory.'/candidate.tar',$archive);return (new UpdatePackage())->verify($archive,$stage,$request['to_version'],true);};$runner=new UpdateRunner($live,$commands,$engine,$prepare);
- // The HTTP response is complete; a separate execution flow can acquire the gate.
- $state=$runner->run();$check($state['request']['status']==='complete'&&$engine->status()['job']['request_id']===$requestId,'audited HTTP request reaches real update engine after response');
+ // Replace only the acquisition callback in the disposable runner entry, never the live project.
+ $entry=file_get_contents($live.'/bin/run-update.php');$start=strpos($entry,'$prepare=static');$end=strpos($entry,'$state=(new',$start);if($start===false||$end===false)throw new RuntimeException('Fixture entry shape changed');
+ $fixture='$prepare=static function(array $request,string $archive,string $stage):array{copy('.var_export($directory.'/candidate.tar',true).',$archive);return (new App\\Services\\UpdatePackage())->verify($archive,$stage,$request["to_version"],true);};';
+ file_put_contents($live.'/bin/run-update.php',substr($entry,0,$start).$fixture.substr($entry,$end));
+ $scheduled=static function()use($live):array{
+  $process=proc_open([PHP_BINARY,$live.'/bin/update-execution-worker.php','--cycles=1'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$live);if(!is_resource($process))throw new RuntimeException('Scheduler unavailable');fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);return [$exit,json_decode(trim($out),true,flags:JSON_THROW_ON_ERROR),$err];
+ };
+ // The HTTP response is complete; the scheduler creates a fresh child for the actual Engine.
+ [$exit,$result,$err]=$scheduled();$check($exit===0&&$result['status']==='finished'&&$err==='','scheduler runs accepted HTTP update in separate PHP child');
+ $state=$commands->status();$check($state['request']['status']==='complete'&&$engine->status()['job']['request_id']===$requestId,'audited HTTP request reaches real update engine after response');
  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$check($status===200&&$data['current_version']==='2.0.0'&&$data['execution']['request']['status']==='complete','fresh HTTP serves updated version and completed outcome');
  $check($data['execution']['rollback']===['from_version'=>'2.0.0','to_version'=>$initial],'HTTP exposes actual retained rollback generation');
  $input=['command_revision'=>$data['execution']['command_revision'],'check_revision'=>$data['revision'],'engine_revision'=>$data['execution']['engine_revision']];[$status,$body]=$http('/api/admin/rollback','POST',$input);$accepted=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$rollbackId=$accepted['execution']['request']['id'];$check($status===202&&$rollbackId!==$requestId&&$accepted['execution']['request']['operation']==='rollback','specified rollback API accepts a distinct request');
- $state=$runner->run();$check($state['request']['status']==='rolled_back'&&trim(file_get_contents($live.'/VERSION'))===$initial,'HTTP rollback request restores real previous application');
+ $check(file_get_contents($live.'/bin/run-update.php')===$entry,'update replaces fixture acquisition with production runner entry');
+ [$exit,$result,$err]=$scheduled();$check($exit===0&&$result['status']==='finished'&&$err==='','scheduler invokes updated production entry for real rollback');
+ $state=$commands->status();$check($state['request']['status']==='rolled_back'&&trim(file_get_contents($live.'/VERSION'))===$initial,'HTTP rollback request restores real previous application');
  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$check($status===200&&$data['execution']['request']['status']==='rolled_back'&&$data['execution']['rollback']===null&&count($data['history'])===2,'HTTP resumes with both outcomes and consumed generation');
  $check(hash_file('sha256',$live.'/config/config.php')===$configHash,'HTTP apply and rollback preserve private configuration');
  echo "$count isolated HTTP update request checks passed.\n";

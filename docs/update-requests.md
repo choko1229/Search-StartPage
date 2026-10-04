@@ -1,5 +1,7 @@
 # 更新・復元の管理受付
 
+2026-10-04追記: 定期workerの別PHP子を使う実HTTP受付→適用→更新後HTTP→手動復元→復元後HTTPを専用tmpfsの両DBで各20項目確認した。applyの取得callbackだけfixture、rollbackは更新された本来のrun-update.phpを実行する。候補互換性はworkerの必須化と二重起動拒否を追加して11probe/17試験、asset94成功。最新配布物は229files/3474944bytes/PHP159構文成功。以下の17項目/15項目/228filesは前回の検証記録。サービス自動起動・長時間常駐・Apache/FPM OPcache・ブラウザ操作は引き続き未確認。
+
 管理画面/APIの受付はUpdateRequestsを通す。リリース、repository、要求者、復元世代をリクエスト本文から採用しない。現在の認証ユーザーとサーバーに保存した更新候補・Journalから決定する。
 
 ## HTTP契約

@@ -10,7 +10,7 @@ $remove=function($path)use(&$remove){if(is_dir($path)&&!is_link($path)){foreach(
 try{
     $before=hash_file('sha256',$root.'/config/config.php');(new ReleasePackageBuilder())->build($root,$directory.'/release.tar');$version=trim(file_get_contents($root.'/VERSION'));
     $manifest=(new UpdatePackage())->verify($directory.'/release.tar',$directory.'/stage',$version,true);$validator=new UpdateCompatibility();$stage=$directory.'/stage';
-    $check($validator->validate($stage,$manifest)===10,'real candidate HTTP worker descriptor and journal binding checks');
+    $check($validator->validate($stage,$manifest)===11,'real candidate HTTP worker descriptor scheduler and journal binding checks');
     $check(!file_exists($stage.'/config/config.php')&&!file_exists($stage.'/storage'),'probe configuration and storage removed');
     foreach($manifest['files'] as $path=>$meta)if(hash_file('sha256',$stage.'/'.$path)!==$meta['sha256'])throw new RuntimeException('Candidate changed');$check(true,'all managed candidate hashes unchanged');
     $check(hash_file('sha256',$root.'/config/config.php')===$before,'real application configuration untouched');
@@ -26,6 +26,10 @@ try{
     try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate cannot remove next worker entry');}file_put_contents($runnerPath,$runnerSource);
     $checksPath=$stage.'/app/Services/UpdateChecks.php';$checksSource=file_get_contents($checksPath);$legacyChecks='<?php namespace App\Services; final class UpdateChecks {}';file_put_contents($checksPath,$legacyChecks);$bad=$manifest;$bad['files']['app/Services/UpdateChecks.php']=['bytes'=>strlen($legacyChecks),'sha256'=>hash('sha256',$legacyChecks)];
     try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate without server selection locking refused');}file_put_contents($checksPath,$checksSource);
-    $check($validator->validate($stage,$manifest)===10,'clean candidate reusable after rejected probes');
+    $schedulerPath=$stage.'/bin/update-execution-worker.php';$schedulerSource=file_get_contents($schedulerPath);unlink($schedulerPath);$bad=$manifest;unset($bad['files']['bin/update-execution-worker.php']);
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate cannot remove execution scheduler');}file_put_contents($schedulerPath,$schedulerSource);
+    $body='<?php echo "unsafe";';file_put_contents($schedulerPath,$body);$bad=$manifest;$bad['files']['bin/update-execution-worker.php']=['bytes'=>strlen($body),'sha256'=>hash('sha256',$body)];
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate scheduler without singleton refusal rejected');}file_put_contents($schedulerPath,$schedulerSource);
+    $check($validator->validate($stage,$manifest)===11,'clean candidate reusable after rejected probes');
     echo "$count candidate compatibility checks passed.\n";
 }finally{$remove($directory);}

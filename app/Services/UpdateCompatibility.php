@@ -16,7 +16,7 @@ final class UpdateCompatibility
     public function validate(string $stage,array $manifest): int
     {
         (new UpdateStage())->validate($stage,$manifest);$stage=realpath($stage);
-        foreach(['app/Services/UpdateAccess.php','app/Services/UpdateJournal.php','app/Services/UpdateChecks.php','app/Services/UpdateCommands.php','app/Services/UpdateRunner.php','app/Services/UpdateDatabaseMerge.php','app/Services/UpdateRequests.php','app/Repositories/UpdateHistoryRepository.php','bin/run-update.php','bin/update-task.php','bin/log-maintenance.php','bin/update-check-worker.php'] as $path)if(!isset($manifest['files'][$path]))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
+        foreach(['app/Services/UpdateAccess.php','app/Services/UpdateJournal.php','app/Services/UpdateChecks.php','app/Services/UpdateCommands.php','app/Services/UpdateRunner.php','app/Services/UpdateDatabaseMerge.php','app/Services/UpdateRequests.php','app/Repositories/UpdateHistoryRepository.php','bin/run-update.php','bin/update-execution-worker.php','bin/update-task.php','bin/log-maintenance.php','bin/update-check-worker.php'] as $path)if(!isset($manifest['files'][$path]))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
         $storage=$stage.'/storage';$config=$stage.'/config/config.php';
         if(file_exists($storage)||is_link($storage)||file_exists($config)||is_link($config))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
         if(!mkdir($storage,0700))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
@@ -42,6 +42,11 @@ final class UpdateCompatibility
                 try{$result=json_decode(trim($process->script($wrapper,[],10)),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');}
                 if(($result['status']??null)!=='paused'||is_file($marker)||is_dir($storage.'/logs')||is_dir($storage.'/log-pending'))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');++$count;
             }
+            // Probe the scheduler under a held singleton lock: it must never reach config or Engine.
+            $source='<?php putenv("SEARCH_TEST_MODE=1");$lock=fopen('.var_export($storage.'/update-execution-worker.lock',true).',"c");flock($lock,LOCK_EX);$process=proc_open([PHP_BINARY,'.var_export($stage.'/bin/update-execution-worker.php',true).',"--cycles=1"],[0=>["pipe","r"],1=>["pipe","w"],2=>["pipe","w"]],$pipes,null,null,["bypass_shell"=>true]);fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);echo json_encode(["exit"=>$exit,"out"=>$out,"err"=>$err]);';
+            if(file_put_contents($wrapper,$source)!==strlen($source)||!chmod($wrapper,0600))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
+            try{$result=json_decode($process->script($wrapper,[],10),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');}
+            if($result!==['exit'=>1,'out'=>'','err'=>"Update execution worker unavailable.\n"]||is_file($marker))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');++$count;
             // Actual candidate gate must implement the inherited descriptor protocol as well.
             $source='<?php require '.var_export($stage.'/app/Services/UpdateAccess.php',true).';unlink('.var_export($storage.'/updates/access/pending',true).');$gate=new App\\Services\\UpdateAccess('.var_export($storage.'/updates/access',true).');$gate->exclusive(function()use($gate){echo json_encode(["protocol"=>App\\Services\\UpdateAccess::PROTOCOL,"descriptors"=>array_keys($gate->childDescriptors()),"stopped"=>$gate->enter()===null]);});';
             if(file_put_contents($wrapper,$source)!==strlen($source)||!chmod($wrapper,0600))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');

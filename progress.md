@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・定期workerの実更新接続）
+
+前のGoalターンは81bd9c0の定期worker実装・12試験3回・記録による進捗。今回は候補互換性と実HTTP受付後の別子Engineへ接続した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateCompatibilityがbin/update-execution-worker.phpを必須化し、候補のsingleton lockを保持して別processが固定エラーで拒否しconfig/Engineへ進まないことを検査。11probe。候補のworker欠落/lock無視を拒否する試験を追加、最小asset fixtureにもworkerを追加。HTTP試験を親の直接Runner呼出しから実worker→別PHP子へ変更。applyは使い捨てrun-update.phpの取得callbackだけfixture、更新後は配布物の本来の入口へ戻り、rollbackは本来の入口から実行。
+
+検証1: MySQL8の専用tmpfs/no host port DB・使い捨てcloneで互換性17/asset94/実HTTP20成功。HTTP202/実監査→scheduler child→実file/DB/Migration/health→HTTP新version→別復元要求→更新された本来の入口から実復元→HTTP/両履歴/config保持。
+検証2: MariaDB10.11の別専用DB/cloneで同じ17/94/20成功。session20028の終了exit0確認、finally clone/processを除去しexact2 DBのtmpfs rw,size=512mを確認して削除。通常app/config/DB/worker/権限は保持。実GitHub取得/OAuth/Apache/FPMを証明しない。
+検証3: 別/tmp cloneの両環境でworker12/受付24/stage-process29/package64成功、実配布物229files/3474944bytes/PHP159構文/hash/config不変/private除外/worker包含成功。session10348終了exit0、両clone除去。新Migrationなし。JS/UI変更なし。git diff --check成功、spec.md非変更。
+
+次に実行すること:
+1. 同じ書込み可能なlive配置を共有するサービス起動設定を作る。定期workerのcycles=1を別processとして実行した検証を、自動起動や長時間常駐成功に拡張しない。
+2. 隔離Apache/FPMでOPcacheを有効化し、新PHP内容が変わる実HTTP更新/停止/復帰/復元を検証する。通常readonly配置の権限は変えない。
+3. 管理実行ボタン/状態再確認の日英/mobile/Console、Phase9旧ゲート残件を閉じる。Phase11〜12、実OAuth/GitHub/Glass仕上げ/全DoDは未達。
+
 ## 最新の再開地点（2026-10-04・定期実行worker）
 
 前のGoalターンは管理HTTP受付のローカル保存b57efccによる進捗。今回はbin/update-execution-worker.phpを追加した。Phase9未完了、Phase10正式移行前、Version1.0未完成。

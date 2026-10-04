@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 定期workerの実更新・復元接続（2026-10-04）
+
+- Files: UpdateCompatibility、update-compatibility/update-asset/update-requests-http試験、worker/runner/requestsの説明。候補worker必須・singleton拒否の別process検査を追加（11probe）。欠落/lock無視を拒否。
+- DB/API/UI: 新Migration/API/UI変更なし。実HTTP受付後に定期workerが固定run-update.phpを別PHP子として起動。apply取得だけ使い捨てcallbackを差し替え、適用後は本来の入口へ戻り、rollbackは更新された本来の入口から実行。
+- Tests1: MySQL8専用tmpfs/no host port DB・使い捨てcloneで互換性17/asset94/HTTP20成功。実202/監査/更新/新version HTTP/別復元受付/復元/HTTP/履歴/config保持。
+- Tests2: MariaDB10.11の独立専用環境で同じ17/94/20成功。session20028 exit0、finally HTTP process/clone清掃、exact2 DBのtmpfs確認後除去。通常配置/DB/受付/権限/worker保持。
+- Tests3: 別clone両環境でworker12/受付24/stage-process29/package64成功。配布物229files/3474944bytes/PHP159構文/hash/config保持/private除外/worker包含成功。session10348 exit0、clone清掃、git diff --check成功。spec.md非変更。
+- Issues/Security: 試験archive取得だけfixture。サービス自動起動・長時間常駐・Apache/FPM OPcache・新しい実行UI・本物のGitHub/OAuthは未確認。秘密や診断出力を公開しない。
+- Next: 同じlive配置の実行サービス設定、隔離Apache/FPMで実PHP変更のHTTP反映・停止復帰、管理ボタンとPhase9旧ゲート。Phase9未完了/Phase10正式移行前/Version1.0未完成。
+
 ## Phase9 定期実行worker（2026-10-04）
 
 - Files: bin/update-execution-worker.php、tests/update-execution-worker.php、docs/update-execution-worker.md。親はアプリをautoloadせず、毎回固定run-update.phpを新しいPHP子として起動。5秒間隔/失敗時30秒、singleton private lock、子の診断出力非公開、更新中のtimeout強制終了なし。
