@@ -6,7 +6,7 @@ if(count($argv)>2||isset($argv[1])&&!in_array($argv[1],['--apply','--dry-run'],t
     fwrite(STDERR,"Usage: php bin/cleanup-backgrounds.php [--dry-run|--apply]\n");exit(2);
 }
 try {
-    $root=dirname(__DIR__);$config=App\Config::load($root);
+    $root=dirname(__DIR__);$updateLease=(new App\Services\UpdateAccess($root.'/storage/updates/access'))->enter();if($updateLease===null)throw new App\Services\UpdateAccessPaused();$config=App\Config::load($root);
     if(!$config->get('installed'))throw new RuntimeException('NOT_INSTALLED');
     $pdo=App\Database\Database::connect($config->get('database'));
     $result=(new App\Services\BackgroundCleanup($root,new App\Repositories\BackgroundRepository($pdo)))->run(($argv[1]??'')==='--apply');

@@ -6,6 +6,8 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 $root = dirname(__DIR__);
+try{require_once $root.'/app/Services/UpdateAccess.php';$updateLease=(new App\Services\UpdateAccess($root.'/storage/updates/access'))->enter();if($updateLease===null)throw new RuntimeException();}
+catch(Throwable){fwrite(STDERR,"Setup unavailable during update.\n");exit(1);}
 if (is_file($root . '/config/config.php') || is_file($root . '/storage/installed.lock')) {
     fwrite(STDERR, "Installation is already locked.\n");
     exit(1);

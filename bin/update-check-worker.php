@@ -11,9 +11,12 @@ try{
     if(is_link($storage)||!is_dir($storage)||is_link($path))throw new RuntimeException('Unsafe update lock');
     $lock=fopen($path,'c');
     if($lock===false||!chmod($path,0600)||!flock($lock,LOCK_EX|LOCK_NB))throw new RuntimeException('Update worker unavailable');
+    $access=new App\Services\UpdateAccess($root.'/storage/updates/access');$generation=null;
     for($cycle=0;$cycles===0||$cycle<$cycles;$cycle++){
-        $delay=3600;$at=time();$status='failed';$available=null;$exit=1;
+        $delay=3600;$at=time();$status='failed';$available=null;$exit=1;$lease=null;$restart=false;
         try{
+            $lease=$access->enter();if($lease===null)throw new App\Services\UpdateAccessPaused();
+            $currentGeneration=$access->generation();if($generation!==null&&$generation!==$currentGeneration)throw new App\Services\UpdateAccessRestart();$generation=$currentGeneration;
             // Reload configuration so a server-side token change applies without exposing it.
             $config=App\Config::load($root);
             if(!$config->get('installed'))throw new App\Http\HttpException(503,'NOT_INSTALLED');
@@ -22,14 +25,17 @@ try{
             $delay=max(1,$state['checked_at']+($state['error']===null?86400:3600)-time());
             if($state['error']!==null)throw new App\Http\HttpException(502,$state['error']);
             $status='success';$available=$state['available'];$exit=0;
-        }catch(Throwable $error){
-            try{
+        }catch(App\Services\UpdateAccessPaused){$status='paused';$delay=30;$exit=0;}
+        catch(App\Services\UpdateAccessRestart){$status='restarting';$delay=0;$exit=0;$restart=true;}
+        catch(Throwable $error){
+            if($lease!==null)try{
                 $pdo=null;try{$pdo=App\Database\Database::connect(App\Config::load($root)->get('database'));}catch(Throwable){}
                 (new App\Services\ApplicationLogger($pdo?new App\Repositories\LogRepository($pdo):null,new App\Services\FileLogger($root.'/storage/logs'),$root.'/storage/log-pending'))
                     ->record($error instanceof App\Http\HttpException?$error:new App\Http\HttpException(502,'UPDATE_CHECK_FAILED'),'/admin/update',bin2hex(random_bytes(8)),null,'GET');
             }catch(Throwable){}
-        }
+        }finally{if($lease!==null)$lease->release();}
         echo json_encode(['at'=>gmdate(DATE_ATOM,$at),'status'=>$status,'available'=>$available,'next_run_in'=>$delay],JSON_THROW_ON_ERROR)."\n";flush();
+        if($restart)break;
         if($cycles===0||$cycle+1<$cycles)sleep($delay);
     }
 }catch(Throwable){fwrite(STDERR,"Update check worker unavailable.\n");}

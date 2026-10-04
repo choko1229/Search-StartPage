@@ -16,7 +16,8 @@ try {
     if($exit!==0||$error!==''||count($events)!==2||array_column($events,'status')!==['success','success'])throw new RuntimeException('Worker cycles failed');
     $read=$pdo->prepare('SELECT COUNT(*) FROM log_entries WHERE event_id=?');$read->execute([$ids[0]]);if((int)$read->fetchColumn()!==0)throw new RuntimeException('Expired DB log retained');
     $read->execute([$ids[1]]);if((int)$read->fetchColumn()!==1)throw new RuntimeException('Recent DB log removed');
-    if(is_file($root.'/storage/logs/'.gmdate('Y-m-d',$expired).'.jsonl'))throw new RuntimeException('Expired file log retained');
+    $expiredPath=$root.'/storage/logs/'.gmdate('Y-m-d',$expired).'.jsonl';clearstatcache(true,$expiredPath);
+    if(is_file($expiredPath))throw new RuntimeException('Expired file log retained');
     if((int)$pdo->query('SELECT COUNT(*) FROM statistics_events')->fetchColumn()!==$statistics)throw new RuntimeException('Statistics changed');
     $lock=fopen($root.'/storage/log-maintenance.lock','c');flock($lock,LOCK_EX);
     try {

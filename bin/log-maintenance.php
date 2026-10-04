@@ -14,8 +14,12 @@ try {
     if(is_link($storage)||!is_dir($storage)||is_link($path))throw new RuntimeException('Unsafe log worker lock');
     $lock=fopen($path,'c');
     if($lock===false||!chmod($path,0600)||!flock($lock,LOCK_EX|LOCK_NB))throw new RuntimeException('Log worker already running or unavailable');
-    $maintenance=new App\Services\LogMaintenance($root);
-    $exit=(new App\Services\LogSchedule())->run($maintenance->run(...),static function(array $event):void{echo json_encode($event,JSON_THROW_ON_ERROR)."\n";flush();},$options['interval'],$options['retry'],$options['cycles']);
+    $access=new App\Services\UpdateAccess($root.'/storage/updates/access');$startupLease=$access->enter();
+    if($startupLease===null){echo json_encode(['at'=>gmdate(DATE_ATOM),'status'=>'paused','next_run_in'=>30],JSON_THROW_ON_ERROR)."\n";$exit=0;}
+    else{
+        try{$maintenance=new App\Services\LogMaintenance($root,$access->generation());$schedule=new App\Services\LogSchedule();}finally{$startupLease->release();}
+        $exit=$schedule->run($maintenance->run(...),static function(array $event):void{echo json_encode($event,JSON_THROW_ON_ERROR)."\n";flush();},$options['interval'],$options['retry'],$options['cycles']);
+    }
 }catch(Throwable){fwrite(STDERR,"Log maintenance unavailable.\n");$exit=1;}
 finally{if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}
 exit($exit);
