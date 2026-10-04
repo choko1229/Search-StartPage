@@ -9,7 +9,7 @@
 | Users | 検索/ページング/escape/日英UI、roles29/競合13/016Migration6 | 実画面の権限付与・解除・最後の管理者拒否は明示承認待ち。レビュー拒否後は未実行 |
 | Storage | 両DB admin72/backgroundAPI56、全保存・active・archive容量、容量順、有効quota、超過時保持。日英390px、EN quota保存/再読込。実アップロード2394813bytes/1件を100制限に下げても保持・超過説明表示 | 一時・未参照ファイルは容量表示対象外。非ゼロ超過表示のEN/全browser確認は残る |
 | Presets | 両DB36、日英実追加/編集/削除/reload/390px、ユーザー明示追加と独自一覧保持、全15/16Installer | cache破損/実DB障害/大量同時編集、実Extensionとcloud共有は未確認 |
-| Feature Flags / Limits | 両DB policy29、サーバー停止/権限/CSRF/CAS、日英管理UI、JA保存とEN容量保存。実クラウド同期停止・再開、JA/EN account停止理由、EN account復旧。JA upload停止中に端末保存→再開でクラウド1件到着。JA weather停止理由→再開後POST200/理由解除 | weather/uploadのEN停止実UI、地域保存中の一過性保存警告の原因、全browserは残る |
+| Feature Flags / Limits | 両DB policy29、権限/CSRF/CAS、日英管理UI、容量保存。実クラウド同期停止・再開、日英account停止理由/復旧。JAとENのupload停止中に端末保存→再開でcloud1件。EN専用MySQL/IABで68byte/0→1file、390px、weather停止理由/POST403→再開200/理由解除、認証済み公開地域の保存/reload/実cloud一致/警告なしを確認 | OS filechooser APIは今回反映なし、生成File選択fixtureで保存・同期を確認。過去の警告との因果・他端末認証済みUI・全browser/MariaDB実画面は残る。docs/policy-ui-verification.md参照 |
 | Maintenance | サーバー全面停止・管理者通常利用・API保護の既存検証、日英画面 | 全ブラウザ検証とUpdaterとの連携は未確認 |
 | Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBの実2cycle/二重起動拒否。実PDO接続失敗→同じworkerの2秒後再試行/復旧を各3回、unsafe file lock失敗→修復/再試行を各3回確認。期限整理・pending一度配送・最近のログ/非ゼロ統計保持・秘密非出力 | 本番ホスト未配置。実1時間待機、DBサーバー停止、disk full/OS権限障害は別の未確認。実Updater category発生経路の監査を継続 |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |

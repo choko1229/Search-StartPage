@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 英語upload/weather停止・復旧と認証済み地域保存（2026-10-04）
+
+- 状態: Phase9進行中、Phase10正式移行前、Version1.0未完成。前ターンe25c83fはログ整理実障害検証の進捗。旧EN/地域ゲートから再開。
+- Files/DB/API: tests/policy-ui-development.php/policy-ui-observe.php追加。専用tmpfs/no DB host port/loopback8108 app・空schema・全17Migration・生成テストadmin/deviceで通常Auth/AdminMiddlewareを使用。製品コード/schema/API/UI変更なし。
+- 検証1: EN adminでuploads/weather停止保存。生成画像を製品保存/同期し停止理由・端末保持、DB0files→再開Synced/1file/68bytes。公開地域を通常Appearanceで保存/警告なし、Weather条件/Conditions切替でEN停止理由・実POST403、再開/reloadでPOST200/理由解除/地域保持/実cloud文書一致。IAB MySQL/390px/Console両0。実OAuth/MariaDBブラウザ/他端末/OS位置許可へ拡張しない。
+- 検証2: 新PHP2構文、専用app admin-policy29/sync17/基盤40成功、全17repeat成功。CSRF/Validation/所有者分離・監査/停止復旧を回帰。
+- 検証3: Node policy/weather-context/region/sync-data28/sync-session37/background-sync/upload-intent/recovery成功。モデル試験と実ブラウザを区別。
+- Issues/Security: OS filechooser APIは長時間応答後もinput.files空、未確認。既存test-only生成File入口から保存・同期しchooser成功扱いにしない。初回tmpfsへのdocker cp公開設定不足は/tmp→コンテナ内copyへ修正してfreshMigration成功。Secret・実Cookieを表示/Git保存しない。
+- 清掃/次Phase: viewport reset/tab15/16 close、DB tmpfsを確認し専用exact2除去/最終prefix空。通常8099/8100/config/user/権限/worker非変更。旧roles実UI/他端末/過去警告因果/全browser、FPM/systemd/実外部連携/Phase11〜12/全DoDを継続。詳細docs/policy-ui-verification.md。
+
 ## Phase9 ログ整理の実接続・ファイル障害からの再試行（2026-10-04）
 
 - 状態: Phase9進行中、Phase10正式移行前、Version1.0未完成。前ターンは進捗報告のみ。管理実行UIを306f9a8へローカル保存後、古いログ整理故障ゲートを実processで検証。

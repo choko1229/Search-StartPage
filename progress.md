@@ -1,4 +1,23 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・英語機能停止/復旧と地域保存）
+
+前Goalターンe25c83fはログ故障の実検証による進捗。今回はPhase9旧EN weather/upload・認証済み地域保存の残件を専用環境で検証。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+実装: tests/policy-ui-development.phpはCLI/testmode/固定専用DB host/marker/空schema/既存configなしに限定し、全17Migrationと生成admin/device・test-onlyログイン入口を準備。observeは固定生成ownerのflags/背景件数・bytes/公開地域cloud一致boolのみを出力。製品コード/schema/API/JS変更なし。
+
+検証1: IAB MySQL英語管理画面でuploads/weather停止→通常背景画面の生成68byte File保存→Sync nowでEN停止理由/端末保持、DB0→EN再開/Synced/DB1file68bytes。公開都市地域をAppearance保存/警告なし、Weather条件の停止理由/POST403→EN再開/reload/POST200/理由解除。再読込地域両値保持、実sync_states.settings.themeRegion一致booltrue。Console両0、390px page375/viewport390、画像policy-upload-disabled-en/policy-weather-disabled-en/policy-region-restored-en。最後の地域画像を目視確認。
+検証2: 専用app新PHP2構文/admin-policy29/sync17/基盤40・全17repeat成功（465a11 exit0）。初回a7bbb1はtmpfsへのdocker cp公開設定が実mountに現れずconfig.example欠落。公開設定を/tmpへcopy→コンテナ内cpで修正しfresh17成功（709d11）。通常configやSecretsをcopyしない。
+検証3: Node policy/weather-context/region-settings/sync-data28/sync-session37/background-sync-session/upload-intent/recovery成功（9da370 exit0）。モデル故障注入と実UI証拠を区別。
+
+未確認: OS filechooser APIは長時間応答後もinput.files空。製品Console errorなし、成功扱いにしない。既存background-file-preview.php/mjsを専用_testだけに配置し、生成Fileを選択後に製品の保存/IndexedDB/実SyncSession/APIを使った。実OSchooser/Discord OAuth/OS位置許可/MariaDB実ブラウザ/他端末往復/全browserの証拠でない。過去の地域警告と同じ原因と断定しない。
+
+清掃: viewport reset、新規tab15/16 close。専用DB tmpfs512mを確認後、search-policy-ui-app-20261004/search-policy-ui-mysql-20261004 exact2を除去しprefix一覧空（8b17ee exit0）。テスト管理者/device/ログイン入口/config/画像/DB清掃、通常8099/8100/user/権限/worker非変更。spec.md非変更・非stage。
+
+次に実行すること:
+1. Phase9残件の旧roles実UI・他端末認証済みUI、過去警告との因果確認を照合する。権限操作は以前のauto-review拒否を再試行せず必要な時点で具体的な許可を確認。EN停止/復旧・認証済み地域の単端末cloud保存は今回の証拠を採用。
+2. 更新FPM/複数pool/systemd boot・stop・restart/長時間運用と実GitHub取得を追跡。Phase9合格前にPhase10正式移行しない。
+3. 実OAuth/OS chooser/Glass仕上げ/全browser/Phase11〜12/全DoD未達を保持。docs/policy-ui-verification.md参照。
+
 ## 最新の再開地点（2026-10-04・ログ整理障害からの実再試行）
 
 前ターンは進捗報告のみで機能進捗なし。管理実行UIを306f9a8にローカル保存し、Phase9旧ゲートのcleanup故障へ進んだ。今回tests/log-maintenance-outage.phpを追加し、製品CLIを別processで起動する実接続障害/unsafe file lock故障・修復後の再試行を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。

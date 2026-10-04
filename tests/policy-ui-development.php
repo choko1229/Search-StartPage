@@ -1,0 +1,23 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/autoload.php';
+if(PHP_SAPI!=='cli'||getenv('SEARCH_TEST_MODE')!=='1'||getenv('TEST_POLICY_UI_HOST')!=='search-policy-ui-mysql-20261004')exit(1);
+$root=dirname(__DIR__);
+if(!is_file($root.'/storage/policy-ui-test-only')||file_exists($root.'/config/config.php'))throw new RuntimeException('Fresh isolated policy UI deployment required');
+$settings=require $root.'/config/config.example.php';$settings['installed']=true;
+$settings['database']=['host'=>getenv('TEST_POLICY_UI_HOST'),'port'=>3306,'name'=>'policy_ui','user'=>'policy','password'=>getenv('TEST_POLICY_UI_PASSWORD')];
+$settings['site']['url']='http://127.0.0.1:8108';$settings['session']=['name'=>'isolated_policy_ui','secure'=>false];
+$deadline=microtime(true)+60;
+do{try{$pdo=App\Database\Database::connect($settings['database']);break;}catch(PDOException){if(microtime(true)>$deadline)throw new RuntimeException('Dedicated DB unavailable');usleep(100000);}}while(true);
+if($pdo->query('SHOW TABLES')->fetchAll()!==[])throw new RuntimeException('Empty dedicated DB required');
+(new App\Database\Migrator($pdo,$root.'/database/migrations'))->migrate();
+file_put_contents($root.'/config/config.php','<?php return '.var_export($settings,true).';');chmod($root.'/config/config.php',0600);
+$auth=new App\Repositories\AuthRepository($pdo);
+$user=$auth->upsertIdentity(['id'=>'999999999999999978','username'=>'Generated isolated policy admin','display_name'=>null,'avatar'=>null],'en');
+$pdo->prepare('INSERT INTO administrators(user_id,created_at,updated_at) VALUES (?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([$user]);
+$device=bin2hex(random_bytes(16));$token=bin2hex(random_bytes(32));
+$auth->createDevice($user,$device,hash('sha256',$token),App\Auth\DeviceAgent::parse('Windows Chrome/120'),time());
+if(!is_dir($root.'/public/_test'))mkdir($root.'/public/_test',0700);
+$source='<?php if(getenv("SEARCH_TEST_MODE")!=="1"||getenv("SEARCH_LOCAL_DEVELOPMENT")!=="1"||!is_file(dirname(__DIR__,2)."/storage/policy-ui-test-only")){http_response_code(404);exit;}setcookie("search_remember",'.var_export($device.'.'.$token,true).',["path"=>"/","httponly"=>true,"samesite"=>"Lax"]);header("Location: /admin/policy",true,303);';
+file_put_contents($root.'/public/_test/policy-login.php',$source);chmod($root.'/public/_test/policy-login.php',0600);
+echo "Isolated policy UI prepared with generated test administrator.\n";
