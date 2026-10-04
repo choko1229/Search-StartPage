@@ -11,7 +11,7 @@ use App\Http\{HttpException, Request, Response};
 
 final class CoreController
 {
-    public function __construct(private readonly Config $config, private readonly View $view,private readonly ?\Closure $presets=null)
+    public function __construct(private readonly Config $config, private readonly View $view,private readonly ?\Closure $presets=null,private readonly ?\Closure $updateNotice=null)
     {
     }
 
@@ -21,6 +21,7 @@ final class CoreController
             ? new Response($this->view->render('home', [
                 'site_name' => $this->config->get('site.name'),
                 'providers' => $this->presets ? ($this->presets)() : \App\Services\ProviderPresets::client(\App\Services\ProviderPresets::defaults()),
+                'update_notice'=>$this->updateNotice?($this->updateNotice)():null,
             ]))
             : Response::redirect('/installer');
     }

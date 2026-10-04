@@ -32,6 +32,7 @@ $resolvePresets=static function()use($presetState,$config):array {
 $core = new CoreController($config, $view,$resolvePresets);
 $installer = new InstallerController(new InstallationService($root), new EnvironmentCheck($root), $view, new FileLogger($root . '/storage/logs'));
 $router = new Router();
+$updateNotice=null;
 if ($config->get('installed')) {
     $policyState=new App\Services\PolicyState($root.'/storage/policy');
     $resolvePolicy=static function()use($policyState,$config):array {
@@ -53,11 +54,35 @@ if ($config->get('installed')) {
         return $adminContext;
     };
     $adminMiddleware = new App\Middleware\AdminMiddleware($resolveAdmin);
-    $adminHandler = static function (string $method) use ($resolveAdmin, $view,$config): Closure {
-        return static function (Request $request) use ($resolveAdmin, $view, $method,$config): App\Http\Response {
+    $updateChecks=static fn(?Closure $audit=null):App\Services\UpdateChecks=>new App\Services\UpdateChecks($root.'/storage/updates/checks',$config,trim(file_get_contents($root.'/VERSION')),audit:$audit);
+    $updateNotice=static function()use($resolveAdmin,$updateChecks):?array{
+        if(empty($_SESSION['user_id']))return null;
+        try{
+            [$auth,$repository]=$resolveAdmin();
+            if(!$repository->isAdministrator((int)$auth->requireUser()['id']))return null;
+            $state=$updateChecks()->status();
+            return $state['available']===true?['tag'=>$state['release']['tag']]:null;
+        }catch(Throwable){return null;}
+    };
+    $updatesHandler=static function(string $method)use($updateChecks,$view,$resolveAdmin):Closure{
+        return static function(Request $request)use($updateChecks,$view,$resolveAdmin,$method):App\Http\Response{
+            [$auth,,,$audit,$pdo]=$resolveAdmin();
+            $record=static function(array $context)use($auth,$audit,$pdo):void{
+                (new App\Repositories\LogRepository($pdo))->recordApplication(['event_id'=>bin2hex(random_bytes(16)),'type'=>'admin_audit','error_code'=>'UPDATE_CHECK_REQUESTED','user_id'=>(int)$auth->requireUser()['id'],'context'=>$context,'created_at'=>gmdate('Y-m-d H:i:s'),'file_written'=>false]);
+                $audit->flush();
+            };
+            return (new App\Controllers\AdminUpdatesController($updateChecks($method==='check'?$record:null),$view))->$method($request);
+        };
+    };
+    foreach(['/admin/update','/api/admin/update'] as $path){
+        $router->add('GET',$path,$updatesHandler('read'),[$adminMiddleware]);
+        $router->add('POST',$path,$updatesHandler('check'),[$adminMiddleware,new Csrf()]);
+    }
+    $adminHandler = static function (string $method) use ($resolveAdmin, $view,$config,$updateChecks): Closure {
+        return static function (Request $request) use ($resolveAdmin, $view, $method,$config,$updateChecks): App\Http\Response {
             [$auth, $repository,$settings,$audit,$pdo] = $resolveAdmin();
             $storageLimit=static fn():int=>App\Services\SitePolicy::effective((new App\Repositories\SitePolicyRepository($pdo))->read()['policy'],$config)['limits']['background_max_bytes'];
-            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit,new App\Repositories\AdminRoleRepository($pdo),$storageLimit))->$method($request);
+            return (new App\Controllers\AdminController($repository, $view,$settings,$auth,$audit,new App\Repositories\AdminRoleRepository($pdo),$storageLimit,static fn():array=>$updateChecks()->status()))->$method($request);
         };
     };
     $router->add('GET', '/admin', $adminHandler('page'), [$adminMiddleware]);
@@ -200,7 +225,8 @@ if ($config->get('installed')) {
     $router->add('POST', '/api/weather', $weather->current(...), [new Csrf()]);
 }
 $optionalAuth = new App\Middleware\OptionalAuthentication($config);
-$router->add('GET', '/', $core->home(...), [$optionalAuth]);
+$home=new CoreController($config,$view,$resolvePresets,$updateNotice);
+$router->add('GET', '/', $home->home(...), [$optionalAuth]);
 $router->add('GET','/privacy',$core->privacy(...));
 $router->add('GET', '/api/health', $core->health(...));
 $router->add('GET', '/api/csrf', $core->csrf(...), [$optionalAuth]);

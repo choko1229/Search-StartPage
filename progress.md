@@ -1142,3 +1142,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 検証3: browser2/tab6でreload、遅れて開いたWizardをあとで続けるで閉じ、ホームを確認。タイル操作メニューを開閉して機能保持。390幅でviewport390/document375/scroll375、横溢れなし。画面幅変更後の列数の画像/DOM差があるため全列数の一致は成功扱いにしない。viewport reset後に通常画面を保存・目視、Console warn/error0。画像glass-reference-polish.png、tab6をdeliverable。専用originの4生成favorites/夕景設定を保持。
 
 次に実行すること: 参考画像に沿ったブランドアイコン・補助操作・accountの仕上げを継続。同時に前記Phase9更新管理の管理者画面/API/24h確認、実同期/地域・EN停止・cleanup故障などゲート残件を進める。対象GitHub repository回答と管理者実権限操作承認は未回答のまま、迂回なし。Phase9進行中、Phase10完了未判定、11〜12/Version1.0未完成。spec.mdを変更/stageしない。
+
+## Phase9 更新確認の管理画面・通知・定期worker（2026-10-04）
+
+前ターンb06f6bbはデザイン修正/検証による進捗。progress/status/git/spec104〜109から更新管理へ再開。Phase9進行中、Updater本体と10〜12/Version1.0未完成。
+
+実装: UpdateChecksがprivate metadataの保存/lock/0600/原子rename、4channel保存、revision CAS、成功24h/失敗1hのcache、VERSION/取得元/設定変更で無効化、破損503、秘密を含まない失敗を扱う。管理者専用GET/POST /admin/updateと/api/admin/update、CSRF/Validation、日英表示を追加。GETは外部通信なし。Admin dashboardと現在のDB権限を確認したhomeだけへ新リリース通知、guest/通常userへ非通知。手動試行はUPDATE_CHECK_REQUESTED監査をDBへ先に保存し既存file outboxをflush、監査失敗で設定変更/通信を開始しない。CLIを同serviceへ接続。update-check-workerと専用overlayで24h確認/失敗1h再試行、二重起動拒否、安全なupdate_errorログ。Token実値/config/user upload/DBschema/Extension変更なし。
+
+検証1: 両PHP新規/変更ファイル構文成功。最終update-checks各39成功（時計境界/設定保持/旧revision拒否/失敗でavailability未知/秘密非保存/壊れたcache/監査失敗前に停止）。releases各44、基盤各40成功。DB/Migration変更なし、全16Installerの既存証拠を維持。
+検証2: 実HTTPのadmin-updates各31成功。guest401/user403/管理者通過/CSRF403/Validation422/stale409、日英画面、生成metadata候補によるdashboard/管理者home表示、guest/user非通知、権限解除前に通知が実在→解除後非通知、手動監査DB/file、実GitHub確認失敗を未確認として保存。実候補取得成功ではない。既存admin各72も成功。初回のPOST試験は[] JSONがRequest捕捉で拒否される試験側不具合だったためroot objectへ修正後に再成功。
+検証3: 自動承認レビューが一時管理者/プレビュー準備を拒否。迂回せず質問し、ユーザーがlocalhost8099の生成管理者と清掃を明示許可した後だけ実行。browser2/tab13、通常Auth/AdminMiddlewareで日英手動確認。実404を説明し「更新なし」と表示しない。Beta保存→別GETで保持→Stableへ復元。mobile390/document375/scroll375、フォーム並びを補修し確認。初回fullPage画像は描画異常で不採用、後続通常viewport画像phase9-updates-mobile-en.pngを保存・目視、Console warn/error0。viewport reset/日本語復元。fixture cleanupでpolicy/presets/生成user/token/device/入口/hostkeyを除去し、管理画面でログイン要求を確認。tab13を閉じ、既存Glass tab6をdeliverable継続。
+
+実定期環境: search-phase9-roles-20261004のupdates-mysql-1/updates-mariadb-1を専用www-data/config ro/no web port/restart unless-stoppedで起動。両running=true、初回2026-10-04T00:06:41/42Z failed/available null/next_run_in3600。対象source404は未解決。既存app/DB/volumes/logworkerを再作成していない。app側から同volumeでworker二重起動を実行し安全なエラー/exit1を確認。最終テストはcacheを退避/復元し、workerの実失敗状態を保持。24h/1hの実時間経過や本番配置は未確認。
+
+次に実行すること: Phase9の更新管理とPhase10処理境界を、Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackの実装へつなぎ、config/uploads/userdata保持を隔離環境で実証する。対象GitHub repository質問は未回答。安全な試験用リリースで処理本体を先に検証できる範囲を進める。Phase9の認証済み同期/地域・EN weather/upload・cleanup故障、旧管理者UI権限操作の承認待ち、Glass/実OAuth/各browser/Extension/最終DoDを維持。今回許可は更新画面用一時管理者の準備・清掃で、旧role操作の許可へ拡大しない。spec.md変更/stageなし、Goal未完成。

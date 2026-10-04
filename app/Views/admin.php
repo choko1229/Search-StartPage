@@ -1,11 +1,14 @@
 <?php declare(strict_types=1); ?>
 <section class="panel">
 <h1><?= $e($t->get('admin_dashboard')) ?></h1>
+<?php if(($data['update']['available']??false)===true): ?><p role="status"><a href="/admin/update"><?= $e($t->get('update_available')) ?> <?= $e($data['update']['release']['tag']) ?></a></p>
+<?php elseif(($data['update']['error']??null)!==null): ?><p role="status"><a href="/admin/update"><?= $e($t->get($data['update']['error'])) ?></a></p><?php endif; ?>
 <nav aria-label="<?= $e($t->get('admin_dashboard')) ?>"><a href="/admin/users"><?= $e($t->get('admin_users')) ?></a> · <a href="/admin/storage"><?= $e($t->get('admin_storage')) ?></a></nav>
 <a href="/admin/maintenance"><?= $e($t->get('admin_maintenance')) ?></a>
 <a href="/admin/policy"><?= $e($t->get('admin_policy')) ?></a>
 <a href="/admin/presets"><?= $e($t->get('admin_presets')) ?></a>
 <a href="/admin/statistics"><?= $e($t->get('admin_statistics')) ?></a>
+<a href="/admin/update"><?= $e($t->get('admin_update')) ?></a>
 <a href="/admin/logs"><?= $e($t->get('admin_logs')) ?></a> · <a href="/admin/audit-logs"><?= $e($t->get('admin_audit_logs')) ?></a>
 <dl>
 <?php foreach ($data['counts'] as $key=>$value): ?>

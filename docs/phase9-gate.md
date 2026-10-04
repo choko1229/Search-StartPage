@@ -5,7 +5,7 @@
 | 条件 | 確認できた証拠 | 残る確認・実装 |
 |---|---|---|
 | Admin Auth | 両DB admin72/roles29。guest401、user403、現在のDB権限、CSRF。通常tokenの実画面 | 実Discord OAuthはユーザー指示で最終監査へ留保 |
-| Dashboard | 実DB件数、圧縮可否、通常管理者の実画面 | 更新通知はUpdater未実装 |
+| Dashboard | 実DB件数、圧縮可否、通常管理者の実画面。保存済み候補の新リリース通知、管理者homeの通知とguest/user非通知・権限解除で非通知を両DBで確認 | 対象GitHubの実候補取得は404のため未確認 |
 | Users | 検索/ページング/escape/日英UI、roles29/競合13/016Migration6 | 実画面の権限付与・解除・最後の管理者拒否は明示承認待ち。レビュー拒否後は未実行 |
 | Storage | 両DB admin72/backgroundAPI56、全保存・active・archive容量、容量順、有効quota、超過時保持。日英390px、EN quota保存/再読込。実アップロード2394813bytes/1件を100制限に下げても保持・超過説明表示 | 一時・未参照ファイルは容量表示対象外。非ゼロ超過表示のEN/全browser確認は残る |
 | Presets | 両DB36、日英実追加/編集/削除/reload/390px、ユーザー明示追加と独自一覧保持、全15/16Installer | cache破損/実DB障害/大量同時編集、実Extensionとcloud共有は未確認 |
@@ -14,7 +14,7 @@
 | Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBで24時間workerを起動し稼働/初回成功、実2cycle/期限整理/統計保持/二重起動拒否、失敗再試行の時系列試験 | 本番ホストは未配置、実DB障害からworker再試行を待つ試験と実Updater categoryの発生経路は未実装 |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |
 | Statistics 実操作 | localhost専用DBへWeb/AI/favorite/Palette操作を保存。通常UIから生成背景2件保存に対応するfeature background2を観測 | 実Discord認証の同期、実外部preset分類、未配信イベントの端末上のACK確認は未確認 |
-| Update Management | VERSIONは0.1.0-dev、§104〜109を確認。Release取得/4channel選択/手動CLI基盤、両環境44項目、公開サンプル実API0件成功。対象source404を失敗として保持 | 対象repoのアクセス確認、管理画面/24h自動確認/通知/Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackは未実装。基盤のみで完了にしない |
+| Update Management | VERSIONは0.1.0-dev、Release取得/4channel選択44項目。管理者画面/API/CSRF手動確認/チャンネル保存/監査/通知/期限cache、両環境39+31。日英実操作/390幅/Console0。専用Docker両worker稼働・初回取得失敗/1h再試行予定、二重起動拒否。公開サンプル実API0件成功、対象source404は未確認として保持 | 対象repoアクセス、実24h経過/本番worker配置、Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackは未達。確認機能だけでUpdater完成にしない |
 | DB / Regression | 独立MySQL8099/MariaDB8100で全16up/repeat/down/Installer各40、PHP180、管理者/認証/背景/同期等の回帰 | 新しいMigrationが増えたら新規環境で再確認 |
 
 ## 匿名統計の実ブラウザ証拠

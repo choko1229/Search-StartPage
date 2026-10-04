@@ -43,6 +43,11 @@ body .panel dd { font-variant-numeric: tabular-nums; }
 body footer { position: relative; z-index: 1; text-align: center; padding: 1.5rem; font-size: .75rem; }
 body footer a { color: var(--muted); text-decoration: none; }
 body footer a:hover { text-decoration: underline; }
+body .update-notice { padding: .65rem 1rem; border: 1px solid var(--glass-line); border-radius: 12px; background: var(--glass-surface); backdrop-filter: blur(16px); font-size: .85rem; }
+body .admin-update-form { display: grid; gap: .9rem; margin-top: 1.5rem; }
+body .admin-update-form label { display: grid; gap: .35rem; min-width: 0; }
+body .admin-update-form input, body .admin-update-form select { width: 100%; min-width: 0; }
+body .admin-update-form button { justify-self: start; max-width: 100%; }
 body .search-home > .eyebrow, body .search-home > h1 { text-align: center; }
 body .search-home > h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.045em; }
 body .search-home > .eyebrow { font-weight: 500; letter-spacing: .08em; color: var(--muted); margin-bottom: .5rem; }

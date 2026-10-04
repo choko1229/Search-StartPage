@@ -13,11 +13,13 @@ final class AdminController
 {
     public function __construct(private readonly AdminRepository $repository, private readonly View $view,
         private readonly AdminSettingsRepository $settings,private readonly Auth $auth,private readonly AdminAuditLogger $audit,
-        private readonly \App\Repositories\AdminRoleRepository $roles,private readonly ?\Closure $storageLimit=null) {}
+        private readonly \App\Repositories\AdminRoleRepository $roles,private readonly ?\Closure $storageLimit=null,private readonly ?\Closure $updates=null) {}
 
     private function overview(): array
     {
-        return ['counts'=>$this->repository->dashboard(), 'compression'=>BackgroundCompression::capabilities()];
+        $update=null;
+        if($this->updates){try{$update=($this->updates)();}catch(\Throwable){$update=['available'=>null,'error'=>'UPDATE_STATE_INVALID'];}}
+        return ['counts'=>$this->repository->dashboard(), 'compression'=>BackgroundCompression::capabilities(),'update'=>$update];
     }
     public function page(Request $request): Response
     {

@@ -1,5 +1,6 @@
 <?php declare(strict_types=1); ?>
 <link rel="stylesheet" href="/assets/css/search.css">
+<?php if(($data['update_notice']??null)!==null): ?><p role="status" class="update-notice"><a href="/admin/update"><?= $e($t->get('update_available')) ?> <?= $e($data['update_notice']['tag']) ?></a></p><?php endif; ?>
 <section class="search-home" aria-labelledby="search-title">
     <p class="eyebrow"><?= $e($t->get('search_tagline')) ?></p>
     <h1 id="search-title" class="sr-only"><?= $e($data['site_name']) ?></h1>

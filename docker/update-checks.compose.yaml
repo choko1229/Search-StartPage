@@ -1,0 +1,30 @@
+# Overlay for the isolated development stack. Metadata checks only.
+services:
+  updates-mysql:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    profiles: [update-checks]
+    user: www-data
+    init: true
+    restart: unless-stopped
+    command: [php, bin/update-check-worker.php]
+    depends_on:
+      mysql: {condition: service_healthy}
+    volumes:
+      - mysql-config:/var/www/app/config:ro
+      - mysql-storage:/var/www/app/storage
+  updates-mariadb:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    profiles: [update-checks]
+    user: www-data
+    init: true
+    restart: unless-stopped
+    command: [php, bin/update-check-worker.php]
+    depends_on:
+      mariadb: {condition: service_healthy}
+    volumes:
+      - mariadb-config:/var/www/app/config:ro
+      - mariadb-storage:/var/www/app/storage
