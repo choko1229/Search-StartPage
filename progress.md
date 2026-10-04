@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・同期UIの再試行確認待ち）
+
+前ターン2144731はMaintenance/実更新連携の検証・保存で進捗。今回は前回のbrowser review利用上限拒否を無断再試行せず、専用同期環境を再準備して再試行確認を提示した。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+検証1〜3: tests/run-admin-sync-ui.ps1が成功（70392 exit0）、両専用MySQL8/MariaDB10.11でfresh全17/repeat、sync17/基盤40を各3回成功。生成owner/admin/device2ずつ。最終observe両device2/cloud_sync true/cloud_version0/公開都市一致false。これは準備/APIの証拠で、実UI同期の成功ではない。
+
+ブラウザ: cua文書と同じIAB bindingの一覧を読み取り。中断時に作成したsyncUiA.id=20/about:blankを特定し、その空tabだけclose後に一覧から消えたことを確認。他の既存tabは操作せず、navigation・ログイン・設定・同期の再試行なし。読み取り/closeが成功しても拒否されたnavigationのレビュー上限解消とは扱わない。
+
+現在の環境: 専用app search-sync-ui-app-mysql-20261004 / search-sync-ui-app-mariadb-20261004、専用DB search-sync-ui-mysql-20261004 / search-sync-ui-mariadb-20261004は稼働中。app loopback8111/8112、DB tmpfs512MiB/no host port、config/storage tmpfs、生成password非保存。通常8099/8100/config/DB/users/権限/worker非変更。
+
+ユーザーへ提示した確認は未回答: sync-a/b-mysql.localhost:8111 と sync-a/b-mariadb.localhost:8112 の生成ログイン画面→公開テスト都市のA→B→A同期→同期停止/復旧→一時環境清掃。この確認は前回の自動承認レビューによるnavigation拒否が理由。自動Goal継続/選択肢の初期選択を承認と扱わない。今回確認は安全性の否認ではなく利用上限停止からの再試行について。
+
+次に実行すること:
+1. 確認回答が許可なら同じIAB/専用hostでdocs/admin-sync-ui.mdに沿って実UI検証。新しい拒否があれば無断反復・別browser/raw commands/直接通信で回避しない。保留なら下記清掃を行い、UI未確認を保持。未回答なら依存するnavigationを実行しない。
+2. 終了/中断時は専用app2を除去し、専用DB2のHostConfig.Tmpfsが /var/lib/mysql rw,size=512m と一致することを確認して除去。生成user/admin/device/config/login入口を清掃し、専用prefix空を確認。通常環境や既存ユーザーtabは対象外。
+3. Phase9残ゲートを仕様と照合し、サービス運用/実配布元/Glass/全browser/Phase11〜12/全DoD未達を保持。今回の環境準備をPhase9合格としない。
+
 ## 最新の再開地点（2026-10-04・全面停止と実更新/復元の連携）
 
 前ターン1260ce5はプリセット破損/実DB停止の検証による進捗。今回はPhase9 MaintenanceのUpdater連携残件を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。

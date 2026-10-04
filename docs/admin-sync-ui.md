@@ -1,5 +1,7 @@
 # 独立したブラウザ保存領域の同期検証準備
 
+2026-10-04 再準備: 同じharnessが70392 exit0で完了し、両DB fresh17/repeat・sync17/基盤40各3回成功。専用app2/DB2は現在稼働中、両device2/cloud0/公開都市一致false。前回中断時のIAB空tab20だけ特定してcloseした。拒否navigationは再試行せず、生成ログイン→A→B→A公開テスト都市同期→停止復旧→清掃の具体的な再試行確認をユーザーへ提示し、回答待ち。下の「清掃済み」は前回の環境の記録で、今回の稼働環境とは区別する。read/close成功をnavigation review利用上限解消の証拠にはしない。
+
 2026-10-04。Phase9進行中。実画面の往復同期は未実行。ブラウザの最初のnavigationが自動承認レビューの利用上限で拒否され、操作は実行されなかった。安全性の否認とは区別し、別ブラウザ・raw commands・直接通信で同じ画面操作を回避していない。
 
 `tests/admin-sync-ui-development.php` と `tests/run-admin-sync-ui.ps1` は、固定専用DB host/CLI/testmode/marker/configなし/空schemaで準備する。MySQL8/MariaDB10.11専用DBはtmpfs512MiB/no host port、appはloopback8111/8112/config/storage tmpfs。全17Migration fresh/repeat、sync17/基盤40を両DB各3回成功（33177 exit0）。これはAPIの証拠であり、ブラウザ往復同期の成功ではない。

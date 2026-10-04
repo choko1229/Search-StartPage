@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase9 同期UI再試行の確認待ち（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン2144731は実更新/Maintenance連携の進捗。
+- Files/DB/API/UI: 新しい製品変更なし。既存tests/run-admin-sync-ui.ps1で専用環境を再準備し、fresh全17/repeat、両DB sync17/基盤40各3回成功（70392 exit0）。observe両device2/cloud0/公開都市一致false、実UI未実行。
+- ブラウザ: 同じIABの文書/一覧を読み取り、前回中断時のsyncUiA.id20/about:blankだけcloseし消失を確認。既存user tabを変更せず、前回拒否navigationの再試行/回避なし。read/close成功をnavigation review上限解消とは扱わない。
+- 確認待ち: 準備済み8111/8112の専用sync-a/b host、生成ログイン/公開テスト都市A→B→A/同期停止復旧/清掃の再試行確認を提示、回答未受信。前回の自動承認レビューの利用上限拒否が理由。未回答/自動Goal継続は許可ではない。
+- Security/Next: 専用app2/DB2稼働中、loopbackのみ公開、DB tmpfs512MiB/config/storage tmpfs、生成password非保存、通常DB/user権限/config/worker非変更。許可後だけ依存UIへ進み、保留/中断時は配置確認して専用環境を清掃。実UI/サービス運用/実GitHub/OAuth/Glass/全browser/Phase11〜12/全DoD未達。
+
 ## Phase9 全面停止と実更新/復元の連携（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン1260ce5はプリセット障害検証の進捗。
