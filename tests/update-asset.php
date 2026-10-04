@@ -1,0 +1,42 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/autoload.php';
+use App\Services\{GitHubUpdateAsset,ReleasePackageBuilder};
+use App\Http\HttpException;
+if(PHP_SAPI!=='cli')exit(1);
+$count=0;$check=static function(bool $ok,string $name)use(&$count):void{if(!$ok)throw new RuntimeException($name);++$count;echo "PASS: $name\n";};
+$root=sys_get_temp_dir().'/update-asset-'.bin2hex(random_bytes(8));mkdir($root,0700);
+$remove=function(string $path)use(&$remove):void{if(is_dir($path)&&!is_link($path)){foreach(scandir($path) as $name)if($name!=='.'&&$name!=='..')$remove($path.'/'.$name);rmdir($path);}else unlink($path);};
+$archive=$root.'/download.tar';
+$reject=static function(callable $action,string $code)use($check,$archive):void{try{$action();throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode===$code,$code);}$check(!file_exists($archive),'failed transfer leaves no archive');};
+$body=str_repeat('sample',512);$asset=['id'=>7,'name'=>'search-startpage.tar','state'=>'uploaded','size'=>strlen($body),'digest'=>'sha256:'.hash('sha256',$body)];
+$source=static fn(Closure $transport)=>new GitHubUpdateAsset('owner/repo','generated-token-marker',$transport);
+try{
+    $client=$source(function($url,$headers,$consume)use($asset,$check){$check($url==='https://api.github.com/repos/owner/repo/releases/8/assets?per_page=100&page=1','fixed release asset endpoint');$check(($headers['Authorization']??'')==='Bearer generated-token-marker','API authorization only header');$consume(json_encode([$asset+['browser_download_url'=>'https://evil.test/ignored']]));return ['status'=>200];});
+    $check($client->select(8)===$asset,'selected metadata excludes arbitrary URLs');
+    $calls=0;$client=$source(function($url,$headers,$consume)use(&$calls,$body,$check){++$calls;if($calls===1){$check($headers['Accept']==='application/octet-stream','binary API accept');return ['status'=>302,'location'=>'https://release-assets.githubusercontent.com/private/asset?signature=generated-marker'];}$check(!isset($headers['Authorization']),'redirect never receives token');foreach(str_split($body,113) as $chunk)$consume($chunk);return ['status'=>200];});
+    $result=$client->download($asset,$archive);$check($calls===2&&$result['sha256']===hash('sha256',$body)&&file_get_contents($archive)===$body,'redirect streams verified bytes');$check((fileperms($archive)&0777)===0600,'archive permissions private');unlink($archive);
+    $client=$source(function($url,$headers,$consume)use($body){$consume($body);return ['status'=>200];});$check($client->download($asset,$archive)['bytes']===strlen($body),'direct 200 supported');unlink($archive);
+    foreach(['http://release-assets.githubusercontent.com/a','https://evil.test/a','https://release-assets.githubusercontent.com.evil.test/a','https://user@release-assets.githubusercontent.com/a','https://release-assets.githubusercontent.com:443/a','https://release-assets.githubusercontent.com/a#fragment','https://release-assets.githubusercontent.com/a'."\n",'https://release-assets.githubusercontent.com\\@evil.test/a','/relative',null] as $url)$reject(fn()=>$source(fn()=>['status'=>302,'location'=>$url])->download($asset,$archive),'INVALID_UPDATE_REDIRECT');
+    $reject(fn()=>$source(fn()=>['status'=>302,'location'=>'https://objects.githubusercontent.com/a'])->download($asset,$archive),'UPDATE_SOURCE_UNAVAILABLE');
+    foreach([[404,'UPDATE_SOURCE_NOT_FOUND'],[429,'UPDATE_RATE_LIMITED'],[403,'UPDATE_RATE_LIMITED'],[500,'UPDATE_SOURCE_UNAVAILABLE']] as [$status,$code])$reject(fn()=>$source(fn()=>['status'=>$status,'remaining'=>'0'])->download($asset,$archive),$code);
+    foreach([substr($body,1),$body.'x'] as $value)$reject(fn()=>$source(function($u,$h,$consume)use($value){$consume($value);return ['status'=>200];})->download($asset,$archive),'UPDATE_ASSET_SIZE_MISMATCH');
+    $reject(fn()=>$source(function($u,$h,$consume)use($body){$consume('x'.substr($body,1));return ['status'=>200];})->download($asset,$archive),'UPDATE_ASSET_HASH_MISMATCH');
+    foreach([null,'sha256:bad','md5:'.str_repeat('a',64),'sha256:'.str_repeat('A',64)] as $digest)$reject(fn()=>$client->download(array_replace($asset,['digest'=>$digest]),$archive),'INVALID_UPDATE_ASSET');
+    foreach([0,1535,GitHubUpdateAsset::LIMIT+1,'3072'] as $size)$reject(fn()=>$client->download(array_replace($asset,['size'=>$size]),$archive),'INVALID_UPDATE_ASSET');
+    foreach(['{}','null','[null]','[{}]'] as $json)$reject(fn()=>$source(function($u,$h,$consume)use($json){$consume($json);return ['status'=>200];})->select(8),'INVALID_UPDATE_ASSET');
+    $reject(fn()=>$source(function($u,$h,$consume){$consume('[]');return ['status'=>200];})->select(8),'UPDATE_ASSET_NOT_FOUND');
+    $reject(fn()=>$source(function($u,$h,$consume)use($asset){$consume(json_encode([$asset,array_replace($asset,['id'=>9])]));return ['status'=>200];})->select(8),'AMBIGUOUS_UPDATE_ASSET');
+    $calls=0;$client=$source(function($u,$h,$consume)use(&$calls,$asset){++$calls;$rows=$calls===1?array_map(fn($id)=>['id'=>$id,'name'=>'other.tar'],range(10,109)):[$asset];$consume(json_encode($rows));return ['status'=>200];});$check($client->select(8)===$asset&&$calls===2,'asset pagination checks all pages');
+    $reject(fn()=>$source(function($u,$h,$consume)use($asset){$consume(json_encode([$asset,$asset]));return ['status'=>200];})->select(8),'INVALID_UPDATE_ASSET');
+    $reject(fn()=>$source(function($u,$h,$consume){$consume(str_repeat('x',2097153));return ['status'=>200];})->select(8),'INVALID_UPDATE_ASSET');
+    $page=0;$limited=$source(function($u,$h,$consume)use(&$page){++$page;$consume(json_encode(array_map(fn($id)=>['id'=>$page*100+$id,'name'=>'other.tar'],range(1,100))));return ['status'=>200];});$reject(fn()=>$limited->select(8),'UPDATE_ASSET_LIMIT');
+    $check($page===20,'pagination limit never returns partial result');
+    $sourceRoot=$root.'/source';mkdir($sourceRoot);foreach(['app','public','config'] as $dir)mkdir($sourceRoot.'/'.$dir);foreach(['VERSION'=>'1.0.0','app/autoload.php'=>'<?php','app/bootstrap.php'=>'<?php','public/index.php'=>'<?php','config/config.example.php'=>'<?php','README.md'=>'sample','composer.json'=>'{}'] as $path=>$value)file_put_contents($sourceRoot.'/'.$path,$value);
+    (new ReleasePackageBuilder())->build($sourceRoot,$root.'/built.tar');$body=file_get_contents($root.'/built.tar');$asset['size']=strlen($body);$asset['digest']='sha256:'.hash('sha256',$body);
+    $client=$source(function($url,$headers,$consume)use(&$body,&$asset){$consume(str_contains($url,'?')?json_encode([$asset]):$body);return ['status'=>200];});
+    $manifest=$client->prepare(8,'v1.0.0',$archive,$root.'/stage');$check($manifest['version']==='1.0.0'&&file_get_contents($root.'/stage/VERSION')==='1.0.0','download digest then package manifest stage integration');unlink($archive);
+    $reject(fn()=>$client->prepare(8,'v2.0.0',$archive,$root.'/bad-stage'),'INVALID_UPDATE_PACKAGE');$check(!file_exists($root.'/bad-stage'),'bad version never leaves stage');
+    file_put_contents($archive,'existing');try{$client->download($asset,$archive);throw new LogicException('overwrite');}catch(HttpException $e){$check($e->errorCode==='UPDATE_PACKAGE_EXISTS'&&file_get_contents($archive)==='existing','existing archive retained');}unlink($archive);
+    echo "$count asset checks passed.\n";
+}finally{$remove($root);}

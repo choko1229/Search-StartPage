@@ -1367,3 +1367,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 制限: 内部manifest/hashは内容整合の検証であり配布者署名ではない。対象GitHub source404とrepository質問は未解決。Download/外側digest/認証、stage一般PHPのlint/health検証の本番入口、ファイル/DB backup、Maintenance、Replace/Migrate/Health、Automatic/Manual Rollback、update_history/UI install operationは未実装。現在のコードをstageへ展開できたことを更新適用やRollbackの成功扱いにしない。
 
 次に実行すること: GitHub release assetの厳格な選択と固定HTTPS取得/redirect時の認証非転送・サイズ/digest検証へこのpackage契約を接続する。続いて一世代のfile/DB backupとファイル差替え・Migration・失敗/手動Rollbackを隔離環境で実証。Phase9旧残件（認証済み同期/地域、EN weather/upload、cleanup故障、旧管理者role操作承認待ち）を維持しゲートを閉じてから次Phaseへ進む。実OAuth/各browser/Glass/Extension/全DoD未達を維持。spec.md変更/stageなし、Goal未完成。
+
+## Phase9 GitHub配布物の取得・外側検証（2026-10-04）
+
+前ターン33646f7のpackage基盤から、progress/status/git/spec104〜109を確認して再開。ユーザーのlocalhost8099一時管理者許可は維持し、前回の更新画面確認・清掃は完了済み。今回新たな権限変更/プレビュー入口は作っていない。Phase9ゲート未達、10〜12/Version1.0未完成。
+
+実装: GitHubUpdateAssetが固定repo/release IDのasset一覧を100件/最大20pageで読み、公開名search-startpage.tar完全一致の候補1件を選択。uploaded/size上限/SHA-256 digest必須、重複ID/候補/破損schema/部分paginationを拒否。cURLのTLS確認/timeout/低速制限/metadata・header上限、200 binaryと302 CDN転送1回を追加。転送は固定2GitHub CDN hostのHTTPSのみ、Token非転送、任意URL/port/fragment/userinfo/control/backslash拒否。新規private archiveへstream、正確size+外側hash、失敗file削除、既存file非上書き。prepareで取得→UpdatePackage manifest/stage検証へ接続、stage検証失敗時archiveも清掃。Controller/DB/Migration/config実値/UI変更なし。公式GitHub Assets APIを確認しdocs/update-package.mdに公開名/必要curl/digest/契約/範囲/出典を記録。
+
+検証1: 両PHP追加3file構文成功。初回asset78成功、追加pagination上限試験の参照変数がarrow closureへ値captureされ観測だけ失敗したため、client生成を外へ出して修正。最終asset各85成功、200/302/非転送/size/hash/不正redirect/全page/上限/既存file保持/失敗清掃/生成packageの取得→stage→VERSIONまで成功。生成/tmpだけfinally清掃。
+検証2: 両隔離専用www-dataでpackage63/releases45/update-checks39/基盤40を成功。最終各test exit codeも確認。新Migrationなし、全16Installer既存証拠維持。既存app/DB/volume/workerを再作成していない、追加service/testsだけcopy。
+検証3: 両実cURL/TLSから公式公開サンプルoctocat/Hello-Worldの存在しないrelease IDへ読み取りGET、安全なUPDATE_SOURCE_NOT_FOUNDを確認。URL/body/tokenは結果へ出力なし。実通信試験の1行outputを全文で再確認して成功証拠を確定。対象repoの実asset/私設Token認証/CDN実binary成功には数えない。git diff --check確認。
+
+制限: 対象GitHub source404とrepo質問は未解決。SHA-256は信頼するGitHub metadataとの整合性で独立署名ではない。管理UIの取得操作/一般stagePHP lint-health入口/backup/maintenance/replace/migration/health/自動・手動Rollback/update_history未実装。成功archive/stageは後続Updaterが管理するprivate作業物。Phase9旧残件と実OAuth/各browser/Glass/Extension/最終DoDも未達のまま。
+
+次に実行すること: 一世代のfile/DB backupとmaintenance/差替え/Migration/health/失敗復元・手動Rollbackを隔離環境で実装・実証し、管理UI操作と監査へ接続する。必要に応じ取得物stageの一般PHP lintとhealthを前段に追加。対象GitHub回答があれば実認証/実asset再確認。Phase9認証済み同期/地域・EN weather/upload・cleanup故障、旧roles実UI承認待ち、Glass仕上げ等を維持。ゲート確認前にPhase10完了扱いなし、spec.md変更/stageなし、Goal未完成。
