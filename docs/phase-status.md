@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 定期実行worker（2026-10-04）
+
+- Files: bin/update-execution-worker.php、tests/update-execution-worker.php、docs/update-execution-worker.md。親はアプリをautoloadせず、毎回固定run-update.phpを新しいPHP子として起動。5秒間隔/失敗時30秒、singleton private lock、子の診断出力非公開、更新中のtimeout強制終了なし。
+- DB/API/UI: 変更なし。サービス配置と管理操作はまだ未接続。通常開発DB/受付/既存workerへ実行していない。
+- Tests1: MySQL側/tmp使い捨て配置で12成功。置換した子コードの次回読込み、大量出力と秘密非公開、二重起動/失敗/入口欠落/入力/symlink拒否。
+- Tests2: MariaDB側の別/tmp配置で12成功、新worker/試験PHP構文成功。DBを用いない試験であり両DBでの実更新の証拠にしない。
+- Tests3: MySQL側再実行12成功、session73351終了exit0。git diff --check成功。spec.md非変更、Secret非記録。
+- Issues/Security: 同じliveコードとconfig/storageを共有する実行サービス配置が必要。readonlyの通常環境は権限を変更しない。定期workerの候補互換性、実Engine自動処理、Web OPcache、実画面は未検証。
+- Next: 実配布物/互換性への接続、隔離Apache/FPMで実HTTP受付から自動適用/復元、管理UIとPhase9旧残ゲートを確認。Phase9未完了/Phase10正式移行前/Version1.0未完成。
+
 ## Phase9 管理HTTP受付と実行状態（2026-10-04）
 
 Phase9未完了/Phase10正式移行前/Version1.0未完成。管理POST/APIの受付まで接続した。ブラウザの実行ボタン・定期起動・Apache/FPM OPcache検証はまだ残る。

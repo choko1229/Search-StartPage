@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・定期実行worker）
+
+前のGoalターンは管理HTTP受付のローカル保存b57efccによる進捗。今回はbin/update-execution-worker.phpを追加した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+固定run-update.phpを新しいPHP CLI子から5秒間隔で起動し、失敗時は30秒待つ。親はアプリclass/configを読まないため更新後の子が現在コードを読む。private singleton lock、固定引数配列、子stdout/stderrの非保存・非公開、更新中の子をtimeoutで殺さない方式。DBや既存Runner/Engineの契約は変更なし。docs/update-execution-worker.mdに同じ書込み可能なlive配置・サービス管理の要件を記録。
+
+検証1: MySQL開発コンテナ内の/tmp使い捨て配置で12成功。新コードへの子切替、大量出力の排水/秘密非出力、private lock/二重起動拒否、子exit7、入口欠落、入力/非test cycles/symlink拒否。正常アプリのrun-update.phpや受付/DBは使っていない。
+検証2: MariaDB開発コンテナの独立/tmp配置で同じ12成功。新worker/試験PHP構文成功。これはDB更新の検証ではない。
+検証3: MySQL側を再実行して12成功、session73351の終了exit0確認。初回495c2dもexit0、git diff --check成功。通常app/config/DB/worker変更なし。spec.md非変更。
+
+次に実行すること:
+1. 定期workerを候補互換性/実配布物に組み込み、使い捨て配置で実HTTP受付から自動更新・復元を確認する。現在の12テストの子はfixtureであり実Engine接続成功の証拠ではない。
+2. 同じlive配置を共有するサービス起動設定、Apache/FPM OPcache刷新と実新PHPのHTTP切替/停止復帰を隔離書込み可能配置で検証する。通常readonly配置の権限は変えない。
+3. 管理実行ボタン/状態再確認の日英/mobile/Console、Phase9旧ゲート残件を閉じる。Phase11〜12、実OAuth/GitHub/Glass仕上げ/全DoDは未達。
+
 ## 最新の再開地点（2026-10-04・管理HTTP受付）
 
 前のGoalターンはe4061f6の手動復元修正・両DB検証・清掃・ローカル保存による進捗。今回は管理受付を接続した。Phase9未完了、Phase10正式移行前、Version1.0未完成。

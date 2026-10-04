@@ -1,0 +1,9 @@
+# 更新受付の定期実行
+
+`php bin/update-execution-worker.php` は、5秒間隔で固定の `bin/run-update.php` を新しいPHP CLIプロセスから呼び出す。失敗時は30秒待って再試行する。受付・管理権限の再確認と中断回復は既存UpdateRunnerが担当する。HTTPから子プロセスを直接起動する必要はない。HTTP処理中ならEngineの既存アクセス排他が通常リクエストの終了を待つ。
+
+このworker自身はアプリのクラスやconfigを読み込まない。更新・復元後も次の子プロセスが現在のPHPコードを読む。storageのprivate lockで同じ配置の二重起動を拒否する。子の出力は保存・公開せず、時刻と固定のfinished/failedだけを出力する。更新中の子を時間制限で強制終了しない。
+
+常駐にはサービスマネージャーを使用し、workerと子の両方が同じ書込み可能なアプリ配置とconfig/storageを参照するよう設定する。異なるイメージ内のコードを使うworkerを、storageだけ共有して配置しない。既存のmetadata確認専用Docker overlayは実行workerには使わない。アプリを更新できる実行ユーザーが必要であり、通常のreadonly開発配置の権限を変更して試すことはしない。
+
+Web側のOPcache刷新、Apache/FPMを含む実更新、サービスの自動起動設定、管理画面の実行ボタンは別途検証が必要。このworkerの単体検証だけでは本番更新・Phase10完成を証明しない。liveコードが壊れた場合はprivate rescueで復旧する手順を維持する。
