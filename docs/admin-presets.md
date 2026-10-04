@@ -8,10 +8,16 @@ GET/POST `/api/admin/presets` は管理者権限が必須。POSTはCSRFと、GET
 
 Migration015はsite_settingsのprovider_presets行を初期作成し、設定と監査contextの列をMEDIUMTEXTへ拡張する。再実行で管理者の編集を初期化しない。downは空の隔離DB検証用で、大きな設定・監査記録をTEXTへ切り詰める必要がある場合には停止する。UpdaterのRollbackからdownを実行しない。
 
-変更前後とactor/versionを`PROVIDER_PRESETS_CHANGED`としてDB transaction内に記録し、監査fileへの配送を行う。通常POSTではfile配送失敗時もDBの監査を保持する。private storage/presetsの0600スナップショットは排他・原子的置換を使い、更新前の失効で古い初期値の再利用を防ぐ。スナップショットがあると通常ホームはDBへアクセスしない。読み取り不能時はDBから再取得し、取得もできない場合は同梱初期値で端末検索を維持する。無効・破損キャッシュや実DB停止の網羅検証は残る。
+変更前後とactor/versionを`PROVIDER_PRESETS_CHANGED`としてDB transaction内に記録し、監査fileへの配送を行う。通常POSTではfile配送失敗時もDBの監査を保持する。private storage/presetsの0600スナップショットは排他・原子的置換を使い、更新前の失効で古い初期値の再利用を防ぐ。スナップショットがあるとプリセット取得はDBへアクセスしない。読み取り不能時はDBから再取得し、取得もできない場合は同梱初期値で端末検索を維持する。
 
 GET `/api/provider-presets`とホームbootstrapへ現在の公開初期値を供給する。独自の端末・クラウド一覧が保存されている場合は上書きしない。利用者の検索設定には、保存済み一覧に存在しないプリセットを明示的に追加する選択欄を追加した。追加時はID/Prefixの衝突を拒否し、既存項目を保持して有効な追加項目を末尾に置く。最新初期値の反映にはページ再読込が必要。新しく追加したプリセットのIDは匿名統計ではcustom分類となり、管理者が付けた名前やURLはイベントに送らない。
 
 検証: 新規MySQL8/MariaDB10.11専用環境8097/8098で全15Migrationのup/repeat/down/Web Installer再up各40成功。管理権限/CSRF/validation/CAS/公開bootstrap/日英HTML/Escape/同期schema/監査/大きなカタログと監査/キャッシュのAPI・DB各36成功。Nodeで保存済み一覧の保持/明示追加/衝突拒否/同期互換、検索23/sync-data28成功。両DB回帰とPHP175成功。実管理者のブラウザ保存/追加/削除/mobile/Console、利用者のプリセット追加、実Extension反映は未確認。
 
 2026-10-04 実UI追加検証: JA追加/EN変更・削除/reload保持、JA/EN390px/Console0、利用者保存済み一覧の保持と新presetの明示追加を確認。追加欄のカテゴリと管理フォーム配置を修正。実OAuth/全browser/Extension/クラウド端末共有は未確認。
+
+2026-10-04 障害検証: `tests/run-preset-outage.ps1` は新しい専用DBと専用名前付きvolumeを各回作り、MySQL8/MariaDB10.11で各3回、PHP試験31項目（prepare14/outage10/recovered7）と基盤40を成功させた。全17Migrationのfresh/repeat、生成カタログ/監査、破損JSONと無効schemaのキャッシュからDBで修復/private権限を確認。実Docker DB stopでPDO接続失敗を確認し、実PHP HTTP経由の公開APIとホームで保存済みキャッシュの維持、欠落/破損キャッシュでは同梱初期値、初期値を管理設定へ永続化しないことを確認。DB start後に編集済みカタログ/監査1件を保持し、キャッシュ再生成とホーム反映、Warning/SQLSTATE/Stack Trace非公開を確認した。
+
+初回tmpfs配置はコンテナ停止でDBデータを失い復旧確認に失敗。DB停止中の保持を検査するため専用名前付きvolumeへ変更し、全3回をやり直した。通常DBの停止やブラウザ操作は行わず、生成カタログはRepository経由のfixtureで設定する。権限付き管理画面の操作証明とは区別する。各finallyで作成したapp/配置一致を確認したDB/生成ラベル一致のvolumeを除去する。公開port/host bind mountなし、設定と生成passwordはGitへ保存しない。
+
+未確認: この障害中の実ブラウザ操作、多数の同時編集、実Extension/クラウド端末共有、全browser。今回の公開API/ホーム試験をこれらの成功へ拡張しない。

@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## Phase9 プリセット破損と実DB停止/復旧（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン76b37cfは静的サービス検証の進捗。
+- Files: tests/preset-outage.php、tests/run-preset-outage.ps1、docs/admin-presets.md/phase9-gate.md。製品コード/schema/API/UI変更なし。CLI/testmode/固定root/host/marker/configなし/空schema、生成一般authorとRepository fixture。
+- 検証1〜3: 新しい専用MySQL8/MariaDB10.11+専用名前付きvolumeで各3回31項目/基盤40/PHP構文成功（84290 exit0）、fresh全17/repeat。破損JSON/無効schemaからcache修復、実DB stop/PDO失敗、実HTTP公開API/homeで温cache保持・欠落/破損時fallback・初期値非永続化、start後catalog/監査保持・cache再生成・診断非公開。初回17921はtmpfs停止でデータが消え復旧失敗。volumeへ変更し全3回を再実行。
+- Security/清掃: 公開port/host bind mountなし、生成password非保存。finallyで作成app/mount一致DB/label一致volumeを除去。通常DB/user権限/config/worker非変更、Secret/spec.md非保存、ブラウザレビュー停止の再試行/回避なし。
+- Limits/Next: 管理画面の権限操作や障害中実ブラウザ/大量同時編集/Extension/cloud共有を確認済みとしない。専用同期UI/サービス運用/実配布元/Glass/全browser/Phase11〜12/全DoDを継続。
+- 最終: 専用container prefix/生成volume label一覧空。PowerShell parser/git diff --check成功、spec.md非stage、push/本番公開/再起動なし。
+
 ## Phase9 更新サービス設定の静的検証（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。ブラウザ上限から独立した検査を実施。

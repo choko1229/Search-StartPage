@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・プリセット破損と実DB停止/復旧）
+
+前ターン76b37cfはサービス設定静的検証の進捗。今回はPhase9 Presets残件のcache破損/実DB障害を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+Files: tests/preset-outage.php、tests/run-preset-outage.ps1追加。docs/admin-presets.md/phase9-gate.md更新。製品コード/DB schema/API/UI変更なし。専用固定host/CLI/testmode/固定tmp root/marker/configなし/空schemaから、生成author一般userとRepository経由のカタログfixtureを作る。管理者権限や実管理画面操作の証明ではない。
+
+検証1〜3: 新しい専用MySQL8/MariaDB10.11と専用volumeを各回作り、各3回31項目（prepare14/outage10/recovered7）/基盤40/PHP構文成功（84290 exit0）。fresh全17/repeat。破損JSON/無効schemaをDBから修復・private cache、実DB stop/PDO失敗、公開API/homeの温cache保持・欠落/破損時の同梱初期値・初期値非永続化、start後の編集catalog/監査1件保持・cache再生成・home反映・診断非公開。最初17921はtmpfsがstopで消え復旧確認失敗。専用volumeへ変更して全3回再実行した。
+
+Security/清掃: no host ports/no host bind mount/生成password、専用volumeは新規作成・既存名拒否。finallyで専用app、実mount一致のDB、生成label一致のvolumeを除去。通常8099/8100/DB/users/権限/config/worker非変更、Secret/spec.md非保存。ブラウザレビュー停止への再試行/回避なし。GitHub APIのweb tool再照合はアクセス不可だっただけで、今回404の再確認とは扱わない。
+
+次に実行すること:
+1. ブラウザレビュー上限解消を確認できたらdocs/admin-sync-ui.mdから専用同期UIを再準備し、A→B→A/初回cloud選択/停止復旧/過去警告因果を実画面で照合する。未解消のnavigationを無断反復・別経路回避しない。
+2. Phase9残ゲートと仕様の対応を照合。プリセットのcache破損/実DB停止の公開API/home限定範囲は確認済み。障害中browser/大量同時編集/Extension/cloud共有は未確認。サービスboot/restart/manager stop/長時間運用は隔離Linux manager環境が必要。
+3. Phase9完了条件を確定してからPhase10正式移行。実GitHub/OAuth/OS chooser/Glass/全browser/Phase11〜12/全DoD未達を保持。
+
+最終確認: 専用container prefix一覧/生成volume label一覧とも空。PowerShell parser/git diff --check成功。spec.mdだけを未追跡のまま保持し、試験と記録だけをコミットする。push/本番公開/再起動なし。
+
 ## 最新の再開地点（2026-10-04・更新サービス設定の静的検証）
 
 前ターン926297cは専用同期UI準備/API確認とブラウザレビュー利用上限停止・清掃。今回は独立したサービス設定の静的検証を進めた。Phase9進行中、Phase10正式移行前、Version1.0未完成。
