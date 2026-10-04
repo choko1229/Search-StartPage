@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## Phase9 独立2保存領域の同期UI準備（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。専用環境準備/API検証の進捗、ブラウザ操作はレビュー利用上限で未実行。
+- Files: tests/admin-sync-ui-development.php、tests/run-admin-sync-ui.ps1、docs/admin-sync-ui.md。製品コード/schema/API/UI変更なし。CLI/testmode/固定専用host/marker/configなし/空schema、生成owner1/admin/device2。
+- 検証1〜3: 両専用DB fresh全17/repeat、sync17/基盤40各3回成功（33177 exit0）。権限/CSRF/所有者/CAS/入力/競合を確認。新PHP構文成功、準備後device2/cloud0。APIをUIの代替成功にしない。
+- Issues: 最初の専用host navigationは自動承認レビューの利用上限で拒否され操作未実行。安全性否認とは区別。別browser/raw commands/直接通信で同じ結果を回避しない。往復UI/初回cloud選択/停止復旧/Console/mobile/過去警告因果とhelperのpolicy切替は未実行。途中の空tab有無も未確認。
+- 清掃/Security: tmpfs512MiB確認後専用app2/DB2除去/prefix空。生成user/admin/device/config/入口清掃。Secret/spec.md非保存、通常DB/users/権限/worker非変更。
+- Next: レビュー上限解消後に専用環境を再準備してUI確認。独立したサービス運用等の未達作業は継続でき、Goal全体のblocked判定は行わない。Phase11〜12/全DoD未達。
+
 ## Phase9 管理者権限の実画面確認（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前Goalターンe120f36はFPM実HTTP/Engine検証の進捗。

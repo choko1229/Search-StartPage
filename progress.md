@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・2保存領域の同期UI準備とレビュー上限）
+
+前Goalターンは専用同期環境の準備とAPI検証による進捗。今回はブラウザ操作の利用上限停止を受けて清掃・保存。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+Files: tests/admin-sync-ui-development.php、tests/run-admin-sync-ui.ps1、docs/admin-sync-ui.md追加。固定専用host/CLI/testmode/marker/configなし/空schema、生成owner1/admin/device2。専用host名でCookie/IndexedDBを分離する準備。製品コード/schema/API/UI変更なし。
+
+検証1〜3: 専用MySQL8/MariaDB10.11で全17Migration fresh/repeat、sync17/基盤40を各3回成功（33177 exit0）。権限/CSRF/入力/所有者分離/CAS成功・409競合、両owner保持を確認。新PHP構文成功。最後のobserveは両device2/cloud_version0/公開地域一致false。これはAPI/準備の証拠で、UI成功ではない。
+
+ブロック変化: sync-a-mysql.localhost:8111への最初のbrowser navigationが自動承認レビューの利用上限で拒否。レビュー失敗であり安全性の否認ではない。操作未実行、別browser/raw command/直接通信で同じUI結果を回避しない。実画面往復・初回cloud選択・停止復旧・Console・レスポンシブ・過去警告因果は未確認。helper stop-sync/start-syncも今回未実行。作成途中の空tab有無は未確認、既存ユーザーtabを操作していない。
+
+清掃: 専用DBのtmpfs512MiBを確認してapp2/DB2除去、最終prefix空。生成user/admin/device/config/test login入口清掃。通常8099/8100/DB/user権限/worker非変更、Secret/spec.md非保存、push/本番公開/再起動なし。
+
+次に実行すること:
+1. ブラウザレビュー上限が解消した状態で、docs/admin-sync-ui.mdの専用環境を再準備し、A→B→Aの実UI同期と停止復旧を確認する。今回のnavigationを無断反復・別経路で回避しない。
+2. その間は独立したサービス運用等の未達を進める。systemd boot/stop/restart/長時間運用・実配布元等を可能な範囲で確認し、環境依存を最終監査へ追跡する。
+3. Phase9合格後にPhase10正式移行。実OAuth/OS chooser/Glass/全browser/Phase11〜12/全DoD未達を保持。Goal全体が今回のUI上限だけでimpasseになったとは扱わない。
+
 ## 最新の再開地点（2026-10-04・管理者権限の実画面）
 
 前Goalターンe120f36はFPM実HTTP/Engine更新検証・保存による進捗。今回はPhase9旧roles実UI残件を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
