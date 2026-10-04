@@ -23,7 +23,9 @@ docker compose -f compose.yaml -f docker/log-maintenance.compose.yaml --profile 
 
 稼働と成功/失敗は `docker compose -f compose.yaml -f docker/log-maintenance.compose.yaml logs logs-mysql logs-mariadb` で確認します。停止は同じ構成の `stop logs-mysql logs-mariadb` を使います。`unless-stopped`でDocker起動時にも再開しますが、Docker自体が停止している間は実行されません。2026-10-04の隔離MySQL/MariaDB環境では両workerの稼働と初回成功、短い間隔での実2回実行を確認しています。本番ホストへの配置やWindowsタスクの登録はしていません。
 
-通常のサーバーで既存の定期実行機能を使う場合は、`php bin/cleanup-logs.php` を毎日実行する方法も維持しています。常駐workerでは `--interval=86400 --retry=3600` を指定でき、通常環境の最短間隔は60秒です。有限回数の `--cycles` と60秒未満の間隔は `SEARCH_TEST_MODE=1` に限定します。実際のDB故障を起こしてworkerの1時間後の再試行まで待つ試験は未実行で、失敗/復旧のタイミングはLogScheduleの検証です。
+通常のサーバーで既存の定期実行機能を使う場合は、`php bin/cleanup-logs.php` を毎日実行する方法も維持しています。常駐workerでは `--interval=86400 --retry=3600` を指定でき、通常環境の最短間隔は60秒です。有限回数の `--cycles` と60秒未満の間隔は `SEARCH_TEST_MODE=1` に限定します。
+
+`tests/log-maintenance-outage.php` は専用tmpfs DB・新規一時配置に限定した実process試験です。接続先を一時的に到達不能なloopback portへ切り替え、本物のPDO接続失敗後に設定を原子的に戻します。同じ常駐workerが2秒後に再試行し、期限切れDB/file整理・未配送記録の一度だけの取込み・最近の記録と非ゼロ統計の保持・秘密非出力を確認します。`--file-lock-outage` はログlockを一時symlinkにして実整理を失敗させ、リンク先を変更せず拒否し、修復後に同じworkerが完了することを確認します。DB整理済みでもfile整理が失敗する場合は、次回の冪等処理で残ったfileを整理します。接続試験はDBサーバー停止ではなく接続障害、file試験はunsafe lockでありdisk fullの証明ではありません。実際の1時間待機、本番配置、disk full、OS権限障害は未確認です。
 
 監査ファイルの配送が失敗しても、設定とDB監査の保存は維持します。ファイル配送は再試行され、監査IDで同じ操作を識別できます。配送直後のプロセス中断などでファイルに重複行ができる場合がありますが、管理画面のDB記録は1件です。
 

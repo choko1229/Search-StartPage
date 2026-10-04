@@ -11,11 +11,11 @@
 | Presets | 両DB36、日英実追加/編集/削除/reload/390px、ユーザー明示追加と独自一覧保持、全15/16Installer | cache破損/実DB障害/大量同時編集、実Extensionとcloud共有は未確認 |
 | Feature Flags / Limits | 両DB policy29、サーバー停止/権限/CSRF/CAS、日英管理UI、JA保存とEN容量保存。実クラウド同期停止・再開、JA/EN account停止理由、EN account復旧。JA upload停止中に端末保存→再開でクラウド1件到着。JA weather停止理由→再開後POST200/理由解除 | weather/uploadのEN停止実UI、地域保存中の一過性保存警告の原因、全browserは残る |
 | Maintenance | サーバー全面停止・管理者通常利用・API保護の既存検証、日英画面 | 全ブラウザ検証とUpdaterとの連携は未確認 |
-| Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBで24時間workerを起動し稼働/初回成功、実2cycle/期限整理/統計保持/二重起動拒否、失敗再試行の時系列試験 | 本番ホストは未配置、実DB障害からworker再試行を待つ試験と実Updater categoryの発生経路は未実装 |
+| Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBの実2cycle/二重起動拒否。実PDO接続失敗→同じworkerの2秒後再試行/復旧を各3回、unsafe file lock失敗→修復/再試行を各3回確認。期限整理・pending一度配送・最近のログ/非ゼロ統計保持・秘密非出力 | 本番ホスト未配置。実1時間待機、DBサーバー停止、disk full/OS権限障害は別の未確認。実Updater category発生経路の監査を継続 |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |
 | Statistics 実操作 | localhost専用DBへWeb/AI/favorite/Palette操作を保存。通常UIから生成背景2件保存に対応するfeature background2を観測 | 実Discord認証の同期、実外部preset分類、未配信イベントの端末上のACK確認は未確認 |
-| Update Management | VERSIONは0.1.0-dev、Release取得/4channel選択44項目。管理者画面/API/CSRF手動確認/チャンネル保存/監査/通知/期限cache、両環境39+31。日英実操作/390幅/Console0。専用Docker両worker稼働・初回取得失敗/1h再試行予定、二重起動拒否。公開サンプル実API0件成功、対象source404は未確認として保持 | 対象repoアクセス、実24h経過/本番worker配置、Download/Verify/Backup/Maintenance/Replace/Migrate/Verify/Rollbackは未達。確認機能だけでUpdater完成にしない |
-| DB / Regression | 独立MySQL8099/MariaDB8100で全16up/repeat/down/Installer各40、PHP180、管理者/認証/背景/同期等の回帰 | 新しいMigrationが増えたら新規環境で再確認 |
+| Update Management | Release取得/4channel選択と管理者check/API/CSRF/監査/通知。両DBで実配布物/検査/backup/file+DB置換/Migration/health/自動・手動復元/ユーザー変更保持/中断rescue/安全停止、専用Apache変更PHP反映を確認。管理画面からMySQL実更新・復元、JP/EN取消・確定/390px/Console0、worker停止時無効化を確認 | 対象repo404/実GitHub取得、FPM/複数pool、サービスboot/restart/長時間運用、本番配置、全browser/実MariaDBブラウザ操作は未確認。Phase10正式移行前 |
+| DB / Regression | 両DB全17Migration fresh/repeat/往復、Installer各40、最新配布物PHP160構文。今回のログ障害試験は両専用DBでfresh17/repeatと基盤40・scheduleを各3回確認 | 新しいMigrationが増えたら新規環境で再確認。実ブラウザの未確認は上記各行を参照 |
 
 ## 匿名統計の実ブラウザ証拠
 

@@ -1,4 +1,15 @@
 # 実装と検証の記録
+## Phase9 ログ整理の実接続・ファイル障害からの再試行（2026-10-04）
+
+- 状態: Phase9進行中、Phase10正式移行前、Version1.0未完成。前ターンは進捗報告のみ。管理実行UIを306f9a8へローカル保存後、古いログ整理故障ゲートを実processで検証。
+- 実装/ファイル: tests/log-maintenance-outage.php追加。固定専用DB host/新規tmp配置/marker/既存configなし/testmodeに限定し、実常駐CLIへ接続。製品コード/DB schema/API/UI変更なし。
+- DB: MySQL8/MariaDB10.11専用tmpfs512m/no host port、空schemaに全17Migration適用・再実行。通常DB/ユーザー/設定/workerを変更しない。
+- 検証1: 両DB接続障害17項目・schedule・基盤40を各3回成功。loopback port1で本物のPDO失敗を観測し、config原子復旧後に同じPIDが実2秒待機から再試行、成功時通常interval5へ復帰。これはDBサーバー停止/実1時間待機ではない。
+- 検証2: 両DBunsafe file lock19項目・schedule・基盤40を各3回成功。symlink lock拒否、target保持、修復後同じPIDが残ったfile整理とpending配送を完了。DB整理済みの後のfile障害は次回の冪等処理で完了。disk full/OS権限障害の代用証明にはしない。
+- 検証3/清掃: 最終ソースの接続障害17/schedule/基盤40を両DBで再確認。85720/21902/93091すべてexit0、初回37863の公開providers設定不足は清掃して修正。専用appとtmpfs確認済みexact2 DB除去、最終prefix一覧空。PHP構文/git diff --check成功。Secret/spec.mdをGitへ保存しない。
+- Security: 期限切れ削除/最近のDB・file保持/非ゼロ統計保持、pending1件の重複なし、worker例外詳細/資格情報/SQLSTATEの非出力。通常HTTP/OAuth/ブラウザ操作は今回は変更・検証しない。
+- Issues/次Phase: EN weather/upload、認証済み同期/地域、旧roles実UI等を継続。更新/復元の古い未接続記録は最新管理UI/Engine証拠へ訂正。実外部連携/FPM/systemd/全browser/Phase11〜12/全DoD未達。
+
 ## Phase9 管理実行UIのブラウザ適用・復元（2026-10-04）
 
 - Files: UpdateRequests.worker_ready、admin-update View/forms/dialog、admin-updates.js、日英/CSS、準備状態試験、隔離UIのCLI fixture、docs/update-management-ui.md。
@@ -92,7 +103,7 @@ Phase9未完了、Phase10正式移行前、Version1.0未完成。新しいDB比�
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
 | 9 | Admin | 進行中（管理基盤・一覧・メンテナンス・ログ収集/保持・機能制御/動的制限を実装、残る管理機能とUI検証を継続） |
-| 10 | Updater | 正式移行前。Phase9共通の更新/復元をCLIと専用Apache・両DB・変更PHP表示で検証。管理操作・実配布元・FPM・サービス運用が残る |
+| 10 | Updater | 正式移行前。更新/復元を両DB・専用Apacheで検証、MySQL管理画面の実操作も確認。実配布元・FPM・サービス運用等が残る |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
 

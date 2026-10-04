@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・ログ整理障害からの実再試行）
+
+前ターンは進捗報告のみで機能進捗なし。管理実行UIを306f9a8にローカル保存し、Phase9旧ゲートのcleanup故障へ進んだ。今回tests/log-maintenance-outage.phpを追加し、製品CLIを別processで起動する実接続障害/unsafe file lock故障・修復後の再試行を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+検証1: 専用MySQL8/MariaDB10.11・新規tmp配置で接続障害17項目/schedule/基盤40を各3回成功（85720 exit0）。PDOの到達不能なloopback port1への接続を実失敗させ、同じPID/2秒の実待機/原子config復旧/成功時interval5を確認。初回37863は公開config/providers.phpコピー不足でMigration015が失敗しfinally清掃。コピー追加後にfresh全17Migration成功、失敗を成功扱いにしない。
+検証2: 両DBunsafe file lock19項目/schedule/基盤40を各3回成功（21902 exit0）。symlink lockを拒否してtargetを非変更、修復後同じPIDがfile整理・pending配送まで完了。DB整理の後のfile失敗は次回の冪等処理で完了。最近のDB/file・非ゼロ統計保持、pending1件の重複なし、Secret/例外message/SQLSTATE非出力。
+検証3: file故障モード追加後の最終ソースの接続障害17/schedule/基盤40を両DBで再確認（93091 exit0）、PHP構文成功、全17repeat成功。UI/JS/API/製品コード/schema変更なし。今回は実OAuth/browser/全installerを再検証していない。
+
+清掃: 各harness finallyが専用appを除去、専用exact2 DBのHostConfig tmpfs rw,size=512m確認後に除去。最終docker ps -aのsearch-log-retry-prefix一致は空。新規root内のconfig/ログ/生成記録/worker全清掃、通常8099/8100/DB/ユーザー/権限/worker非変更。spec.md非変更・非stage。docs/phase9-gate.mdの古いUpdater未接続/16Migration表記を最新証拠へ修正。
+
+範囲: DBサーバー停止ではなく実接続障害。file故障はunsafe lockで、disk full/OS権限障害とは別。2秒の実再試行とLogSchedule既存の3600秒計算を確認したが、実1時間待機/本番配置を合格にしない。
+
+次に実行すること:
+1. Phase9旧ゲートの認証済み同期/地域、EN weather/upload、旧roles実UIを最新証拠と照合し、可能な隔離検証で閉じる。ログ故障は今回の接続/file lock範囲を証拠として採用し、残る故障種別を最終監査へ追跡。
+2. 更新側FPM/複数pool・systemd boot/stop/restart/長時間運用と実GitHub取得を継続。通常readonly環境へ実行workerを起動しない。
+3. Phase9合格後にPhase10正式移行。実OAuth/Glass仕上げ/全browser/Phase11〜12/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・管理実行UI）
 
 前のGoalターンはe0202c3の停止worker実装/両DB実Engine停止/保存による進捗。今回は管理実行UIを接続し、専用MySQL/Apache/IABで実更新・復元まで確認。Phase9未完了、Phase10正式移行前、Version1.0未完成。
