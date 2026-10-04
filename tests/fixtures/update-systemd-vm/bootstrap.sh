@@ -16,7 +16,7 @@ Description=Disposable VM boot verification
 After=search-update-execution.service
 ConditionPathExists=/srv/search-startpage/storage/verify-second-boot
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/usr/bin/php /srv/search-startpage/tests/update-systemd-manager.php
 StandardOutput=tty
 StandardError=tty
