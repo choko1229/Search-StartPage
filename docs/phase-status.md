@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase9 更新サービス設定の静的検証（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。ブラウザ上限から独立した検査を実施。
+- Files: tests/fixtures/update-systemd/Dockerfile、tests/update-systemd-unit.php、tests/run-update-systemd.ps1、docs/update-execution-service.md。製品worker/unit/DB/API/UI変更なし。
+- 検証1〜3: PHP8.3/Debian Bookwormでsystemd-analyzeの静的9項目/既存実プロセス25項目をwww-dataで各3回成功（64678 exit0）。欠落実行ファイル/無効Type/不明設定名の負例、実child完了待ち/次処理抑止/待機中停止/restart/制御破損拒否。初回はコピー権限警告で失敗、0644へ直し全3回再実行。PHP構文/PowerShell parser成功。
+- Security/清掃: network none/no ports/no DB/no host mount/cap-drop ALL/no-new-privileges、公開unit/worker/試験のみcopy、PID1 sleep・manager起動なし・host登録なし。finallyで専用コンテナ除去。通常環境/Secret/spec.md非変更。
+- Limits/Next: 実enable/OS boot/manager restart/manager stop（ExecStop失敗を含む）/長時間運用は未確認。静的検査は運用動作の証明ではない。ブラウザreview上限未解消・再試行/回避なし。専用同期UI/実配布元/Glass/全browser/Phase11〜12/全DoD未達を継続。
+
 ## Phase9 独立2保存領域の同期UI準備（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。専用環境準備/API検証の進捗、ブラウザ操作はレビュー利用上限で未実行。

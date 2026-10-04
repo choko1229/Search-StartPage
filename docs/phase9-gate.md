@@ -17,6 +17,8 @@
 | Update Management | Release取得/4channel選択と管理者check/API/CSRF/監査/通知。両DBで実配布物/検査/backup/file+DB置換/Migration/health/自動・手動復元/ユーザー変更保持/中断rescue/安全停止、専用Apache変更PHP反映を確認。MySQL管理画面の実更新・復元、日英/390px/Console0。PHP8.2/8.3の独立2 FPM master・各2 childでcache刷新/復元を各3回22項目。PHP8.3/Nginxの実HTTP受付→worker/Engine/両DB更新→新PHP→復元/旧PHPも各3回24項目確認（docs/update-fpm-http.md） | 対象repo404/実GitHub取得、独立複数FPM masterでの実DB更新、サービスboot/restart/長時間運用、本番配置、全browser/実MariaDBブラウザ操作は未確認。Phase10正式移行前 |
 | DB / Regression | 両DB全17Migration fresh/repeat/往復、Installer各40、最新配布物PHP160構文。今回のログ障害試験は両専用DBでfresh17/repeatと基盤40・scheduleを各3回確認 | 新しいMigrationが増えたら新規環境で再確認。実ブラウザの未確認は上記各行を参照 |
 
+2026-10-04サービス設定追記: 出荷unitを専用PHP8.3/Debian Bookwormのsystemd-analyzeで診断なしと確認。欠落実行ファイル/無効Type/不明設定名の負例を含む静的9項目と、既存CLI実プロセス25項目を各3回成功。Windowsコピーの実行権限警告を0644へ修正して全3回再検証。managerは起動せず、実enable/boot/restart/manager stop/長時間運用は上表の未確認を維持。docs/update-execution-service.md参照。
+
 ## 匿名統計の実ブラウザ証拠
 
 2026-10-04、browser2/tab28、127.0.0.1:8099の専用originで通常UIからWeb/AI各1件の生成検索先を追加し、URLは同じローカルサイトを指定。Web検索とAI検索で同一タブのURL遷移と履歴2件を確認。生成お気に入りを保存して開き、Paletteの「履歴を開く」を実行した。最終DB集計は上表の7集計区分・計11イベント。Web/AIのproviderはcustomで、query/URL/provider名を統計へ送らない。

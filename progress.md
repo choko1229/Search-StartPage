@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・更新サービス設定の静的検証）
+
+前ターン926297cは専用同期UI準備/API確認とブラウザレビュー利用上限停止・清掃。今回は独立したサービス設定の静的検証を進めた。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+Files: tests/fixtures/update-systemd/Dockerfile、tests/update-systemd-unit.php、tests/run-update-systemd.ps1追加。docs/update-execution-service.mdに配置権限/検査方法/証拠範囲/残件を記録。製品worker/unit/schema/API/UI変更なし。
+
+検証1〜3: PHP8.3/Debian Bookwormのsystemd-analyzeによる出荷unit静的検査9項目と既存実プロセス25項目をwww-dataで各3回成功（64678 exit0）。unit診断なし、欠落ExecStop executable/無効Type/不明directiveの負例、処理中child完了待ち/次child抑止/待機中stop/restart/破損制御拒否。最初63633/再試行はWindowsコピー由来のunit実行権限警告で失敗、0644へ修正後に全3回再実行。PHP構文/PowerShell parser成功。
+
+環境/Security: 専用imageに検査ツールを追加しただけでsystemd managerは起動しない（PID1 sleep）。network none/no published port/no host mount/no DB/cap-drop ALL/no-new-privileges。公開unit/worker/試験だけcopy。finallyで専用コンテナ除去。通常8099/8100/DB/user権限/config/worker非変更、Secret/spec.md非保存、push/本番公開/再起動なし。
+
+残件: 実enable/OS boot/manager restart/manager stop（ExecStop失敗を含む）/長時間運用は未確認。静的検査を運用成功にしない。ブラウザ上限停止は未解消で無断再試行・別経路回避なし。管理者権限の承認済み実UI範囲は前回完了・清掃済み。
+
+次に実行すること:
+1. レビュー利用上限解消が確認できたらdocs/admin-sync-ui.mdから専用環境を再準備し、A→B→A同期/初回cloud選択/停止復旧/過去警告因果を実UIで照合する。未解消のnavigationを無断反復・別経路回避しない。
+2. サービス運用は隔離Linux manager環境が必要。静的確認済み範囲を保持し、boot/restart/manager stop/長時間運用を追跡。独立した他残ゲートの作業は継続できる。
+3. Phase9完了条件を確定してからPhase10正式移行。実GitHub/OAuth/OS chooser/Glass/全browser/Phase11〜12/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・2保存領域の同期UI準備とレビュー上限）
 
 前Goalターンは専用同期環境の準備とAPI検証による進捗。今回はブラウザ操作の利用上限停止を受けて清掃・保存。Phase9進行中、Phase10正式移行前、Version1.0未完成。
