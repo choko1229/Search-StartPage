@@ -15,7 +15,7 @@ protocol 1、exact VERSION、installed、必須環境を検査。migrateは新�
 ## 検証と制約
 
 - 両環境 `tests/update-task.php` 20項目。未許可のconfig非読込、別配置/shared拒否、実child、親のSIGKILL後もchildがaccess/operationを保持し、終了前のrecovery拒否・終了後復旧を確認。
-- 専用tmpfs空DBのMySQL8/MariaDB10.11で `tests/update-runtime.php` 23項目。実配布物のcloneだけを変更し、全16 Migration初回/再実行、routes/DB health/日英view、manual maintenance保持、checksum故障、実DDL後例外の部分状態と停止、正常healthによる回復、JSON/protocol/PID/version/schema拒否を確認。専用DBとcloneは清掃済み。
+- 専用tmpfs空DBのMySQL8/MariaDB10.11で `tests/update-runtime.php` 23項目。実配布物のcloneだけを変更し、全17 Migration初回/再実行、routes/DB health/日英view、manual maintenance保持、checksum故障、実DDL後例外の部分状態と停止、正常healthによる回復、JSON/protocol/PID/version/schema拒否を確認。専用DBとcloneは清掃済み。
 - 両通常隔離アプリのaccess HTTP30、access34、stage29、package64、asset91、file38、journal40、基盤40。実配布物217files/PHP147構文、独立tar一覧、config不変、保護領域非包含。
 
 継承FD/lockの検証はLinux Dockerで実施。WindowsネイティブPHPやnetwork filesystemは未確認で、未対応なら安全に拒否する。FD capabilityは同じOSユーザーによるconfigの任意変更を防ぐsandboxではない。候補のHTTP/worker停止protocol、実web OPcache、更新engineとのfile+DB一括復元、job中断回復、直前1世代清掃、管理UI操作・監査履歴はまだ未接続。新MigrationのDDL失敗に自動復元できたという試験ではない。

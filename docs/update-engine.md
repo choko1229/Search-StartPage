@@ -30,7 +30,7 @@ cleanup failureは停止を維持する。complete後なら更新を再度戻さ
 
 ## 検証・残る範囲
 
-tests/update-engine.phpは通常配置を変更せず、実配布物のcloneと専用tmpfs DBだけを使う。全16本の初期Migration、cloneだけの17/18番fixtureでDDL/行変更、正常apply、manual rollback、世代置換と失敗後の旧世代保持、部分file failure、DDL後exception、view health failure、実process exit7後の別instance recovery、破損file snapshot/manifestで停止維持とDB回復・修復後retry、config/upload/manual maintenance保持を確認する。
+tests/update-engine.phpは通常配置を変更せず、実配布物のcloneと専用tmpfs DBだけを使う。全17本の初期Migration、cloneだけの18/19番fixtureでDDL/行変更、正常apply、manual rollback、世代置換と失敗後の旧世代保持、部分file failure、DDL後exception、view health failure、実process exit7後の別instance recovery、破損file snapshot/manifestで停止維持とDB回復・修復後retry、config/upload/manual maintenance保持を確認する。
 
 Journalはmanifest hashを含むformat2。未公開のformat1は自動初期化・自動変換せず安全に拒否する。通常隔離アプリにjournalがないことを確認し、この変更で既存世代を消していない。秘密・SQL・例外本文をjournalへ保存しない。
 

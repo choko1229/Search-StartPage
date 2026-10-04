@@ -18,11 +18,11 @@ try{
     $gate=new UpdateAccess($clone.'/storage/updates/access');$process=new UpdateProcess();$version=trim(file_get_contents($clone.'/VERSION'));$task=$clone.'/bin/update-task.php';
     $runtime=new App\Services\UpdateRuntime($clone);$result=static fn($taskName)=>$runtime->run($taskName,$version,$gate);
     $gate->exclusive(function()use($result,$check,$gate,$version,$pdo,$clone){
-        $first=$result('migrate');$check($first['format']===1&&$first['task']==='migrate'&&$first['version']===$version&&$first['applied']===16&&$first['pid']!==getmypid(),'all 16 migrations in a new PHP process');
+        $first=$result('migrate');$check($first['format']===1&&$first['task']==='migrate'&&$first['version']===$version&&$first['applied']===17&&$first['pid']!==getmypid(),'all 17 migrations in a new PHP process');
         $repeat=$result('migrate');$check($repeat['applied']===0&&$repeat['pid']!==$first['pid'],'repeat migration uses another clean process');
         $pdo->prepare("UPDATE site_settings SET value_json=? WHERE setting_key='maintenance'")->execute(['true']);
         $signal=new App\Services\MaintenanceState($clone.'/storage/runtime');$signal->synchronized(fn()=>$signal->publish(true));$signalHash=hash_file('sha256',$clone.'/storage/runtime/maintenance.json');
-        $health=$result('health');$check($health['task']==='health'&&$health['migrations']===16&&$health['html_bytes']['ja']>1000&&$health['html_bytes']['en']>1000,'new runtime loads routes DB health and Japanese English home views');
+        $health=$result('health');$check($health['task']==='health'&&$health['migrations']===17&&$health['html_bytes']['ja']>1000&&$health['html_bytes']['en']>1000,'new runtime loads routes DB health and Japanese English home views');
         $check($pdo->query("SELECT value_json FROM site_settings WHERE setting_key='maintenance'")->fetchColumn()==='true'&&hash_file('sha256',$clone.'/storage/runtime/maintenance.json')===$signalHash,'health preserves separately enabled manual maintenance');
         $check($gate->enter()===null,'runtime health does not open ordinary access early');
     });$lease=$gate->enter();$check($lease!==null,'completion reopens clone access');$lease->release();$check(hash_file('sha256',$clone.'/config/config.php')===$configHash,'runtime preserves private configuration');
@@ -31,11 +31,11 @@ try{
     try{$gate->exclusive(fn()=>$result('health'));throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_PROCESS_FAILED','changed migration checksum fails health');}
     $check($gate->enter()===null&&is_file($clone.'/storage/updates/access/pending'),'failed health retains maintenance marker');
     $pdo->prepare('UPDATE migrations SET checksum=? WHERE name=?')->execute([hash_file('sha256',$clone.'/database/migrations/001_core.php'),'001_core.php']);
-    $gate->exclusive(function()use($result,$check){$check($result('health')['migrations']===16,'verified recovery checks real runtime');},true);
-    $fault=$clone.'/database/migrations/017_runtime_failure.php';file_put_contents($fault,'<?php return new class {public function up(PDO $pdo):void{$pdo->exec("CREATE TABLE runtime_partial(id INT PRIMARY KEY) ENGINE=InnoDB");throw new RuntimeException("generated secret");}};');
+    $gate->exclusive(function()use($result,$check){$check($result('health')['migrations']===17,'verified recovery checks real runtime');},true);
+    $fault=$clone.'/database/migrations/018_runtime_failure.php';file_put_contents($fault,'<?php return new class {public function up(PDO $pdo):void{$pdo->exec("CREATE TABLE runtime_partial(id INT PRIMARY KEY) ENGINE=InnoDB");throw new RuntimeException("generated secret");}};');
     try{$gate->exclusive(fn()=>$result('migrate'));throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_PROCESS_FAILED','real migration exception fails child safely');}
     $check($pdo->query("SHOW TABLES LIKE 'runtime_partial'")->fetchAll()!==[]&&$gate->enter()===null,'DDL partial result remains stopped for engine rollback');
-    $pdo->exec('DROP TABLE runtime_partial');unlink($fault);$gate->exclusive(function()use($result,$check){$check($result('health')['migrations']===16,'partial migration fixture removed before recovery health');},true);
+    $pdo->exec('DROP TABLE runtime_partial');unlink($fault);$gate->exclusive(function()use($result,$check){$check($result('health')['migrations']===17,'partial migration fixture removed before recovery health');},true);
     $check(hash_file('sha256',$clone.'/config/config.php')===$configHash,'configuration unchanged after all failures');
     $originalTask=file_get_contents($task);$base=['format'=>1,'protocol'=>1,'task'=>'health','version'=>$version,'pid'=>getmypid()+100000,'migrations'=>16,'html_bytes'=>['ja'=>1000,'en'=>1000]];
     $responses=['not json',json_encode($base+['secret'=>'generated secret']),json_encode(array_replace($base,['protocol'=>2])),json_encode(array_replace($base,['pid'=>getmypid()])),json_encode(array_replace($base,['html_bytes'=>['ja'=>1000]])),json_encode(array_replace($base,['version'=>'other']))];

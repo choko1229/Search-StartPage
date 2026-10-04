@@ -27,6 +27,15 @@ button:hover, .button:hover { filter: brightness(.92); }
 main { width: min(100% - 2rem, 850px); margin: 3rem auto; }
 .statistics-chart { display: block; width: 100%; height: auto; max-width: 600px; }
 .statistics-table { overflow-x: auto; max-width: 100%; }
+.update-history-panel { margin-top: 1.5rem; }
+body .update-history-panel > h2 { margin-top: 0; }
+.update-history-table table { width: 100%; min-width: 48rem; border-collapse: collapse; text-align: start; }
+.update-history-table th, .update-history-table td { padding: .75rem; vertical-align: top; border-bottom: 1px solid var(--border); }
+.update-history-table th:first-child, .update-history-table td:first-child,
+.update-history-table th:nth-child(2), .update-history-table td:nth-child(2),
+.update-history-table th:nth-child(4), .update-history-table td:nth-child(4) { white-space: nowrap; }
+.update-history-table td:last-child { min-width: 15rem; }
+.update-history-table:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .preset-form fieldset { display: grid; gap: .8rem; min-width: 0; }
 .preset-form fieldset label { display: grid; gap: .35rem; min-width: 0; }
 .preset-form fieldset input:not([type=checkbox]), .preset-form fieldset select { width: 100%; }

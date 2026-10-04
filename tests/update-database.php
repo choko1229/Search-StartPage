@@ -26,7 +26,7 @@ $state=static function()use($pdo):array{
 };
 $reject=static function(callable $action,string $code)use($check){try{$action();throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode===$code,$code);}};
 try{
-    $migrator=new Migrator($pdo,dirname(__DIR__).'/database/migrations');$check(count($migrator->migrate())===16,'all 16 migrations on isolated empty schema');$check($migrator->migrate()===[],'migration repeat no-op');
+    $migrator=new Migrator($pdo,dirname(__DIR__).'/database/migrations');$check(count($migrator->migrate())===count(glob(dirname(__DIR__).'/database/migrations/*.php')),'all application migrations on isolated empty schema');$check($migrator->migrate()===[],'migration repeat no-op');
     $pdo->prepare('INSERT INTO users(id,discord_id,discord_username,locale,created_at,updated_at) VALUES(?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([1,'999999999999999999','生成テストユーザー','ja']);
     $pdo->prepare('INSERT INTO favorite_folders(id,user_id,name,client_id,created_at,updated_at) VALUES(?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute(['11111111-1111-4111-8111-111111111111',1,'保存フォルダー','generated-backup-client']);
     $pdo->prepare('INSERT INTO favorites(id,user_id,folder_id,name,url,client_id,created_at,updated_at) VALUES(?,?,?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute(['22222222-2222-4222-8222-222222222222',1,'11111111-1111-4111-8111-111111111111','favorite preserved','https://example.test/','generated-backup-client']);

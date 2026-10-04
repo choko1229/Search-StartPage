@@ -71,7 +71,7 @@ if ($config->get('installed')) {
                 (new App\Repositories\LogRepository($pdo))->recordApplication(['event_id'=>bin2hex(random_bytes(16)),'type'=>'admin_audit','error_code'=>'UPDATE_CHECK_REQUESTED','user_id'=>(int)$auth->requireUser()['id'],'context'=>$context,'created_at'=>gmdate('Y-m-d H:i:s'),'file_written'=>false]);
                 $audit->flush();
             };
-            return (new App\Controllers\AdminUpdatesController($updateChecks($method==='check'?$record:null),$view))->$method($request);
+            return (new App\Controllers\AdminUpdatesController($updateChecks($method==='check'?$record:null),$view,new App\Repositories\UpdateHistoryRepository($pdo)))->$method($request);
         };
     };
     foreach(['/admin/update','/api/admin/update'] as $path){

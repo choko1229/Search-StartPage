@@ -1524,3 +1524,33 @@ UpdateFilesはroot内のstorage/updates/jobs/32hex/candidate|restore|previousだ
 制限: capsule hashは破損検知で独立署名ではなく、同じOSユーザーのコード/metadata改変まで防がない。private storage/config自体の破損や消失/DB権限不足では停止を維持し環境修復が必要。Web OPcache/FPM実更新、Windows native/networkFS、停電directory fsync耐久性、管理UI/適用worker/DB update_history/監査は未接続・未確認。実GitHub対象source404、Phase9旧残件/実OAuth/Glass/各browser/Extension/最終DoDも維持。現在の復旧成功をこれらの成功扱いにしない。
 
 次に実行すること: Phase9の管理画面へ更新job登録・専用worker・手動Rollback・状態/履歴表示・CSRF/監査を接続し、specのupdate_historyをMigration/Repositoryで追加する。HTTP応答終了で通常lease解放後に別processが排他を取得する方式を守る。Web OPcache刷新とHTTP検証、PHPが管理対象へ書き込める隔離配置を併せて整備し、通常readonly開発アプリの権限を無断変更しない。管理UIの既許可はlocalhost8099の更新確認用一時生成管理者・清掃で旧roles許可へ拡大しない。Phase9の認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UIを閉じてからPhase10正式移行。実OAuth/配布元/全browser/Extension/最終DoD未達、Goal継続。
+## Phase9 更新受付・DB履歴・管理画面履歴の途中保存（2026-10-04）
+
+進捗問い合わせに伴う再開確認。progress/status/gitを確認し、c23645f後の未コミット実装を維持。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+実装済み・未コミット: UpdateCommandsのprivate受付台帳と排他・実行前の管理権限再確認、UpdateHistoryRepositoryの履歴/監査同一トランザクション、017_update_history Migration、管理画面/APIの履歴表示と日英翻訳。DB監査が失敗した受付は実行可能にせず、実処理結果のDB記録が失敗した場合は再実行せず記録だけ再試行する。既存内部engineへの実行接続はまだない。
+
+直前の実行記録: MySQL8/MariaDB10.11双方で受付/履歴43、DB snapshot51、runtime23、engine26、新規実HTTP Installer40、管理更新HTTP36が成功（各終了確認済み）。全17Migrationの新規/再実行/往復と開発アプリへの017適用を確認。今回の進捗問い合わせではこれらを再実行していない。git diff --check成功。新規履歴画面の実ブラウザ表示・mobile確認、最終配布物/回帰検証、ドキュメント整備・コミットはまだ未実行。
+
+環境: 通常開発アプリ8099/8100を保持。専用tmpfs DB search-update-backup-mysql-20261004 / search-update-backup-mariadb-20261004と、host portなしのInstaller専用project search-update-history-installer-20261004は直前記録では稼働中、今回再確認/清掃していない。必要な検証終了後、専用DBのtmpfs配置を確認してexact2のみ清掃、Installer exact4コンテナのみ停止しvolumesは保持する。通常DB/ユーザー/設定/権限を変更しない。新規ブラウザ用一時管理者はまだ作っていない。
+
+次に実行すること:
+1. 既許可のlocalhost8099更新管理用の一時生成管理者を使い、履歴の実画面・日英・mobileを確認し、テストユーザー/入口/履歴を清掃。旧roles管理の許可へ拡大しない。
+2. 最新ソースの必要な回帰・配布物検証、専用環境清掃、関連docs/progress/status更新とローカルコミット。spec.mdは変更/stageしない。
+3. 受付requestとEngine journalの確実な対応付け、実行worker、CSRF付き管理操作へ接続。Webキャッシュ刷新・書込み可能な隔離配置で実更新を確認してから実行機能を完成扱いにする。
+
+残件: 更新実行/手動Rollbackボタンとworkerは未接続。履歴表示追加だけで更新機能を完成扱いにしない。Phase9旧残ゲート、実OAuth、Glassのアカウント画面/アイコン、Phase11拡張機能、Phase12全体品質監査は残る。
+
+## Phase9 更新履歴表示・最終回帰の保存（2026-10-04）
+
+直前の進捗報告ターンは状態保存のみで機能進捗なし。今回は最新worktree/仕様/稼働コンテナを確認し、履歴画面を検証・補修した。Phase9未完了/Phase10正式移行前/Version1.0未完成を維持。
+
+実装: admin-updates試験に明示的SEARCH_TEST_SNAPSHOT=1のときだけHTTP応答のhidden値を除いた画面snapshotを保存する補助を追加。新規実Discord/browser認証バイパスは追加しない。履歴表を名前付き・keyboard focus可能なスクロール領域とし、日時/操作/channelの文字単位折り返しを修正、panel間の余白を追加。内部受付・履歴/監査transaction・Migration017・管理画面/API履歴の前ターン変更と併せて保存する。docs/update-commands.mdへ契約・結果・残る接続条件を記載。
+
+検証1（前ターン終了確認済みの証拠）: 両専用DBの受付43/DB snapshot51/runtime23/engine26と実新規Installer40。全17Migration初回/再実行/往復、通常隔離アプリへの017適用。今回これらの専用DB試験を再実行していない。
+検証2（今回実行）: 両実HTTP admin-updates36成功。guest/non-admin/CSRF/validation/権限失効/DB履歴/日英/escapeを確認し、生成テストuser/device/履歴と対応監査eventをfinally削除、更新check cacheを元へ復元。両基盤40/access HTTP30/journal43/rescue17成功、session8437をpollしてexit0。
+検証3（今回実行）: Chromeで実HTTPのredacted snapshotによる日英/390px表示確認。初回表の過度な折り返しを補修、画面幅390/document375/表領域301/table768、ページ全体の横はみ出しなし。keyboard ArrowRightで領域scrollLeft6を実測、warn/error0。これは外観検証であり実OAuth/認証済みブラウザ成功を示さない。viewport reset/new tab close、公開一時snapshot/両storage snapshotを清掃。最終両配布物224files/3421696bytes/PHP154構文成功、独立tar一覧/hash/config不変/private保護領域非包含。
+
+環境清掃: 専用DB exact2のHostConfig tmpfs rw,size=512mを確認してrm成功。Installer専用exact4をstop成功、volumesは保持。session55483をpollしてexit0。通常8099/8100、通常DB/config/ユーザー権限/workerは保持。実browserログインfixtureは新規作成せずHTTP試験の一時生成管理者のみ使用。Secretを記録していない。Git除外.test-output内のlocal snapshotは証拠として保持、Chrome fullPageの画像にはcaptureの継ぎ目があるため完成画面証拠には使わない。
+
+次に実行すること: 内部受付request IDとEngine journal job IDを永続的に対応付け、専用workerとCSRF付き管理適用/手動Rollback操作を接続。DB復元で消えた受付/監査をprivate台帳から再投影し、別jobの結果を結び付けず、中断後も二重実行しないことを実証。HTTP応答後のlease解放、Web OPcache刷新、書込み可能な隔離配置の実HTTP確認まで残る。Phase9の旧残ゲート（認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UI）、Glass仕上げ、Phase11〜12、実OAuth/実配布元/全browser/全DoDも未達を維持。spec.md変更/stageなし。

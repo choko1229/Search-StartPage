@@ -17,7 +17,7 @@ $http=static function(int $client,string $path,string $method='GET',?array $body
     $response=file_get_contents('http://127.0.0.1'.$path,false,stream_context_create(['http'=>$options]));preg_match('/\s(\d{3})\s/',$http_response_header[0],$status);
     foreach($http_response_header as $header)if(preg_match('/^Set-Cookie: ([^=]+)=([^;]*)/i',$header,$m))$jars[$client][$m[1]]=$m[2];return [(int)$status[1],$response];
 };
-$directory=$root.'/storage/updates/checks';$path=$directory.'/check.json';$backup=is_file($path)?file_get_contents($path):null;$auth=new AuthRepository($pdo);
+$directory=$root.'/storage/updates/checks';$path=$directory.'/check.json';$backup=is_file($path)?file_get_contents($path):null;$auth=new AuthRepository($pdo);$historyFixture=null;
 try{
     foreach(['999999999999999941','999999999999999942'] as $index=>$discord){$id=$auth->upsertIdentity(['id'=>$discord,'username'=>'Update verification','display_name'=>null,'avatar'=>null],'en');$ids[]=$id;$device=bin2hex(random_bytes(16));$token=bin2hex(random_bytes(32));$auth->createDevice($id,$device,hash('sha256',$token),DeviceAgent::parse('Windows Chrome/120'),time());$jars[$index]['search_remember']=$device.'.'.$token;}
     $pdo->prepare('INSERT INTO administrators(user_id,created_at,updated_at) VALUES (?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([$ids[0]]);
@@ -33,6 +33,17 @@ try{
     $check($status===200&&$data['available']===true&&$data['release']['tag']==='v999.0.0','admin reads persisted release fixture');
     $check(!str_contains($body,'identity')&&!str_contains($body,'Authorization')&&!str_contains($body,'token'),'private fields excluded');
     foreach(['en'=>'Updates','ja'=>'更新管理'] as $locale=>$label){[$status,$html]=$http(0,'/admin/update',locale:$locale);$check($status===200&&str_contains($html,$label)&&str_contains($html,'v999.0.0'),'update screen '.$locale);}
+    $historyFixture=['id'=>bin2hex(random_bytes(16)),'operation'=>'apply','from_version'=>trim(file_get_contents($root.'/VERSION')),'to_version'=>'v999.0.0','channel'=>'stable','repository'=>$state['repository'],'release_id'=>1,'actor'=>$ids[0],'status'=>'prepared','created_at'=>time(),'updated_at'=>time(),'completed_at'=>null,'error'=>null,'audited'=>false];$historyRepository=new App\Repositories\UpdateHistoryRepository($pdo);$historyRepository->record($historyFixture,'requested');
+    $historyFixture=array_replace($historyFixture,['status'=>'failed','completed_at'=>$historyFixture['updated_at'],'error'=>'UPDATE_SOURCE_NOT_FOUND']);$historyRepository->record($historyFixture,'finished');
+    [$status,$body]=$http(0,'/api/admin/update');$historyData=json_decode($body,true)['data']['history'];$entry=array_values(array_filter($historyData,fn($item)=>$item['request_id']===$historyFixture['id']))[0];$check($status===200&&$entry['status']==='failed'&&$entry['to_version']==='v999.0.0','admin API exposes real DB history');$check(!isset($entry['repository'],$entry['requested_by'],$entry['release_id']),'history API excludes private execution context');
+    foreach(['en'=>'Update history','ja'=>'更新履歴'] as $locale=>$label){[$status,$html]=$http(0,'/admin/update',locale:$locale);$check($status===200&&str_contains($html,$label)&&str_contains($html,'v999.0.0'),'history screen '.$locale);
+        if(getenv('SEARCH_TEST_SNAPSHOT')==='1'){
+            $snapshot=preg_replace('/(<input\b[^>]*type="hidden"[^>]*value=")[^"]*(")/i','$1redacted$2',$html);
+            if(!is_string($snapshot)||str_contains($snapshot,$csrf[0]))throw new RuntimeException('Snapshot redaction failed');
+            if(file_put_contents($root.'/storage/update-history-preview-'.$locale.'.html',$snapshot)===false)throw new RuntimeException('Snapshot unavailable');
+        }
+    }
+    $pdo->prepare('UPDATE update_history SET from_version=? WHERE request_id=?')->execute(['<script>historyFixture()</script>',$historyFixture['id']]);[, $html]=$http(0,'/admin/update');$check(str_contains($html,'&lt;script&gt;historyFixture()&lt;/script&gt;')&&!str_contains($html,'<script>historyFixture()'),'history view escapes stored versions');$pdo->prepare('UPDATE update_history SET from_version=? WHERE request_id=?')->execute([$historyFixture['from_version'],$historyFixture['id']]);
     [$status,$html]=$http(0,'/admin');$check($status===200&&str_contains($html,'A new version is available:')&&str_contains($html,'v999.0.0'),'dashboard notification from actual cached data');
     $check(!str_contains($http(1,'/')[1],'v999.0.0'),'regular home does not notify');
     $check(!str_contains($http(2,'/')[1],'v999.0.0'),'guest home does not notify');
@@ -53,6 +64,7 @@ try{
     $check($http(0,'/api/admin/update')[0]===403,'revocation applies to existing session');
     $check(!str_contains($http(0,'/')[1],'v999.0.0'),'revoked home does not notify');
 }finally{
+    if($historyFixture!==null){$pdo->prepare('DELETE FROM update_history WHERE request_id=?')->execute([$historyFixture['id']]);foreach(['requested:queued','finished:failed'] as $event)$pdo->prepare('DELETE FROM log_entries WHERE event_id=?')->execute([substr(hash('sha256',$historyFixture['id'].':'.$event),0,32)]);}
     App\Services\LogFileLock::run($directory,static function()use($path,$backup):void{if($backup===null){if(is_file($path))unlink($path);}else{file_put_contents($path,$backup);chmod($path,0600);}});
     foreach($ids as $id)$pdo->prepare('DELETE FROM users WHERE id=?')->execute([$id]);
 }

@@ -22,3 +22,17 @@
 </form>
 <p class="muted"><?= $e($t->get('update_check_help')) ?></p>
 </section>
+<section class="panel update-history-panel">
+<h2><?= $e($t->get('update_history_title')) ?></h2>
+<?php if($data['history']===[]): ?><p class="muted"><?= $e($t->get('update_history_empty')) ?></p>
+<?php else: ?><div class="statistics-table update-history-table" role="region" aria-label="<?= $e($t->get('update_history_title')) ?>" tabindex="0"><table>
+<thead><tr><th><?= $e($t->get('update_history_when')) ?></th><th><?= $e($t->get('update_history_action')) ?></th><th><?= $e($t->get('update_history_versions')) ?></th><th><?= $e($t->get('update_channel')) ?></th><th><?= $e($t->get('update_history_result')) ?></th></tr></thead>
+<tbody><?php foreach($data['history'] as $item): ?><tr>
+<td><?= $e($item['created_at']) ?> UTC<?php if($item['completed_at']!==null): ?><br><small><?= $e($item['completed_at']) ?> UTC</small><?php endif; ?></td>
+<td><?= $e($t->get('update_operation_'.$item['operation'])) ?></td>
+<td><?= $e($item['from_version']) ?> → <?= $e($item['to_version']) ?></td>
+<td><?= $e($item['channel']) ?></td>
+<td><?= $e($t->get('update_status_'.$item['status'])) ?><?php if($item['error_code']!==null): ?><br><small><?= $e($t->get($item['error_code'])) ?></small><?php endif; ?></td>
+</tr><?php endforeach; ?></tbody>
+</table></div><?php endif; ?>
+</section>

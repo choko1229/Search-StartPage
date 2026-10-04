@@ -4,13 +4,15 @@ namespace App\Controllers;
 use App\Helpers\View;
 use App\Http\{Request,Response,HttpException};
 use App\Services\UpdateChecks;
+use App\Repositories\UpdateHistoryRepository;
 
 final class AdminUpdatesController
 {
-    public function __construct(private readonly UpdateChecks $checks,private readonly View $view){}
+    public function __construct(private readonly UpdateChecks $checks,private readonly View $view,private readonly UpdateHistoryRepository $history){}
+    private function data():array {return [...$this->checks->status(),'history'=>$this->history->listing()];}
     public function read(Request $request): Response
     {
-        $state=$this->checks->status();
+        $state=$this->data();
         return $request->isApi()?Response::json($state):new Response($this->view->render('admin-update',$state));
     }
     public function check(Request $request): Response
@@ -21,8 +23,8 @@ final class AdminUpdatesController
         try{$result=$this->checks->check($channel,$tag,$revision);}
         catch(HttpException $error){
             if($request->isApi()||in_array($error->status,[409,422],true))throw $error;
-            return new Response($this->view->render('admin-update',$this->checks->status()),$error->status,errorCode:$error->errorCode);
+            return new Response($this->view->render('admin-update',$this->data()),$error->status,errorCode:$error->errorCode);
         }
-        return $request->isApi()?Response::json($result):Response::redirect('/admin/update');
+        return $request->isApi()?Response::json([...$result,'history'=>$this->history->listing()]):Response::redirect('/admin/update');
     }
 }
