@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・独立FPM cache刷新）
+
+前Goalターン7e056f7はEN停止/復旧・認証済み地域保存の実検証による進捗。今回は更新の環境依存FPM cacheを実processで確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+実装: tests/update-web-cache-fpm.php追加。CLI/testmode/固定tmp prefix/marker/configなしに限定して、公式PHP8.2/8.3 FPM各2 master/各2 static childへFastCGI直結。製品index/UpdateAccess/UpdateWebCacheと生成bootstrapだけを使う。共有disk markerが2番目masterのcacheでは未ACKであることをtest-only probeで実測。製品コード/DB/schema/API/UI変更なし。
+
+検証1: PHP8.3 FPM22/CLI cache13を3回成功（20255 exit0）。timestamps0の実stale PHP、排他中503、世代切替、新PHP両master/全child、private marker、破損拒否/修復、旧PHPへの復元世代・旧marker除去。
+検証2: 公式imageにはOPcacheが既存読み込み済みで、明示zend_extension指定に重複起動警告。指定を外し最終8.3 FPM22/CLI13/PHP構文を警告なしで再成功（70b8a4 exit0）。最初の警告を未発生扱いにしない。
+検証3: PHP8.2別imageの最終ソースでもFPM22/CLI13を3回成功（11561 exit0）。FastCGI request stderr空、例外/診断非公開503。今回DB/Migration/OAuth/実HTTP proxy/browserの試験ではない。
+
+環境: 公式php:8.3-fpm-bookworm/8.2-fpm-bookwormを取得。専用search-fpm-cache-20261004はnetwork none/no ports/DBなし、CLIとFPMは同じwww-data。各test finallyがFPMを終了しharness finallyがコンテナ除去、最終exact名一覧空。通常8099/8100/config/DB/user/権限/worker非変更、spec.md非変更・非stage。
+
+次に実行すること:
+1. Phase9旧roles実UI・他端末認証済みUI/過去保存警告因果の残件を照合する。以前の権限操作auto-review拒否を再試行せず、具体的な許可が必要な時点で確認する。
+2. 実HTTP proxy/FPM経由Engine・DB更新とsystemd boot/stop/restart/長時間運用、実GitHubを継続。今回のFPM cache検証をこれらの成功として扱わない。
+3. Phase9合格後にPhase10正式移行。実OAuth/OS chooser/Glass/全browser/Phase11〜12/全DoD未達を保持。docs/update-web-cache.md参照。
+
 ## 最新の再開地点（2026-10-04・英語機能停止/復旧と地域保存）
 
 前Goalターンe25c83fはログ故障の実検証による進捗。今回はPhase9旧EN weather/upload・認証済み地域保存の残件を専用環境で検証。Phase9進行中、Phase10正式移行前、Version1.0未完成。

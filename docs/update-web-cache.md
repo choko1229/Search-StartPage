@@ -12,4 +12,10 @@ OPcacheが無効なら刷新は不要。OPcacheが有効なのに必要なAPIが
 
 検証: CLI OPcacheの日時確認を無効にした13試験、OPcache API禁止時の拒否、ネットワーク/DBなしの専用Apacheで14試験に成功。実Apacheで旧コードのcache保持を再現し、世代切替・複数Apache子・破損時停止・修復・復元を確認した。さらに専用tmpfsのMySQL8/MariaDB10.11とApacheで、実HTTP受付からworker/Engineによる適用・変更したPHP画面表示・手動復元・旧PHP画面表示まで各22試験成功。取得archiveだけfixtureを使う。
 
-FPM、別pool同時稼働、Windows PHP、OPcache file_cache_only、実GitHub配布元による更新は未確認。Apacheの証拠をこれらへ拡張しない。サービス自動起動・常駐運用・ブラウザ実行操作・Phase9残ゲート・Version1.0最終監査も残る。
+2026-10-04追加: `tests/update-web-cache-fpm.php` で本物のPHP8.2/8.3 FPMを各2 master・各2 static childとして起動し、各3回22項目成功。OPcache日時確認0/file_update_protection0、古いPHPを両側で再現し、更新専用排他中のAPI503、世代変更後の両cache刷新、両childの新PHP、private marker破損拒否/修復、旧PHPへの復元世代切替/旧marker清掃を確認した。最初のmasterが作る共有ディスクmarkerは2番目のmasterのOPcacheでは未cacheであることを別のtest-only probeで実測し、その後2番目も独立刷新してcache済みになることを確認。ディスクmarkerだけの共通ACKに依存しない動作を実証した。
+
+専用公式FPMコンテナはnetwork none、host port/DB/configなし、CLIとFPMは同じwww-data。FastCGIへ直接接続し、製品public/index.php/UpdateAccess/UpdateWebCacheと、変更を検知するための生成bootstrapのみを使う。test-only probeを含め通常配置へ置かない。各回CLI OPcache13も成功。PHP8.3最初の明示zend_extension指定は既存読み込みと重複する起動警告が出たため外し、最終の22/13を警告なしで再成功。FPMとCLIの診断を混同しない。全作成process/専用コンテナを清掃。
+
+再現には `SEARCH_TEST_MODE=1`、`TEST_FPM_CACHE_DEPLOYMENT=1`、fresh `/tmp/search-fpm-cache-*`、`storage/web-cache-test-only` markerが必要。app/Servicesの上記2ファイル、public/index.php、tests/update-web-cache-fpm.phpを同じ構造へ配置し、www-dataで実行する。root配下のbootstrapを上書きする試験なので通常配置では実行しない。PHPの標準設定でOPcacheが読み込まれていることを前提とする。
+
+これは実FastCGI/FPMキャッシュの証拠であり、nginx/Apache proxyとの実HTTP、FPM経由の実Engine/DB更新、サービスboot/restart/長時間運用、Windows PHP、OPcache file_cache_only、実GitHub配布元、実OAuth、全browser/Phase9残ゲート/Version1.0最終監査は未確認。管理ブラウザのMySQL更新・復元は別のdocs/update-management-ui.mdの証拠を参照する。

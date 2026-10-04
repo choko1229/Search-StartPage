@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## Phase9 PHP8.2/8.3 FPMの独立cache刷新（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン7e056f7はEN停止・復旧/地域保存の検証による進捗。今回は環境依存のFPM cacheを確認。
+- Files: tests/update-web-cache-fpm.php追加。公式FPM、network none/no host port/DBなし/configなし、固定tmp prefix/marker/testmodeに限定。製品index/Access/Cacheと生成bootstrap、test-only cache probeを使い実FastCGI接続。製品コード/schema/API/UI変更なし。
+- 検証1: PHP8.3、独立2 master/各2 static child、FPM22+CLI cache13を3回成功（20255 exit0）。実stale PHP/排他中503/世代切替/両子新PHP/破損拒否/修復/旧PHP復元。ディスクmarker共有でも2番目masterのOPcache未ACKを実測してから独立刷新/ACK。
+- 検証2: 最初の明示zend_extensionが公式image既存OPcache読み込みと重複する起動警告を出したため指定を除去。最終8.3 FPM22/CLI13/PHP構文を警告なしで再成功（70b8a4 exit0）。最初の警告を無かったことにしない。
+- 検証3: PHP8.2の別公式imageでも最終ソースFPM22/CLI13を3回成功（11561 exit0）。全実requestはFastCGI stderr空/安全な503、全processと専用コンテナ清掃、最終exact名一覧空/git diff --check成功。
+- Security/Next: 同一www-data/private marker、通常配置/config/DB/users/workers非変更。実HTTP proxy・FPM経由Engine/DB・systemd/長時間運用/外部連携/全browser/旧roles実UI/Phase11〜12/全DoDは未確認。FastCGIの証拠を実DB更新へ拡張しない。詳細docs/update-web-cache.md。
+
 ## Phase9 英語upload/weather停止・復旧と認証済み地域保存（2026-10-04）
 
 - 状態: Phase9進行中、Phase10正式移行前、Version1.0未完成。前ターンe25c83fはログ整理実障害検証の進捗。旧EN/地域ゲートから再開。
