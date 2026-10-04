@@ -4,8 +4,11 @@ declare(strict_types=1);
 ini_set('display_errors','0');
 try {
     require_once dirname(__DIR__).'/app/Services/UpdateAccess.php';
-    $updateAccessLease=(new App\Services\UpdateAccess(dirname(__DIR__).'/storage/updates/access'))->enter();
+    $updateAccess=new App\Services\UpdateAccess(dirname(__DIR__).'/storage/updates/access');
+    $updateAccessLease=$updateAccess->enter();
     if($updateAccessLease===null)throw new RuntimeException('UPDATE_IN_PROGRESS');
+    require_once dirname(__DIR__).'/app/Services/UpdateWebCache.php';
+    App\Services\UpdateWebCache::synchronize(dirname(__DIR__),$updateAccess->generation());
 }catch(Throwable){
     http_response_code(503);header('Cache-Control: no-store');header('Retry-After: 30');header('X-Content-Type-Options: nosniff');header('Content-Security-Policy: default-src \'none\'; base-uri \'none\'; frame-ancestors \'none\'');
     $japanese=preg_match('/^ja(?:[-,;]|$)/i',$_SERVER['HTTP_ACCEPT_LANGUAGE']??'')===1;

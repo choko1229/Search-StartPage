@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 Webキャッシュ刷新とApache実更新（2026-10-04）
+
+- Files: UpdateWebCache、public/index.php、UpdateCompatibility、cache CLI/Apache試験、実HTTP更新試験のApache mode/変更PHPテンプレート検証、asset最小fixture、docs/update-web-cache.md。
+- DB/API/UI: 新Migration/API/JSなし。通常lease後・bootstrap前に世代ごとの管理PHP cacheをinvalidate。private markerは現在OPcacheでcacheされた場合だけACK。故障時は旧安全503、公開診断なし。候補のCache欠落/hook無視を拒否（12probe）。
+- Tests1: CLI初回require式を修正後12→最終13、専用no network/no DB Apache14成功。Access不足/rootとwww-dataの0600権限差という試験配置の失敗は修正して再成功。実旧PHP cache、timestamps0、複数Apache子、停止/新PHP/破損/修復/復元を確認。
+- Tests2: 専用tmpfs MySQL8/MariaDB10.11+Apacheで実HTTP22/互換性19/asset94成功。worker別子/実Engine/変更PHP画面/本来の入口で復元/旧PHP画面/履歴/config保持。session65482 exit0、作成app/DBを清掃。取得archiveだけfixture。
+- Tests3: API禁止/permission/path guardを追加した最終Cacheで両cache13/API禁止拒否/rescue17/受付24/Journal52/基盤40/配布物230files/3481600bytes/PHP160構文/独立tar/hash/config/private除外成功（74343 exit0）。最終専用Apache14も成功（12b062 exit0）。git diff --check成功、spec.md非変更。
+- Security/Issues: SQL/Secret/実Cookie非公開、通常配置/DB/権限/worker保持。初回hook導入はWeb PHP再起動が必要。FPM/別pool同時/Windows/file_cache_only/実GitHubは未確認。DB Apache22は最終追加guard前であり、追加guardの証拠は13/14と最終配布物。
+- Next: 実行サービスの同一live配置/安全な停止/常駐、FPM/複数pool、管理UI/Phase9旧ゲート。Phase9未完了/Phase10正式移行前/Version1.0未完成。
+
 ## Phase9 定期workerの実更新・復元接続（2026-10-04）
 
 - Files: UpdateCompatibility、update-compatibility/update-asset/update-requests-http試験、worker/runner/requestsの説明。候補worker必須・singleton拒否の別process検査を追加（11probe）。欠落/lock無視を拒否。
@@ -62,7 +72,7 @@ Phase9未完了、Phase10正式移行前、Version1.0未完成。新しいDB比�
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
 | 9 | Admin | 進行中（管理基盤・一覧・メンテナンス・ログ収集/保持・機能制御/動的制限を実装、残る管理機能とUI検証を継続） |
-| 10 | Updater | 正式移行前。Phase9共通の一括更新・自動/手動復元を内部CLIで検証。管理UI・実配布元・Web運用の確認が残る |
+| 10 | Updater | 正式移行前。Phase9共通の更新/復元をCLIと専用Apache・両DB・変更PHP表示で検証。管理操作・実配布元・FPM・サービス運用が残る |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
 

@@ -6,7 +6,7 @@
 
 常駐にはサービスマネージャーを使用し、workerと子の両方が同じ書込み可能なアプリ配置とconfig/storageを参照するよう設定する。異なるイメージ内のコードを使うworkerを、storageだけ共有して配置しない。既存のmetadata確認専用Docker overlayは実行workerには使わない。アプリを更新できる実行ユーザーが必要であり、通常のreadonly開発配置の権限を変更して試すことはしない。
 
-Web側のOPcache刷新、Apache/FPMを含む実更新、サービスの自動起動設定、管理画面の実行ボタンは別途検証が必要。このworkerの単体検証だけでは本番更新・Phase10完成を証明しない。liveコードが壊れた場合はprivate rescueで復旧する手順を維持する。
+Web側のOPcache刷新と専用Apache/両DBの実更新・変更PHP画面表示・復元は[update-web-cache.md](update-web-cache.md)で確認した。FPM、サービスの自動起動設定、管理画面の実行ボタンは別途検証が必要。このworkerの単体検証だけでは本番更新・Phase10完成を証明しない。liveコードが壊れた場合はprivate rescueで復旧する手順を維持する。
 
 候補互換性チェックはworkerの存在を必須とし、隔離候補のsingleton lockを保持した状態で二重起動を拒否し、config/Engineへ進まないことを確認する。欠落やlockを無視する候補は更新前に拒否する。
 

@@ -1,5 +1,7 @@
 # 更新実行worker
 
+Webキャッシュの切替は[update-web-cache.md](update-web-cache.md)。専用Apacheと両DBで更新後/復元後の変更PHP画面まで各22項目確認済み。FPM・サービスの自動起動/常駐・ブラウザ実行操作は未確認。以下のApache未確認は以前の検証記録。
+
 定期実行入口は[update-execution-worker.md](update-execution-worker.md)。親はアプリをautoloadせず、固定run-update.phpを毎回新しいPHP子から実行する。専用両DBで実HTTP受付後の子による更新と、更新された本来の入口による手動復元を各20項目確認済み。サービスの自動起動/常駐運用、Web OPcache、ブラウザ実行操作は未確認。
 
 `bin/run-update.php`は一つの受付を処理して終了するCLI入口。HTTPからは実行できない。管理POST/APIは受付まで接続し、別の実行処理によるapply/rollbackを専用HTTP環境で確認した（docs/update-requests.md）。ブラウザの実行ボタンと定期起動はまだ未接続。

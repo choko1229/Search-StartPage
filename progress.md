@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・Web OPcache刷新）
+
+前のGoalターンは9f77fd5の定期worker実接続/両DB検証/記録による進捗。今回はWebキャッシュ切替を実装し、専用Apacheで実PHP表示切替と両DBの実更新/復元を確認した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateWebCache(protocol1)をHTTP lease取得後・autoload/config/DB前に呼ぶ。UpdateAccessの世代が変わると当該rootの管理PHP cacheをinvalidateし、private markerを現在のOPcacheへcompileして世代を確認。ディスクだけのpool共通ACKを使わない。旧marker清掃、OPcache無効時不要、有効API禁止/破損/公開権限/symlink/刷新失敗はbootstrap前503。候補はCache必須/protocol1/実入口の故障時停止を検査、12probe/19試験。SQL/Migration/API/JS変更なし。
+
+検証1: CLI cacheは当初試験のrequire式優先順位を修正後12成功、公開権限拒否を追加して最終13成功。専用no network/no port/no DB Apacheで旧PHP cacheを再現し、日時確認0のまま世代切替/複数子/停止/修復/復元14成功。初回は古いimageにAccess不足、次はroot試験CLIが生成した0600世代をwww-dataが読めず失敗。現行Accessをコピーし専用配置だけ同一www-dataで実行して成功。通常配置権限は変えていない。
+検証2: 専用tmpfs/no portのMySQL8/MariaDB10.11と使い捨てApacheで実HTTP受付→worker別子→Engine file/DB/Migration/health→変更PHPテンプレート表示→更新後の本来の入口から手動復元→旧PHP表示/両履歴/config保持を各22成功。両互換性19/asset94成功。session65482 exit0、全作成app除去/exact2 DBのtmpfs確認後除去。取得archiveのみfixture。
+検証3: 最終CacheのAPI禁止/公開権限拒否/パス正規化追加後、別/tmpの両環境でcache13/API禁止拒否/rescue17/受付24/Journal52/基盤40/実配布物230files/3481600bytes/PHP160構文/独立tar/hash/config保持/private除外成功（session74343 exit0）。最終no network Apache14も12b062 exit0。cloneと初回/tmp試験配置清掃。git diff --check成功。spec.md非変更、Secret非記録。
+
+範囲: ApacheのOPcacheと実変更PHPは確認。FPM/別pool同時/Windows PHP/実GitHub・OAuth/サービス自動起動/長時間常駐/管理ボタン/全browserは未確認。Cache hookの初回導入はWeb PHP再起動が必要。正常系の両DB Apache22は追加API禁止/permission/path guard前、最終guardはcache13とApache14/実配布物で確認。これを全運用成功と扱わない。
+
+次に実行すること:
+1. 同じ書込み可能live配置を共有する実行サービス起動設定と安全な停止/常駐を作る。通常readonly環境へworkerを起動しない。
+2. FPM/複数pool環境でCacheを確認し、必要な未確認を追跡する。管理実行ボタン/状態再確認の日英/mobile/Consoleを接続する。
+3. Phase9旧ゲート残件を閉じる。Phase11〜12、実OAuth/GitHub/Glass仕上げ/全DoDは未達。docs/update-web-cache.md参照。
+
 ## 最新の再開地点（2026-10-04・定期workerの実更新接続）
 
 前のGoalターンは81bd9c0の定期worker実装・12試験3回・記録による進捗。今回は候補互換性と実HTTP受付後の別子Engineへ接続した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
