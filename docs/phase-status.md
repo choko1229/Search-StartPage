@@ -1507,3 +1507,20 @@ UpdateFilesはroot内のstorage/updates/jobs/32hex/candidate|restore|previousだ
 制限: 内部engineの検証であり、管理UIからの適用・適用worker・DB update_history/監査への接続、Web OPcache/FPM更新検証、更新途中の任意コード破損から独立して起動するrescue入口は未実装/未確認。directory fsync停電耐久性/Windows native/networkFS、実GitHub対象source404、Phase9旧ゲート/実OAuth/Glass仕上げ/各browser/Extension/全DoD未達も維持。
 
 次に実行すること: 独立rescueとWeb実行時のキャッシュ/配置条件を整備し、更新job登録・worker・管理UI適用/手動Rollback・CSRF/監査/update_historyへ内部engineを接続する。最初の管理操作HTTPは応答終了して通常leaseを解放し、別processが排他を取得する設計を維持する。Phase9認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UIの残件を閉じてからPhase10正式移行。ユーザー許可はlocalhost8099更新確認の一時生成管理者準備/清掃に限り、旧roles許可へ拡大しない。実配布元/実OAuthは未確認のまま、spec.mdを変更/stageしない。Goal未完成。
+## Phase9 live PHP破損に依存しない独立復旧入口（2026-10-04）
+
+前ターン74657f4は一括engineと両DB23項目検証・保存による進捗。progress/status/git/spec更新・Rollback要件から再開。Phase9ゲート未達、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateRescueがverified後/変更前に固定19依存PHPをprivate storage/updates/rescue/32hexへ0600/0700・fsync保存、構文検査・size/hash descriptorをruntime.jsonへ原子publish。launcherをstorage/updates/rescue.phpへ保存。通常配布対象外のstorageなので差替え/復元が壊さない。クラスを現在processでも先にロードし、差替え後のlive遅延autoloadを避ける。新pointer公開後に旧/失敗準備capsuleだけ清掃し1件保持。config/ユーザーデータ/live autoloaderをコピーしない。
+
+独立CLI launcher: status/recover/rollbackのみ、固定private配置からrootを決定し任意root/任意package入力なし。rescue shared lock下でallowlist/schema/hash/link/private modeを確認して全クラスをロード、shared解除後にEngine lock/更新Gateへ進み逆順deadlockを避ける。破損したlive autoload/Engine/Journal/UpdateDatabaseを使わず、復元後のbin/update-taskで旧healthを確認。結果はphase/versionだけ、失敗は固定UPDATE_RESCUE_FAILED。HTTPは404、DocumentRoot外。DB回復時のconfigは既存の保護されたconfig.phpから読む。
+
+検証1: 両rescue初回15→実process競合追加で最終17成功。live PHP破損でもconfig非読込のstatus、hash/path/追加file/link/public permission/任意apply拒否、秘密非出力、不正PHPprepare時の旧pointer保持、新capsule清掃、publish lock待機、engine待ち中でもrescue rotation可能。追加試験初回はstatusがengine lock directoryを作ると誤認し試験fopenが失敗。試験fixtureでdirectory/0600 lockを作るよう修正後に両再成功。生成/tmpはfinally清掃。
+
+検証2: 専用tmpfs512MiB/no host port/生成passwordの両DBでengine初回25成功（session27077/55208各exit0）、private launcher手動復元も追加し同じ清掃済み専用DBで最終26成功（session56856/15464各exit0）。実更新中断後にlive autoload/Engine/DB/Journal/update-taskを構文破損させ、private launcherから全managed hash/DB全行・列schema回復、config/uploads/manual stop保持とGate再開を確認。更新失敗後にも以前の成功ownerからprivate手動復元成功。専用DBのHostConfig tmpfsを確認しexact2コンテナだけrm、exit0。通常DBへrestoreしていない。
+
+検証3: 最終両journal43/file44/access34/task20/実HTTP30/基盤40成功。実source package221files/3399168bytes/PHP151構文、独立GNU tar/hash/config不変/保護領域非包含成功。session76063をpollしexit0。sourceサービス2file/CLI/testだけcopy、通常config/DB/users/volumes/workerは再作成せず新Migrationなし。全16Migrationの既存fresh/repeat証拠を維持。UI外観/認証変更なし、HTTP regressionで通常入口を確認。git diff --check成功。探索時の単数AdminUpdateController/update.phpは存在せず未読、実在するAdminUpdatesController/admin-update.phpを確認。spec.md変更/stageなし。
+
+制限: capsule hashは破損検知で独立署名ではなく、同じOSユーザーのコード/metadata改変まで防がない。private storage/config自体の破損や消失/DB権限不足では停止を維持し環境修復が必要。Web OPcache/FPM実更新、Windows native/networkFS、停電directory fsync耐久性、管理UI/適用worker/DB update_history/監査は未接続・未確認。実GitHub対象source404、Phase9旧残件/実OAuth/Glass/各browser/Extension/最終DoDも維持。現在の復旧成功をこれらの成功扱いにしない。
+
+次に実行すること: Phase9の管理画面へ更新job登録・専用worker・手動Rollback・状態/履歴表示・CSRF/監査を接続し、specのupdate_historyをMigration/Repositoryで追加する。HTTP応答終了で通常lease解放後に別processが排他を取得する方式を守る。Web OPcache刷新とHTTP検証、PHPが管理対象へ書き込める隔離配置を併せて整備し、通常readonly開発アプリの権限を無断変更しない。管理UIの既許可はlocalhost8099の更新確認用一時生成管理者・清掃で旧roles許可へ拡大しない。Phase9の認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UIを閉じてからPhase10正式移行。実OAuth/配布元/全browser/Extension/最終DoD未達、Goal継続。

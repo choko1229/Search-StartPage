@@ -14,7 +14,7 @@ UpdateEngineは非公開のCLIサービス。管理画面・更新workerから�
 
 ## 保存と適用
 
-private engine lockがpreflightからcleanupまでapply/recover/rollbackを直列化する。Journalがjob IDを生成し、manifestの正規化JSONのSHA-256をjobに固定する。job内のcandidate.tar/manifest.jsonを新規0600 fileへ同期保存し、candidateを展開、構文・停止互換性を検査する。
+private engine lockがpreflightからcleanupまでapply/recover/rollbackを直列化する。Journalがjob IDを生成し、manifestの正規化JSONのSHA-256をjobに固定する。job内のcandidate.tar/manifest.jsonを新規0600 fileへ同期保存し、candidateを展開、構文・停止互換性を検査する。検証後にUpdateRescueが旧コードの固定依存をprivate storageへ保存し、独立復旧入口を公開領域外に用意する。
 
 Gateの排他取得で既存writerをdrainしてから旧healthとfile/DB snapshotを保存する。これはbackup中に失われる更新を発生させないための短い書込み停止でもあり、通常の手動maintenance設定は変えない。snapshotをfsync/hash検証してからbacked_up、変更前にreplacingを永続化。差し替え後は別PHPでmigrateとhealthを実行し、復元用manifestを再検証してcompleteへ進む。
 
@@ -36,6 +36,6 @@ Journalはmanifest hashを含むformat2。未公開のformat1は自動初期化�
 
 書き込み不可の管理directoryはbacked_upでpreflightし、replacingより前にUPDATE_TARGET_NOT_WRITABLEで拒否する。旧healthとcleanupが成功すれば停止を解除し、file/DBは変更しない。通常の隔離開発アプリはwww-dataからroot/appへ書き込めないことを確認した。通常配置の権限は変更しておらず、実Web更新に対応した配置設計は残る。
 
-最終tests/update-engine.phpはMySQL 8/MariaDB 10.11で各23項目成功。書き込み不可の配置から安全に復帰する試験も含む。ファイル単体44、journal43、package64、stage29、asset94、access34、task20、基盤40も両環境で成功。
+最終tests/update-engine.phpはMySQL 8/MariaDB 10.11で各26項目成功。独立入口による主要PHP破損後の回復と手動復元を含む。書き込み不可の配置から安全に復帰する試験も含む。ファイル単体44、journal43、package64、stage29、asset94、access34、task20、基盤40も両環境で成功。
 
-web OPcache刷新、FPM/実HTTPの更新適用、任意の将来releaseで破損したアプリコードを使わず起動できる独立rescue入口、管理UI/適用worker/DB監査履歴は未接続・未確認。完全な停電時のdirectory fsync耐久性、Windows native/networkFSも未確認。現在の確認をVersion1.0 DoDの合格へ拡張しない。
+独立rescue入口はdocs/update-rescue.md参照。主要なlive PHPを壊した後のCLI復旧も専用DBで確認する。web OPcache刷新、FPM/実HTTPの更新適用、管理UI/適用worker/DB監査履歴は未接続・未確認。完全な停電時のdirectory fsync耐久性、Windows native/networkFSも未確認。現在の確認をVersion1.0 DoDの合格へ拡張しない。

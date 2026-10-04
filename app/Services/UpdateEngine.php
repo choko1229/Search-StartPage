@@ -115,6 +115,7 @@ final class UpdateEngine
             $actual=(new UpdatePackage())->verify($directory.'/candidate.tar',$directory.'/candidate',$manifest['version'],false,static fn(string $stage,array $candidate)=>(new UpdateCompatibility())->validate($stage,$candidate));
             if(!hash_equals(hash('sha256',$json),hash('sha256',self::manifestJson($actual))))throw new HttpException(422,'INVALID_UPDATE_PACKAGE');
             $this->save($directory.'/manifest.json',$json);$this->advance($state,'verified');$this->event('verified',$state);
+            (new UpdateRescue())->prepare($this->root);
         }catch(\Throwable){$this->advance($state,'failed',error:'UPDATE_DOWNLOAD_FAILED');throw new HttpException(422,'UPDATE_DOWNLOAD_FAILED');}
         return $this->access->exclusive(function()use(&$state,$directory,$manifest,$version){
             try{
