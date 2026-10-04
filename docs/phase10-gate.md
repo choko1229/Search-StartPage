@@ -16,4 +16,6 @@
 
 主な証拠: docs/update-check.md、update-package.md、update-engine.md、update-database-merge.md、update-outcome-logsはdocs/admin-logs.md、update-fpm-http.md、update-management-ui.md、update-execution-service.md。各文書の初期「未実装」は当時の記録で、最新実装状態は本表とprogress.mdを参照する。
 
+非公開repoの設定支援（2026-10-04）: 8099のconfigはDocker内、秘密値を出さないreadinessでToken未設定。bin/configure-updates.ps1 / phpを準備し、stdin非表示入力・他設定保持・private atomic保存を専用PHP8.2/8.3で15項目/基盤40各3回確認（5948 exit0）。実Token設定/実取得はユーザー設定後に確認し、今回の生成秘密試験を代用しない。docs/release-distribution.md参照。
+
 次の具体的手順: 対象GitHub配布元のアクセス条件と実リリース配布経路を確認し、404や取得不能を成功・更新なしと扱わない。実asset検査・適用・復元の不足を監査する。秘密はGit/進捗へ記録せず、本番公開/pushは実行しない。systemd静的診断とCLIプロセス試験は実managerのboot/restartの証明ではない。今回の停止中失敗試験の詳細はdocs/update-fpm-http.mdに記録。

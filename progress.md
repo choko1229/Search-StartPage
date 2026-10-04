@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・Phase10 非公開更新元の安全な設定手順）
+
+前ターンf66f45fは配布準備。今回は設定場所を確認。ホストconfig/config.phpなし、8099のDocker内configで値を表示しないreadinessはconfigured false。ユーザーの「設定する」を設定完了と推測しない。Phase10進行中/Phase11〜12未着手/Version1.0未完成。
+
+Files: bin/configure-updates.php / bin/configure-updates.ps1 / tests/update-configuration.php / tests/run-release-preparation.ps1 -Configuration / docs/release-distribution.md。ユーザーが非表示対話でTokenを標準入力へ渡し、repository/tokenだけをprivate原子保存できる。実Token/本当のconfigはこのターン非変更。DB/API/UI変更なし。
+
+検証1〜3: 5948 exit0、専用PHP8.2/8.3で設定15/基盤40各3回。生成秘密非表示、他設定保持、0600/temporary清掃、空Token、入力/引数/長さ/権限/link/未installed拒否、configの予期しない出力抑止を確認。PHP構文/両PowerShell parser/diffチェック成功、専用network none/DBなし/portなし/host mountなし/コンテナ清掃/prefix空。PowerShell実対話/実Token保存は未確認。
+
+次に実行すること:
+1. ユーザーへ案内済みのbin/configure-updates.ps1で設定完了後、値を出さないreadinessと実GitHub release/asset取得を確認。configはDocker内、ホストのファイル編集だけで設定済みとしない。実値を表示/進捗/Gitへ保存しない。
+2. 未設定なら独立したPhase10残件（実MariaDB管理UIなど）を進める。実配布物がなければ具体的準備物と不足条件を提示し、公開/pushは明示許可なしに行わない。
+3. CLI設定でWeb OPcacheが自動反映されたとは推測しない。サービス/実配信/UIを監査してPhase10合格後のみPhase11へ。通常DB/権限/config/workerは非変更、Glass/Extension/全browser/全DoD未達を維持。
+
 ## 最新の再開地点（2026-10-04・Phase10 配布準備と非公開repo確認）
 
 前ターン7d53244は停止中の自動復元検証。このターンは実GitHub配布経路の不足を監査。認証なしrepo/releases APIとも404を現在の実HTTPで確認。ユーザーが非公開repo・Tokenを設定すると回答。Token設定完了・認証取得成功とは扱わない。Phase10進行中/Phase11〜12未着手/Version1.0未完成。

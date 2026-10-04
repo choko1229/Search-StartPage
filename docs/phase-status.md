@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 非公開更新元の設定支援（2026-10-04）
+
+- 状態: Phase10進行中。8099のDocker configを値なしで読取り、Token未設定。ホストconfigなし。ユーザーの設定予定を完了としない。
+- Files: bin/configure-updates.php / ps1 / tests/update-configuration.php / tests/run-release-preparation.ps1 / docs/release-distribution.md / 進捗。非表示対話/stdin/他設定保持/private原子保存の補助。DB/API/UI非変更。
+- 検証1〜3: 5948 exit0、専用PHP8.2/8.3設定15/基盤40各3回、PHP構文/PowerShell parser/diff成功。生成秘密の出力抑止、不正入力/権限/link/未installed拒否、他設定/private mode/temporary除去を確認。ネットワーク/DB/port/mountなし、専用コンテナ清掃/prefix空。
+- Security/Issues: 実Token保存/PowerShell対話/認証取得は未確認。通常環境のDB/権限/config/worker非変更、実Secret/spec非保存、公開/push/再起動なし。CLIによる設定変更のWeb OPcache反映は別途確認する。
+- Next: ユーザーの設定後、値なしreadiness→非公開実release/asset取得。独立したMariaDB実管理UI等のPhase10残件も進める。Phase10合格前にPhase11へ進まない。
+
 ## Phase10 配布準備・非公開repo（2026-10-04）
 
 - 状態: Phase10進行中。実認証なしrepo/releasesとも404、ユーザーが非公開repo/Token設定予定と回答。設定完了/実取得成功は未確認。
