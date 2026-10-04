@@ -1,0 +1,62 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/autoload.php';
+use App\Database\{Database,Migrator};
+use App\Services\UpdateDatabase;
+use App\Http\HttpException;
+if(PHP_SAPI!=='cli'||getenv('SEARCH_TEST_MODE')!=='1'||!in_array(getenv('TEST_BACKUP_HOST'),['search-update-backup-mysql-20261004','search-update-backup-mariadb-20261004'],true))exit(1);
+$pdo=Database::connect(['host'=>getenv('TEST_BACKUP_HOST'),'port'=>3306,'name'=>'update_backup','user'=>'backup','password'=>getenv('TEST_BACKUP_PASSWORD')]);
+$checks=0;$check=static function(bool $ok,string $name)use(&$checks){if(!$ok)throw new RuntimeException($name);++$checks;echo "PASS: $name\n";};
+$directory=sys_get_temp_dir().'/update-db-'.bin2hex(random_bytes(8));mkdir($directory,0700);$path=$directory.'/database.jsonl';
+$service=new UpdateDatabase($pdo);
+$state=static function()use($pdo):array{
+    $stringify=$pdo->getAttribute(PDO::ATTR_STRINGIFY_FETCHES);$pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES,true);$result=[];
+    try{foreach($pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $name){
+        $rows=$pdo->query('SELECT * FROM `'.$name.'`')->fetchAll(PDO::FETCH_NUM);$encoded=array_map(fn($row)=>json_encode(array_map(fn($value)=>$value===null?null:base64_encode($value),$row),JSON_THROW_ON_ERROR),$rows);sort($encoded);$schema=[];
+        foreach([
+            'SELECT ENGINE,TABLE_COLLATION,AUTO_INCREMENT,ROW_FORMAT FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?',
+            'SELECT COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COLUMN_DEFAULT,CHARACTER_SET_NAME,COLLATION_NAME,EXTRA,GENERATION_EXPRESSION FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? ORDER BY ORDINAL_POSITION',
+            'SELECT INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COLLATION,SUB_PART,INDEX_TYPE,NULLABLE FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? ORDER BY INDEX_NAME,SEQ_IN_INDEX',
+            'SELECT CONSTRAINT_NAME,COLUMN_NAME,ORDINAL_POSITION,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? ORDER BY CONSTRAINT_NAME,ORDINAL_POSITION',
+            'SELECT CONSTRAINT_NAME,UPDATE_RULE,DELETE_RULE,REFERENCED_TABLE_NAME FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND TABLE_NAME=? ORDER BY CONSTRAINT_NAME'
+        ] as $sql){$query=$pdo->prepare($sql);$query->execute([$name]);$schema[]=$query->fetchAll(PDO::FETCH_NUM);}
+        $result[$name]=['ddl'=>$schema,'rows'=>$encoded];
+    }ksort($result);return $result;}
+    finally{$pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES,$stringify);}
+};
+$reject=static function(callable $action,string $code)use($check){try{$action();throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode===$code,$code);}};
+try{
+    $migrator=new Migrator($pdo,dirname(__DIR__).'/database/migrations');$check(count($migrator->migrate())===16,'all 16 migrations on isolated empty schema');$check($migrator->migrate()===[],'migration repeat no-op');
+    $pdo->prepare('INSERT INTO users(id,discord_id,discord_username,locale,created_at,updated_at) VALUES(?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute([1,'999999999999999999','生成テストユーザー','ja']);
+    $pdo->prepare('INSERT INTO favorite_folders(id,user_id,name,client_id,created_at,updated_at) VALUES(?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute(['11111111-1111-4111-8111-111111111111',1,'保存フォルダー','generated-backup-client']);
+    $pdo->prepare('INSERT INTO favorites(id,user_id,folder_id,name,url,client_id,created_at,updated_at) VALUES(?,?,?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())')->execute(['22222222-2222-4222-8222-222222222222',1,'11111111-1111-4111-8111-111111111111','favorite preserved','https://example.test/','generated-backup-client']);
+    $pdo->exec('CREATE TABLE generated_types (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,n INT NOT NULL,twice INT AS (n*2) STORED,amount DECIMAL(40,20),precise DOUBLE,payload LONGBLOB,nullable TEXT NULL,notes TEXT NOT NULL,big BIGINT UNSIGNED) ENGINE=InnoDB AUTO_INCREMENT=1000');
+    $pdo->exec("SET SESSION sql_mode=CONCAT(@@SESSION.sql_mode,',NO_AUTO_VALUE_ON_ZERO')");
+    $pdo->prepare('INSERT INTO generated_types(id,n,amount,precise,payload,nullable,notes,big) VALUES(?,?,?,?,?,?,?,?)')->execute([0,7,'12345678901234567890.12345678901234567890','1.2345678901234567',"\x00\xff\x80'\n",null,"日本語 😀 '); DROP TABLE users; --",'18446744073709551615']);
+    $pdo->prepare('INSERT INTO generated_types(n,amount,precise,payload,nullable,notes,big) VALUES(?,?,?,?,?,?,?)')->execute([3,'-0.00000000000000000001','1.0000000000000002',str_repeat("\x00\xff",65536),'','empty and large','0']);
+    $before=$state();$buffered=$pdo->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY);$stringify=$pdo->getAttribute(PDO::ATTR_STRINGIFY_FETCHES);$metadata=$service->snapshot($path,static function()use($check):void{
+        $other=Database::connect(['host'=>getenv('TEST_BACKUP_HOST'),'port'=>3306,'name'=>'update_backup','user'=>'backup','password'=>getenv('TEST_BACKUP_PASSWORD')]);$other->exec("UPDATE users SET discord_username='committed after snapshot'");$other->exec('DELETE FROM favorites');$check((int)$other->query('SELECT COUNT(*) FROM favorites')->fetchColumn()===0,'concurrent second connection commits after consistent snapshot');
+    });
+    $check($metadata['tables']===count($before)&&$metadata['rows']>16,'snapshot includes full schema and migration/user data');$check((fileperms($path)&0777)===0600,'backup private permissions');$check($pdo->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY)===$buffered&&$pdo->getAttribute(PDO::ATTR_STRINGIFY_FETCHES)===$stringify&&!$pdo->inTransaction(),'snapshot restores connection settings');
+    $reject(fn()=>$service->snapshot($path),'UPDATE_BACKUP_EXISTS');$pdo->beginTransaction();$reject(fn()=>$service->snapshot($directory.'/transaction.jsonl'),'UPDATE_DB_TRANSACTION_ACTIVE');$pdo->rollBack();$check(!file_exists($directory.'/transaction.jsonl'),'active transaction creates no partial backup');
+    $failed=$directory.'/failed.jsonl';$reject(fn()=>$service->snapshot($failed,static function(){throw new RuntimeException('generated secret failure marker');}),'UPDATE_DB_BACKUP_FAILED');$check(!file_exists($failed)&&!$pdo->inTransaction()&&$pdo->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY)===$buffered,'failed snapshot clears private partial file and transaction');
+    $pdo->exec('ALTER TABLE users ADD COLUMN generated_new_column VARCHAR(30) NULL');$pdo->exec('CREATE TABLE generated_new_table (id INT PRIMARY KEY) ENGINE=MyISAM');$pdo->exec('CREATE VIEW generated_new_view AS SELECT id FROM users');$pdo->exec('CREATE PROCEDURE generated_new_procedure() SELECT 1');$pdo->exec('CREATE EVENT generated_new_event ON SCHEDULE EVERY 1 DAY DISABLE DO SELECT 1');$pdo->exec('DROP TABLE generated_types');$pdo->exec("UPDATE users SET discord_username='changed'");$pdo->exec('DELETE FROM favorites');$pdo->exec("DELETE FROM migrations WHERE name='016_admin_roles.php'");
+    $foreign=(int)$pdo->query('SELECT @@SESSION.foreign_key_checks')->fetchColumn();$mode=$pdo->query('SELECT @@SESSION.sql_mode')->fetchColumn();$pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES,true);$service->restore($path,$metadata);$check($pdo->getAttribute(PDO::ATTR_STRINGIFY_FETCHES)===true,'source identity stable across PDO fetch settings');$pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES,$stringify);
+    $after=$state();if($after!==$before){foreach($before as $name=>$table)if(($after[$name]??null)!==$table)echo json_encode(['different_table'=>$name,'schema_equal'=>($after[$name]['ddl']??null)===$table['ddl'],'rows_equal'=>($after[$name]['rows']??null)===$table['rows']],JSON_THROW_ON_ERROR)."\n";}
+    $check($after===$before,'independent schema metadata and every data byte restored after altered/dropped/added tables');$check((int)$pdo->query('SELECT @@SESSION.foreign_key_checks')->fetchColumn()===$foreign&&$pdo->query('SELECT @@SESSION.sql_mode')->fetchColumn()===$mode,'restore returns session constraints and mode');$check($migrator->migrate()===[],'restored migration checksums remain valid');
+    $check((int)$pdo->query('SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=DATABASE()')->fetchColumn()===0&&(int)$pdo->query('SELECT COUNT(*) FROM information_schema.EVENTS WHERE EVENT_SCHEMA=DATABASE()')->fetchColumn()===0,'rollback removes post-backup views/routines/events and non-InnoDB additions');
+    $check((string)$pdo->query('SELECT id FROM generated_types WHERE n=7')->fetchColumn()==='0','zero auto increment ID preserved');$check((string)$pdo->query('SELECT twice FROM generated_types WHERE n=7')->fetchColumn()==='14','generated column rebuilt');$check($pdo->query('SELECT discord_username FROM users WHERE id=1')->fetchColumn()==='生成テストユーザー','real user data recovered');$check((int)$pdo->query('SELECT COUNT(*) FROM favorites')->fetchColumn()===1,'favorite relation recovered');
+    try{$pdo->exec("INSERT INTO favorite_folders(id,user_id,name,client_id,created_at,updated_at) VALUES('33333333-3333-4333-8333-333333333333',999,'bad','generated-invalid-parent',UTC_TIMESTAMP(),UTC_TIMESTAMP())");throw new LogicException('Missing FK');}catch(PDOException $error){$check(($error->errorInfo[1]??null)===1452,'foreign key enforcement active after restore');}
+    $original=file_get_contents($path);file_put_contents($path,substr_replace($original,'X',strlen($original)-3,1));$reject(fn()=>$service->restore($path,$metadata),'INVALID_UPDATE_DB_BACKUP');$check($state()===$before,'hash rejection leaves DB untouched');file_put_contents($path,$original);
+    $link=$directory.'/link.jsonl';symlink($path,$link);$reject(fn()=>$service->restore($link,$metadata),'INVALID_UPDATE_DB_BACKUP');$check($state()===$before,'symlink rejection leaves DB untouched');unlink($link);
+    $pdo->beginTransaction();$reject(fn()=>$service->restore($path,$metadata),'UPDATE_DB_TRANSACTION_ACTIVE');$pdo->rollBack();$check($state()===$before,'restore rejects active transaction without changing data');
+    foreach(['bytes'=>1,'database'=>str_repeat('a',64),'tables'=>0,'rows'=>0] as $field=>$value){$reject(fn()=>$service->restore($path,array_replace($metadata,[$field=>$value])),'INVALID_UPDATE_DB_BACKUP');$check($state()===$before,'metadata rejection leaves DB untouched '.$field);}
+    foreach([substr($original,0,strrpos(rtrim($original),"\n")+1),$original."{}\n",str_replace('"end":','"invalid_end":',$original)] as $index=>$invalid){$bad=$directory.'/invalid-'.$index.'.jsonl';file_put_contents($bad,$invalid);$modified=array_replace($metadata,['bytes'=>strlen($invalid),'sha256'=>hash('sha256',$invalid)]);$reject(fn()=>$service->restore($bad,$modified),'INVALID_UPDATE_DB_BACKUP');$check($state()===$before,'format preflight leaves DB untouched '.$index);}
+    $calls=0;$reject(fn()=>$service->restore($path,$metadata,static function()use(&$calls){if(++$calls===2)throw new RuntimeException('generated sensitive fault');}),'UPDATE_DB_RESTORE_FAILED');$check(!$pdo->inTransaction()&&(int)$pdo->query('SELECT @@SESSION.foreign_key_checks')->fetchColumn()===$foreign,'DDL failure releases session settings');$service->restore($path,$metadata);$check($state()===$before,'retry restores full DB after partial DDL failure');
+    foreach(['CREATE TABLE generated_unsupported(id INT) ENGINE=MyISAM','CREATE VIEW generated_unsupported AS SELECT id FROM users','CREATE TRIGGER generated_unsupported BEFORE INSERT ON users FOR EACH ROW SET NEW.discord_username=NEW.discord_username'] as $index=>$sql){$pdo->exec($sql);$bad=$directory.'/unsupported-'.$index.'.jsonl';$reject(fn()=>$service->snapshot($bad),'UPDATE_DB_SCHEMA_UNSUPPORTED');$check(!file_exists($bad),'unsupported schema leaves no partial backup');$pdo->exec(($index===0?'DROP TABLE ':($index===1?'DROP VIEW ':'DROP TRIGGER ')).'generated_unsupported');}
+    $check($state()===$before,'unsupported schema checks preserve app tables');echo "$checks update database checks passed.\n";
+}finally{
+    // Only the explicit disposable update_backup schema is ever cleaned.
+    $pdo->exec('SET FOREIGN_KEY_CHECKS=0');foreach($pdo->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM) as [$name,$type])$pdo->exec(($type==='VIEW'?'DROP VIEW ':'DROP TABLE ').'`'.$name.'`');$pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+    foreach(glob($directory.'/*') as $file)unlink($file);rmdir($directory);
+}

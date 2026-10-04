@@ -1,0 +1,15 @@
+# Updater用DB保存・復元
+
+UpdateDatabaseは、更新時にアプリ専用schemaを保存・復元するサービスです。管理画面からの入口、直前1世代の永続metadata/世代切替、更新全体のlock/maintenance/worker停止、ファイル差替え/Migration/health、自動・手動Rollbackはまだ接続していません。一般的な常時DBバックアップの代わりではありません。
+
+snapshotはPHP PDOだけで、全InnoDBテーブルのSHOW CREATE定義と全データをprivate JSON Linesへ保存します。値はNULLまたはBase64文字列で保持し、非bufferedで行ごとに読みます。数値を文字列として取得してDECIMAL/DOUBLE/BIGINTの精度を保ちます。生成列は定義だけ保存してINSERT対象から除きます。既存のアプリ16Migration、Migration履歴、ユーザー、端末/ログインToken、同期、背景metadata、設定、統計、ログも同じschema内なら対象です。ファイルには個人データ/認証情報が含まれるため、非公開の0700作業ディレクトリへ0600で保存し、公開/download対象にしません。DB接続のpassword/DSNは保存しません。
+
+REPEATABLE READとWITH CONSISTENT SNAPSHOTを使います。[MySQLのconsistent read](https://dev.mysql.com/doc/refman/8.0/en/innodb-consistent-read.html)と[MariaDBのSTART TRANSACTION](https://mariadb.com/docs/server/reference/sql-statements/transactions/start-transaction)の公式仕様を確認しています。MVCCは通常のDMLを同じ時点で読みますが、更新エンジンは別途アプリ/workerの書き込みと並行DDLを止めてください。現在このサービス自身では停止しません。既存transactionのあるPDOでは開始しません。失敗時はtransaction/取得設定を戻し、partial fileを清掃して安全なcodeだけを返します。
+
+返却metadataはbytes/SHA-256/接続先のidentity hash/テーブル数/行数です。更新エンジンがprivateに保存してください。restoreは同じDB/serverへの復元だけを許し、private fileをlockし、その同じstreamのsize/hash/全schema/全行/base64/end件数を事前検証してから変更します。SQL値はprepared INSERTです。改変や途中切れがあれば変更を開始しません。
+
+restoreは現在のschema内のView/Routine/Event/テーブルを除去し、旧schemaを作り直して行をtransactionで復元します。更新で新たに作った非InnoDBテーブルやView/Routine/Eventも除去し、triggerは所有テーブルと一緒に除去されます。AUTO_INCREMENT=0を保ち、sessionのSQL mode/foreign-key checksを終了時に戻します。DDLはauto-commitするため、途中失敗すると部分状態が残ります。更新エンジンはmaintenanceを維持し、保存済みバックアップから復元を再試行してhealth確認まで完了する必要があります。DDLのtransaction rollbackだけで元に戻ったと判断しません。
+
+このアプリのMigrationはInnoDB通常テーブルだけです。更新前にView/Trigger/Routine/Event、非InnoDB、BIT/spatial列があるschemaは、保存から復元できるふりをせずUPDATE_DB_SCHEMA_UNSUPPORTEDで停止します。アプリ専用schemaを使用してください。identifierは64文字以内ASCII英数字/underscore、最大4096テーブル、512列、1 JSON行64MiB、保存全体2GiB未満です。上限を超えた場合は更新開始前に停止する運用が必要です。任意の外部管理者が加えたDB拡張や他製品との共有schemaの一般backupではありません。
+
+検証は通常開発DBと別のMySQL8/MariaDB10.11一時container内のupdate_backup専用schemaで各51項目。全16Migration/fresh/repeat、実ユーザー/お気に入り関係、バイナリ/日本語/SQL文字列/NULL/空文字/DECIMAL/DOUBLE/unsigned最大値/生成列/ID0、別connectionのsnapshot後DML、全データと独立schema metadata（列・collation・index・FK・AUTO_INCREMENT）の復元一致を確認。SHOW CREATEの冗長CHARACTER SET表記の違いを構造差と混同せず、information_schemaで確認しています。改変/metadata/format/リンク/transaction拒否、保存失敗清掃、復元DDL途中失敗→再試行、未対応schema拒否も確認。専用DBと生成snapshotは清掃済みです。通常開発DB/本番には復元していません。
