@@ -14,7 +14,7 @@
 | Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBの実2cycle/二重起動拒否。実PDO接続失敗→同じworkerの2秒後再試行/復旧を各3回、unsafe file lock失敗→修復/再試行を各3回確認。更新workerの失敗をupdate_errorへ同一transactionで分類し、結果再投影・file配送再試行・ApplicationLogger queue分離を専用試験で確認。実Engine復元後にも25件の失敗記録を保持 | 本番ホスト未配置。実1時間待機、DBサーバー停止、disk full/OS権限障害は別の未確認。file配送は管理ログ閲覧/整理時で、即時配送や中断時のexactly-onceではない |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |
 | Statistics 実操作 | localhost専用DBへWeb/AI/favorite/Palette操作を保存。通常UIから生成背景2件保存に対応するfeature background2を観測 | 実Discord認証の同期、実外部preset分類、未配信イベントの端末上のACK確認は未確認 |
-| Update Management | Release取得/4channel選択と管理者check/API/CSRF/監査/通知。両DBで実配布物/検査/backup/file+DB置換/Migration/health/自動・手動復元/ユーザー変更保持/中断rescue/安全停止、専用Apache変更PHP反映を確認。MySQL管理画面の実更新・復元、日英/390px/Console0。PHP8.2/8.3の独立2 FPM master・各2 childで実FastCGI cache刷新/停止/破損拒否/復元を各3回22項目確認 | 対象repo404/実GitHub取得、FPM経由の実Engine/DB更新・HTTP proxy、サービスboot/restart/長時間運用、本番配置、全browser/実MariaDBブラウザ操作は未確認。Phase10正式移行前 |
+| Update Management | Release取得/4channel選択と管理者check/API/CSRF/監査/通知。両DBで実配布物/検査/backup/file+DB置換/Migration/health/自動・手動復元/ユーザー変更保持/中断rescue/安全停止、専用Apache変更PHP反映を確認。MySQL管理画面の実更新・復元、日英/390px/Console0。PHP8.2/8.3の独立2 FPM master・各2 childでcache刷新/復元を各3回22項目。PHP8.3/Nginxの実HTTP受付→worker/Engine/両DB更新→新PHP→復元/旧PHPも各3回24項目確認（docs/update-fpm-http.md） | 対象repo404/実GitHub取得、独立複数FPM masterでの実DB更新、サービスboot/restart/長時間運用、本番配置、全browser/実MariaDBブラウザ操作は未確認。Phase10正式移行前 |
 | DB / Regression | 両DB全17Migration fresh/repeat/往復、Installer各40、最新配布物PHP160構文。今回のログ障害試験は両専用DBでfresh17/repeatと基盤40・scheduleを各3回確認 | 新しいMigrationが増えたら新規環境で再確認。実ブラウザの未確認は上記各行を参照 |
 
 ## 匿名統計の実ブラウザ証拠

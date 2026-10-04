@@ -18,4 +18,6 @@ OPcacheが無効なら刷新は不要。OPcacheが有効なのに必要なAPIが
 
 再現には `SEARCH_TEST_MODE=1`、`TEST_FPM_CACHE_DEPLOYMENT=1`、fresh `/tmp/search-fpm-cache-*`、`storage/web-cache-test-only` markerが必要。app/Servicesの上記2ファイル、public/index.php、tests/update-web-cache-fpm.phpを同じ構造へ配置し、www-dataで実行する。root配下のbootstrapを上書きする試験なので通常配置では実行しない。PHPの標準設定でOPcacheが読み込まれていることを前提とする。
 
-これは実FastCGI/FPMキャッシュの証拠であり、nginx/Apache proxyとの実HTTP、FPM経由の実Engine/DB更新、サービスboot/restart/長時間運用、Windows PHP、OPcache file_cache_only、実GitHub配布元、実OAuth、全browser/Phase9残ゲート/Version1.0最終監査は未確認。管理ブラウザのMySQL更新・復元は別のdocs/update-management-ui.mdの証拠を参照する。
+上の単体試験は実FastCGI/FPMキャッシュの証拠。後続の専用PHP8.3/Nginx・MySQL8/MariaDB10.11では、実HTTP管理受付→専用worker/Engine→変更PHP表示→本来の入口で復元→旧PHP表示を各3回24項目確認した（docs/update-fpm-http.md）。1 master/2 static child、日時確認0、CLI/Web同一www-data、config保持、実Engine完了を待つworker stopを含む。取得archiveだけfixture。独立2 masterの実DB更新を確認したという意味ではない。
+
+サービスboot/restart/長時間運用、Windows PHP、OPcache file_cache_only、実GitHub配布元、実OAuth、全browser/Phase9残ゲート/Version1.0最終監査は未確認。管理ブラウザのMySQL更新・復元は別のdocs/update-management-ui.mdの証拠を参照する。

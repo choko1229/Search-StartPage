@@ -32,4 +32,4 @@ GET /admin/updateとGET /api/admin/updateは既存の認証・サーバー側管
 
 初期の接続条件であったrequest/job IDの永続対応、HTTP応答後の排他実行、DB復元後の結果再投影、隔離Apacheでの実HTTP停止/更新/復帰は後続実装・検証で確認済み。FPMのcache単体検証をFPM経由のEngine/DB更新成功へ拡張せず、サービス運用・実外部連携とともに最終監査へ追跡する。
 
-CLI workerとrequest/job IDの対応付け・DB巻戻し後の再投影は実装・検証済み。管理POST/Apache実Web更新/管理画面の実操作も後続検証済み（docs/update-runner.md、docs/update-requests.md、docs/update-management-ui.md）。上の初期検証記録を現在の未接続条件として扱わない。FPM経由Engine/DB更新・サービス運用・実配布元は引き続き未確認。
+CLI workerとrequest/job IDの対応付け・DB巻戻し後の再投影は実装・検証済み。管理POST/Apache実Web更新/管理画面の実操作も後続検証済み（docs/update-runner.md、docs/update-requests.md、docs/update-management-ui.md）。PHP8.3 FPM/Nginx経由Engine/両DB更新も各3回24項目確認済み（docs/update-fpm-http.md）。上の初期検証記録を現在の未接続条件として扱わない。独立複数FPM masterでの実DB更新・サービス運用・実配布元は引き続き未確認。

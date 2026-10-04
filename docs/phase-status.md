@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## Phase9 FPM/Nginx経由の実更新・復元（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前Goalターンecf5b01は製品ログ補修と検証の進捗。
+- Files: tests/update-requests-http.phpのFPM mode/HTTP parser/owned guard、tests/update-fpm-runtime.php、tests/fixtures/update-fpm、tests/run-update-fpm.ps1、docs/update-fpm-http.md。製品コード/schema/API/UI変更なし。
+- 検証1〜3: PHP8.3 FPM/Nginx・専用MySQL8/MariaDB10.11、各3回HTTP24/基盤40成功（31199 exit0）。FPM SAPI/OPcache timestamps0、管理受付202/入力422/古い版409/日英、実worker/Engine/DB/file更新、新PHP画面、実完了を待つstop、本来の入口でDB/file復元、旧PHP/両履歴/config保持。
+- 最終: 保存するharnessで両FPM24/基盤40を再成功、既存PHP HTTP server mode23も両DB成功（35497 exit0）。新PHP2構文・PowerShell parser成功。全17Migrationの実fresh適用、既存repeat/往復証拠は別の検証。最初の33938/77335はstatus理由句省略を扱えない試験側の失敗、修正後全3回再実行。
+- Security/清掃: 専用tmpfs DB512MiB/no host port/生成password、CLI/Web同一www-data、テストendpointは固定tmp root/marker/FPMに限定しrelease除外。通常配置/権限/DB/workers非変更。全専用app/DB清掃・prefix一覧空、spec.md非変更・非stage。
+- Limits/Next: 候補/取得archiveだけfixture。1 master/2 childの証拠であり、独立複数masterの実DB更新/サービスboot/restart/長時間運用/実GitHub/OAuth/実ブラウザを確認済みにしない。Phase9旧roles/他端末/警告因果、Glass/全browser/Phase11〜12/全DoD未達を継続。
+
 ## Phase9 更新workerの失敗ログ（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前Goalターンは進捗報告のみ。未保存変更を確認して最終検証。
@@ -132,7 +141,7 @@ Phase9未完了、Phase10正式移行前、Version1.0未完成。新しいDB比�
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
 | 9 | Admin | 進行中（管理基盤・一覧・メンテナンス・ログ収集/保持・機能制御/動的制限を実装、残る管理機能とUI検証を継続） |
-| 10 | Updater | 正式移行前。更新/復元を両DB・専用Apacheで検証、MySQL管理画面の実操作も確認。実配布元・FPM・サービス運用等が残る |
+| 10 | Updater | 正式移行前。更新/復元を両DB・専用ApacheとPHP8.3 FPM/Nginxで検証、MySQL管理画面の実操作も確認。実配布元・独立複数FPM masterでの実DB更新・サービス運用等が残る |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
 

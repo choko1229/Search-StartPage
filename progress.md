@@ -1,4 +1,23 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・FPM経由の実HTTP更新）
+
+前Goalターンecf5b01は更新エラーの製品補修/検証/保存による進捗。今回FPM経由の実HTTP/Engine/DB更新という環境残件を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+Files: tests/update-requests-http.phpにFPM modeと理由句省略を許容するHTTP status parser、空schema確認後だけ清掃するowned guardを追加。tests/update-fpm-runtime.php、tests/fixtures/update-fpmのDockerfile/nginx.conf、tests/run-update-fpm.ps1、docs/update-fpm-http.mdを追加。製品コード/schema/API/UI変更なし。
+
+検証1〜3: PHP8.3 FPM/Nginx、OPcache timestamps0・static2 child・CLI/Web同一www-data、専用tmpfs MySQL8/MariaDB10.11で各3回HTTP24/基盤40成功（31199 exit0）。実管理API202/履歴/日英状態/入力422/古い版409、応答後の常駐worker/実Engine子/更新/新PHP表示、本来のrunnerで実DB/file復元/旧PHP表示/両履歴/config hash保持。stopは実Engine完了まで待つ。候補と取得archiveだけfixture。実FPM SAPI/版/OPcache設定を専用endpointで確認。
+
+最終検証: 保存するtests/run-update-fpm.ps1 -Rounds 1で両FPM24/基盤40を再成功、既存のPHP HTTP server mode23も両DB成功（35497 exit0）。新PHP2構文/PowerShell parser/git diff --check成功。最初33938/77335はNginxの理由句がないstatus lineを試験側regexが読めず失敗、Warningを含む失敗は成功扱いにせず修正後全3回を再実行。
+
+環境: 専用PHP8.3/pdo_mysql/nginx imageを作成。専用appはhost portなし、DBはtmpfs512MiB/no host port/生成password。fresh config雛形のみcopy。各finallyで生成admin/device/config/worker/clone/DBを清掃し、最終dockerの専用prefix一覧空。通常8099/8100/config/DB/users/権限/worker非変更。spec.md非変更・非stage、push/本番公開/再起動なし。
+
+範囲: 1 FPM master/2 static childでの実HTTP/DB更新。独立2 master cache単体の既存証拠と区別し、独立複数masterでの実DB更新/サービスboot/restart/長時間運用/実GitHub/OAuth/実ブラウザの証明にはしない。
+
+次に実行すること:
+1. Phase9旧roles実UI・他端末認証済みUI/過去保存警告因果を照合し、具体的な隔離検証を進める。以前の権限操作auto-review拒否を無断再試行しない。
+2. サービスboot/stop/restart/長時間運用と実配布元を確認できる範囲で進め、独立複数FPM masterでの実DB更新等の環境依存を最終監査へ追跡。
+3. Phase9合格後にPhase10正式移行。実OAuth/OS chooser/Glass仕上げ/全browser/Phase11〜12/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・更新失敗のログ分類）
 
 前Goalターンは進捗報告のみで機能進捗なし。未保存だった更新エラーログ補修を再確認し、最終ソースを両専用DBで検証。Phase9進行中、Phase10正式移行前、Version1.0未完成。
