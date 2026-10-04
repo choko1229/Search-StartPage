@@ -1,0 +1,35 @@
+name: Prepare updater release package
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing tag whose VERSION matches the release
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+    container: php:${{ matrix.php }}-cli-bookworm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag }}
+          persist-credentials: false
+      - name: Prepare and verify canonical package
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: php bin/prepare-release.php "$RELEASE_TAG" "$RUNNER_TEMP/prepared-release"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: updater-package-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/prepared-release/*
+          if-no-files-found: error
+          retention-days: 7

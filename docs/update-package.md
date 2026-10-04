@@ -1,5 +1,7 @@
 # 更新配布物の作成と検証
 
+最新状態（2026-10-04/Phase10）: Engine/Backup/Migration/Rollbackへ接続・専用検証済み。以下の「未接続」「未実装」は初期検証時点の記録で、現在の判定はdocs/phase10-gate.md参照。canonical asset準備CLI/手動Actions artifact workflowを追加し、PHP8.2/8.3各3回確認。docs/release-distribution.mdに手順・未確認の実GitHub取得/配信を記録。
+
 GitHub Releasesへ添付するアプリ専用の更新配布物を作成・取得・検証する基盤です。Backup・更新適用・Migration・Rollbackへはまだ接続していません。作成済みでもUpdaterの完成や本番公開を意味しません。
 
 リリース対象のコードを用意し、`VERSION` をそのリリースのバージョンにしたうえで、PHP実行ユーザーから `php bin/build-release.php` を実行します。Node/npm buildやZip拡張は不要です。非公開の `storage/updates/builds/` に一意な `.tar` を作り、ファイル名・バージョン・ファイル数・バイト数・SHA-256を返します。既存の配布物を上書きしません。このコマンドはGitHubへ公開・送信しません。

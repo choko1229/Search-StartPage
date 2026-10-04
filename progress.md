@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・Phase10 配布準備と非公開repo確認）
+
+前ターン7d53244は停止中の自動復元検証。このターンは実GitHub配布経路の不足を監査。認証なしrepo/releases APIとも404を現在の実HTTPで確認。ユーザーが非公開repo・Tokenを設定すると回答。Token設定完了・認証取得成功とは扱わない。Phase10進行中/Phase11〜12未着手/Version1.0未完成。
+
+Files: bin/prepare-release.php / .github/workflows/release-package.yml / tests/release-preparation.php / tests/run-release-preparation.ps1 / docs/release-distribution.md / phase10-gate/update-package記録。tagとVERSION一致→canonical tar→PHP構文/manifest/更新protocol互換性→stage清掃→SHA-256/metadata。workflowは手動のみ・contents read・artifact保管まで、公開/upload/push/tag作成はしない。DB/API/UI変更なし。
+
+検証1〜3: 90204 exit0、専用network none/DBなし/portなし/host mountなしのPHP8.2/8.3で準備26/基盤40各3回。4tag種別、size/hash/sidecar/private mode/stage清掃、生成秘密/data除外、tag不一致/既存/ソース内/symlink/不正PHP拒否/失敗清掃、生成config/data保持。構文/PowerShell parser/diffチェック成功、専用prefix空。workflowはYAML解析/手動trigger/read権限/matrix確認、実Actions実行は未確認。
+
+Issues/環境: 通常sandboxのHTTPはtransport不可、許可された外部読取りで実404確認。bundled parser欠如・pnpm TLS検証失敗（85064 exit1）後、検証のみWindows証明書確認有効HTTPS+公式registry SHA-512照合でGit除外へparser取得、TLS検証非無効化。製品依存なし。通常8099/8100/DB/権限/config/worker非変更、実Secret非保存、spec非変更、公開/push/再起動なし。
+
+次に実行すること:
+1. ユーザーのToken設定完了を確認したら、秘密を出力・進捗/Gitへ記録せず非公開repoの実release check/asset metadata/取得を専用環境で検証。実configを配布準備用コンテナへコピーしない。未設定なら独立して残るPhase10実装/運用監査を進める。
+2. 実assetがまだなければ、docs/release-distribution.mdの準備済み手順と不足条件を提示する。リリース公開/pushの明示許可はまだなく自動実行しない。fixtureを実取得成功と扱わない。
+3. サービス運用/実配信/実MariaDB UIなど残件を監査し、Phase10合格後だけPhase11へ。Glass/Extension/全browser/全DoD未達を維持。
+
 ## 最新の再開地点（2026-10-04・Phase10 停止中の失敗自動復元）
 
 前ターンe04cd94でPhase9機能ゲート確定/Phase10開始。今回は専用実FPM/両DBでMaintenance中のMigration失敗→自動復元を確認。Phase10進行中、Phase11〜12未着手、Version1.0未完成。

@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 配布準備・非公開repo（2026-10-04）
+
+- 状態: Phase10進行中。実認証なしrepo/releasesとも404、ユーザーが非公開repo/Token設定予定と回答。設定完了/実取得成功は未確認。
+- Files: bin/prepare-release.php / .github/workflows/release-package.yml / tests/release-preparation.php / tests/run-release-preparation.ps1 / docs/release-distribution.mdほか進捗。DB/API/UI非変更。
+- 検証1〜3: 90204 exit0。専用PHP8.2/8.3でcanonical tar/tag/構文/protocol/sidecar/秘密除外/失敗清掃26と基盤40各3回成功。ネットワーク/DB/port/mountなし。新PHP構文/PowerShell parser/diff確認、workflow YAML解析/read権限/手動trigger確認。実Actions/CDN/非公開Token取得ではない。
+- Issues: parser取得のTLS失敗は停止、Windows証明書確認有効HTTPSとregistry SHA-512で検証のみ解決。製品依存追加なし。専用container清掃/prefix空、通常環境/実config/権限/DB非変更、Secret/spec非保存、公開/push/再起動なし。
+- 次: Token設定完了後の実release/asset取得、配信/運用/UI残件を監査。Phase10合格前にPhase11へ進まない。実公開の明示許可なし。
+
 ## Phase10 Maintenance中のMigration失敗・自動復元（2026-10-04）
 
 - 状態: Phase10進行中/Phase11〜12未着手/Version1.0未完成。前ターンe04cd94から再開。
