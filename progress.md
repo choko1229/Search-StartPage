@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・管理実行UI）
+
+前のGoalターンはe0202c3の停止worker実装/両DB実Engine停止/保存による進捗。今回は管理実行UIを接続し、専用MySQL/Apache/IABで実更新・復元まで確認。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: 実行/復元のWeb formsはCSRF+3revisionだけを送り、確認dialogの取消へ初期focus。取消/Escは受付なし、確定は二重送信抑止。type=buttonでJSなしの直接POSTを避け、文言/版はtextContent。日英文言、390px対応、明示的な状態再確認を追加。UpdateRequestsのworker_readyは固定root/app/public writable、private32桁ID+実held lock、stop markerなしを確認。stale lock/停止/readonly/処理中/候補・世代なしでボタン無効。API/CLI受付の既存契約は維持、SQL/Migration変更なし。
+
+検証1: 両一時ファイル受付/準備状態28、基盤40成功。準備は実held lockで判定し、stale/停止/公開permissionを拒否。新JS構文node --check成功。
+検証2: localhost限定8107の専用Apache・専用tmpfs/no port MySQL DB・生成admin/device・実常駐workerでIABのJP取消、EN確認、390px、確定Web POST/303/queued→実2.0.0適用→再確認/完了→復元確認/Esc取消→確定/実旧版復元→両履歴、JP再保存を確認。Console warn/error0、page375/dialog358/viewport390、横はみ出しなし。locale保存はnavigation完了を待って再取得する。取得候補/archiveのみfixture。実Discord/GitHubの証明でない。
+検証3: 両実配布物232files/3493376bytes/PHP160/独立tar/hash/config保持/private除外成功（72645 exit0）。停止した隔離appで既存管理HTTP56成功（43e162 exit0）、guest/user/失効/CSRF/Validation/日英/escape/監査。worker --stop後のUI無効化も確認。スクリーンショット.test-output/update-management.png。最終git diff --check成功。
+
+清掃: viewport reset、一時タブ14 close。workerを安全停止、専用UI app除去、DBのtmpfs rw,size=512mを確認して専用DBだけ除去。生成admin/device/ログイン入口/config/workerを清掃。通常8099/8100のapp/DB/ユーザー/権限/worker非変更、spec.md非変更、Secret/実Cookieを記録しない。
+
+次に実行すること:
+1. Phase9旧ゲート残件（認証済み同期/地域、EN weather/upload、cleanup故障、旧roles実UI）をdocs/phase9-gate等の証拠と照合して閉じる。今回の管理操作はMySQL/IAB実証でありMariaDB実ブラウザ/全browserへ拡張しない。
+2. FPM/複数pool・systemd実起動/停止/再起動/長時間運用を隔離環境で確認または最終監査へ環境依存を追跡。通常readonly環境でworkerを起動しない。
+3. Phase9が合格してからPhase10正式移行。実OAuth/GitHub/Glass/全browser/Phase11〜12/全DoD未達を保持。docs/update-management-ui.md参照。
+
 ## 最新の再開地点（2026-10-04・workerの安全な停止）
 
 前のGoalターンはd041e64のWeb OPcache実装/Apache・両DB検証/保存による進捗。今回は常駐workerの安全な停止と配布用サービス設定例を追加した。Phase9未完了、Phase10正式移行前、Version1.0未完成。

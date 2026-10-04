@@ -1,5 +1,7 @@
 # 更新・復元の管理受付
 
+管理画面の操作は[update-management-ui.md](update-management-ui.md)。確認/取消/確定、worker準備状態によるボタン制御、明示的な状態再確認を追加し、専用MySQL/Apache/IABで実更新と復元まで確認済み。execution.worker_readyはprivate lockが実際にheldで、書込み可能な固定配置/停止markerなしの場合だけtrue。両受付/準備28、隔離管理HTTP56、両最終配布物232files/PHP160成功。以下のブラウザ操作未確認は以前の記録で、MariaDB実ブラウザ/FPM/全browserはまだ未確認。
+
 最新の停止検証: 専用Apacheと両DBのHTTP試験で、更新中のworkerへstopを要求し、実Engineの完了後に常駐processが終了することを各23項目確認。変更PHP/復元/履歴/config保持も確認。停止CLIの最終25試験、候補13probe/20試験、最終配布物231files/3486208bytes/PHP160成功。以下の22以前の数値は以前の記録。systemdの自動起動は未確認。
 
 最新のWeb検証: [update-web-cache.md](update-web-cache.md)のとおり、専用Apacheと両DBで実更新/変更PHP画面表示/復元/旧PHP画面表示を各22項目確認。候補のWeb Cache/hookを必須にして12probe/19試験成功、最終配布物230files/PHP160構文成功。以下の20項目やApache未確認は以前の検証記録。FPM・サービス起動・ブラウザ実行操作は残る。

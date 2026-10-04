@@ -1,5 +1,5 @@
 <?php declare(strict_types=1); ?>
-<section class="panel">
+<section class="panel" data-update-manager>
 <h1><?= $e($t->get('admin_update')) ?></h1>
 <p><a href="/admin"><?= $e($t->get('admin_dashboard')) ?></a></p>
 <dl>
@@ -21,12 +21,32 @@
 <button type="submit"><?= $e($t->get('update_check')) ?></button>
 </form>
 <p class="muted"><?= $e($t->get('update_check_help')) ?></p>
+<?php $execution=$data['execution'];$ready=$execution['worker_ready']??false; ?>
+<?php if(!$ready): ?><p role="status"><?= $e($t->get('update_worker_unavailable')) ?></p><?php endif; ?>
+<div class="update-actions">
+<?php foreach(['apply','rollback'] as $operation): $target=$operation==='apply'?($data['release']['tag']??null):($execution['rollback']['to_version']??null);$enabled=$ready&&!$execution['busy']&&$target!==null&&($operation==='rollback'||$data['available']===true&&$data['error']===null); ?>
+<form method="post" action="/admin/update/<?= $e($operation) ?>" data-update-action data-confirm-title="<?= $e($t->get('update_confirm_'.$operation)) ?>" data-confirm-body="<?= $e($t->get('update_confirm_help')) ?>" data-confirm-version="<?= $e($target??'') ?>">
+<input type="hidden" name="_csrf" value="<?= $e(\App\Auth\Session::csrf()) ?>">
+<input type="hidden" name="command_revision" value="<?= $e($execution['command_revision']) ?>">
+<input type="hidden" name="check_revision" value="<?= $e($data['revision']) ?>">
+<input type="hidden" name="engine_revision" value="<?= $e($execution['engine_revision']) ?>">
+<button type="button" <?= $enabled?'':'disabled' ?>><?= $e($t->get('update_execute_'.$operation)) ?><?php if($enabled): ?> · <?= $e($target) ?><?php endif; ?></button>
+</form>
+<?php endforeach; ?>
+<a class="button secondary" href="/admin/update"><?= $e($t->get('update_refresh')) ?></a>
+</div>
+<dialog data-update-confirm aria-labelledby="update-confirm-title">
+<h2 id="update-confirm-title"></h2><p data-update-confirm-body></p><p data-update-confirm-version></p>
+<div class="update-actions"><button type="button" data-update-cancel><?= $e($t->get('cancel')) ?></button><button type="button" data-update-proceed><?= $e($t->get('update_confirm_proceed')) ?></button></div>
+</dialog>
+<noscript><p><?= $e($t->get('update_javascript_required')) ?></p></noscript>
 <?php if($data['execution']['request']!==null): $request=$data['execution']['request']; ?>
 <p class="update-execution-status" role="status"><?= $e($t->get('update_operation_'.$request['operation'])) ?>:
 <?= $e($request['from_version']) ?> → <?= $e($request['to_version']) ?> · <?= $e($t->get('update_status_'.$request['status'])) ?></p>
 <?php if($request['error']!==null): ?><p role="alert"><?= $e($t->get($request['error'])) ?></p><?php endif; ?>
 <?php endif; ?>
 </section>
+<script src="/assets/js/admin-updates.js" defer></script>
 <section class="panel update-history-panel">
 <h2><?= $e($t->get('update_history_title')) ?></h2>
 <?php if($data['history']===[]): ?><p class="muted"><?= $e($t->get('update_history_empty')) ?></p>

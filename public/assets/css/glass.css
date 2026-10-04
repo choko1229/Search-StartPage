@@ -127,3 +127,8 @@ body .settings-content .preference { font-size: .85rem; padding-block: .25rem; }
     body .settings-sidebar button { padding: .5rem .7rem; }
     body dialog:not(.sync-dialog):not(.onboarding) { border-radius: 0; }
 }
+body .update-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; margin-block: 1rem; }
+body .update-actions form { min-width: 0; max-width: 100%; }
+body .update-actions button { max-width: 100%; overflow-wrap: anywhere; white-space: normal; }
+body [data-update-confirm] { width: min(32rem, calc(100vw - 2rem)); max-width: calc(100vw - 2rem); border-radius: 1.2rem; padding: 1.5rem; }
+body [data-update-confirm] p { overflow-wrap: anywhere; }

@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 管理実行UIのブラウザ適用・復元（2026-10-04）
+
+- Files: UpdateRequests.worker_ready、admin-update View/forms/dialog、admin-updates.js、日英/CSS、準備状態試験、隔離UIのCLI fixture、docs/update-management-ui.md。
+- DB/API/UI: 新Migration/SQLなし。worker準備状態を安全にGETへ追加し、stale/private/held/write/stopを確認。UIは候補/世代/busy/readyで制御。確認/取消/Esc/二重確定抑止、CSRF+3revision Web POST/303、明示refresh。JavaScriptなしではtype=buttonで送信しない。
+- Tests1: 両受付/準備28/基盤40、新JS構文成功。stale worker identity/停止/公開lockでready false、実held private lockでtrue。
+- Tests2: 専用MySQL tmpfs/localhost8107 Apache/生成管理者+device/実workerのIABでJP取消、EN確認/390px/実適用/2.0.0完了、復元確認/Esc/実復元/旧版/両履歴、JP保存、停止後ボタン無効化を確認。Console0、page375/dialog358/viewport390。取得archiveのみfixture、Cookie/Secret非出力。
+- Tests3: 両配布物232files/3493376bytes/PHP160/独立tar/hash/config保持/private除外成功（72645 exit0）。隔離appの既存管理HTTP56成功（43e162）、権限/失効/CSRF/Validation/日英/escape/監査。git diff --check成功。
+- Security/Issues: SQLをController/Viewへ追加しない。readinessはUI準備表示で、実行の権限/preflightを代替しない。通常8099/8100非変更。viewport reset/タブclose/worker安全停止/専用app・tmpfs DB除去、生成admin/入口/config清掃。spec.md非変更。MySQL/IABの証拠をMariaDB実ブラウザ/全browser/FPMへ拡張しない。
+- Next: Phase9旧ゲートの証拠監査、FPM/systemd/長時間運用追跡。Phase9未完了/Phase10正式移行前/Version1.0未完成。
+
 ## Phase9 常駐workerの安全な停止（2026-10-04）
 
 - Files: update-execution-worker.phpの--stop/instance control、試験、候補停止probe、HTTP実Engine停止試験、配布用bin/systemd/search-update-execution.service、docs/update-execution-service.md。

@@ -15,7 +15,12 @@ $commands=new UpdateCommands($root.'/storage/updates/commands',static function($
 $journal=new UpdateJournal($root.'/storage/updates/state');$service=new UpdateRequests($root,$checks,$commands,$journal);
 try{
  foreach(['ja','en'] as $locale){$messages=(new App\Helpers\Translator(dirname(__DIR__),$locale))->messages();$check(array_diff([...UpdateCommands::ERRORS,'UPDATE_IN_PROGRESS','UPDATE_STATE_CHANGED','UPDATE_COMMAND_INVALID','update_status_prepared'],array_keys($messages))===[],'all public update outcomes have descriptions '.$locale);}
- $initial=$service->status();$check($initial===['command_revision'=>0,'engine_revision'=>0,'request'=>null,'rollback'=>null,'busy'=>false],'empty status never invents a job or rollback');
+ $initial=$service->status();$check($initial===['command_revision'=>0,'engine_revision'=>0,'request'=>null,'rollback'=>null,'worker_ready'=>false,'busy'=>false],'empty status never invents a job or rollback');
+ mkdir($root.'/app');mkdir($root.'/public');$workerPath=$root.'/storage/update-execution-worker.lock';file_put_contents($workerPath,str_repeat('c',32));chmod($workerPath,0600);
+ $check(!$service->status()['worker_ready'],'stale worker identity without held lock is unavailable');
+ $worker=fopen($workerPath,'r+');flock($worker,LOCK_EX);$check($service->status()['worker_ready'],'held private worker lock makes writable deployment ready');
+ file_put_contents($root.'/storage/update-execution-worker.stop',str_repeat('c',32));$check(!$service->status()['worker_ready'],'stopping worker disables execution controls');unlink($root.'/storage/update-execution-worker.stop');
+ chmod($workerPath,0644);$check(!$service->status()['worker_ready'],'public worker lock does not enable execution');chmod($workerPath,0600);flock($worker,LOCK_UN);fclose($worker);
  $reject(fn()=>$service->enqueue(1,'apply',0,0,0),'INVALID_UPDATE_RELEASE');$check($commands->status()['request']===null,'no release never creates a request');$checks->check('stable','',0);
  $reject(fn()=>$service->enqueue(1,'apply',0,0,0),'UPDATE_STATE_CHANGED');$reject(fn()=>$service->enqueue(1,'apply',0,1,1),'UPDATE_STATE_CHANGED');$reject(fn()=>$service->enqueue(2,'apply',0,1,0),'FORBIDDEN');
  $reject(fn()=>$service->enqueue(1,'delete',0,1,0),'INVALID_INPUT');$reject(fn()=>$service->enqueue(1,'apply',-1,1,0),'INVALID_INPUT');
