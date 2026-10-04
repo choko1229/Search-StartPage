@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・全面停止と実更新/復元の連携）
+
+前ターン1260ce5はプリセット破損/実DB停止の検証による進捗。今回はPhase9 MaintenanceのUpdater連携残件を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+Files: tests/update-requests-http.phpにTEST_UPDATE_MAINTENANCE option/匿名HTTP Cookie分離と9項目追加、tests/run-update-fpm.ps1に-Maintenance追加。docs/update-fpm-http.md/phase9-gate.md更新。製品コード/schema/API/UI変更なし。
+
+検証1〜3: 専用MySQL8/MariaDB10.11、PHP8.3/Nginx/FPM OPcache timestamps0/static2 child、CLI/Web同一www-dataで各3回HTTP33/基盤40成功（72186 exit0）。全17Migration fresh、認証/CSRF/CASの実管理APIで全面停止、匿名JA/EN home503/管理者home200、実worker/Engine更新・内部health後もDB true/signal true/匿名503を保持。更新後に実APIで停止解除/匿名200、実runnerで旧版へ手動復元し最新解除version/DB false/signal false/匿名200/監査2件を保持。既存変更PHP/config hash/更新履歴/stop drainの検査も成功。各DB最後にPHP HTTP server mode32成功。
+
+最終確認: PHP構文/PowerShell parser/git diff --check成功。harness finallyで専用FPM app/配置確認済みtmpfs DBを除去し、専用prefix一覧空。通常8099/8100/config/DB/users/権限/worker非変更、Secret/spec.md非保存、push/本番公開/再起動なし。ブラウザレビュー停止の再試行/回避なし。
+
+限界: 候補/取得archiveだけfixture。実HTTPの停止→更新→解除→手動復元という1経路であり、停止中の更新失敗・自動復元/実ブラウザ/独立複数FPM master/systemd運用/実GitHub/OAuthの証明ではない。
+
+次に実行すること:
+1. レビュー上限解消を確認できたらdocs/admin-sync-ui.mdから専用同期UIを再準備し、A→B→A/初回cloud選択/停止復旧/過去警告因果を実画面で照合する。未解消navigationの無断反復・別経路回避なし。
+2. Phase9残ゲートを仕様と照合。Maintenanceの今回の実HTTP連携範囲は確認済み。サービス運用は隔離Linux managerが必要。残る確認を成功と推測せず、環境依存を最終監査へ追跡する。
+3. Phase9合格後にPhase10正式移行。実GitHub/OAuth/OS chooser/Glass/全browser/Phase11〜12/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・プリセット破損と実DB停止/復旧）
 
 前ターン76b37cfはサービス設定静的検証の進捗。今回はPhase9 Presets残件のcache破損/実DB障害を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。

@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase9 全面停止と実更新/復元の連携（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン1260ce5はプリセット障害検証の進捗。
+- Files: tests/update-requests-http.php、tests/run-update-fpm.ps1、docs/update-fpm-http.md/phase9-gate.md。製品コード/schema/API/UI変更なし。専用fixtureだけでTEST_UPDATE_MAINTENANCE/-Maintenanceを有効化、匿名HTTPのCookieを管理者jarへ混ぜない。
+- 検証1〜3: 専用MySQL8/MariaDB10.11/PHP8.3/Nginx/FPM OPcache timestamps0/static2 child/www-dataで各3回HTTP33/基盤40成功（72186 exit0）、fresh全17。実管理API認証/CSRF/CASで停止・JA/EN匿名503/管理者200、実worker/Engine/health完了後の停止DB/signal/匿名503維持、更新後解除/匿名200、実runner手動復元後も最新解除version/DB false/signal false/匿名200/MAINTENANCE_CHANGED2件保持。既存更新/復元/新旧PHP/config hash/履歴/drainも成功。各DB最後のPHP HTTP server mode32も成功。
+- Security/清掃: 専用app/tmpfs配置一致DBをfinallyで除去、最終prefix空。構文/parser/diff check成功、通常DB/users/権限/config/worker・Secret/spec.md非変更。push/本番公開/再起動なし、ブラウザ停止の再試行/回避なし。
+- Limits/Next: 取得archive/candidateだけfixture。停止中の更新失敗→自動復元/実browser/独立複数FPM master/systemd/実GitHub/OAuthは未確認。専用同期UI、サービス運用、Glass/全browser/Phase11〜12/全DoDを継続。
+
 ## Phase9 プリセット破損と実DB停止/復旧（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン76b37cfは静的サービス検証の進捗。
