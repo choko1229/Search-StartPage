@@ -47,6 +47,8 @@ final class UpdateCompatibility
             if(file_put_contents($wrapper,$source)!==strlen($source)||!chmod($wrapper,0600))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
             try{$result=json_decode($process->script($wrapper,[],10),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');}
             if($result!==['exit'=>1,'out'=>'','err'=>"Update execution worker unavailable.\n"]||is_file($marker))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');++$count;
+            try{$result=json_decode(trim($process->script($stage.'/bin/update-execution-worker.php',['--stop'],10)),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');}
+            if($result!==['status'=>'stopped']||is_file($marker))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');++$count;
             // Actual candidate gate must implement the inherited descriptor protocol as well.
             $source='<?php require '.var_export($stage.'/app/Services/UpdateAccess.php',true).';unlink('.var_export($storage.'/updates/access/pending',true).');$gate=new App\\Services\\UpdateAccess('.var_export($storage.'/updates/access',true).');$gate->exclusive(function()use($gate){echo json_encode(["protocol"=>App\\Services\\UpdateAccess::PROTOCOL,"descriptors"=>array_keys($gate->childDescriptors()),"stopped"=>$gate->enter()===null]);});';
             if(file_put_contents($wrapper,$source)!==strlen($source)||!chmod($wrapper,0600))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');

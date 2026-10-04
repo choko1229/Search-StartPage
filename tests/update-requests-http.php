@@ -40,13 +40,21 @@ try{
  $admin=new App\Repositories\AdminRepository($pdo);$commands=new UpdateCommands($live.'/storage/updates/commands',fn($id)=>$admin->isAdministrator($id),fn($request,$event)=>$history->record($request,$event),fn($request)=>$history->matches($request));$engine=new UpdateEngine($live);
  // Replace only the acquisition callback in the disposable runner entry, never the live project.
  $entry=file_get_contents($live.'/bin/run-update.php');$start=strpos($entry,'$prepare=static');$end=strpos($entry,'$state=(new',$start);if($start===false||$end===false)throw new RuntimeException('Fixture entry shape changed');
- $fixture='$prepare=static function(array $request,string $archive,string $stage):array{copy('.var_export($directory.'/candidate.tar',true).',$archive);return (new App\\Services\\UpdatePackage())->verify($archive,$stage,$request["to_version"],true);};';
+ $startedPath=$live.'/storage/worker-test-started';
+ $fixture='$prepare=static function(array $request,string $archive,string $stage):array{file_put_contents('.var_export($startedPath,true).',"started");chmod('.var_export($startedPath,true).',0600);usleep(250000);copy('.var_export($directory.'/candidate.tar',true).',$archive);return (new App\\Services\\UpdatePackage())->verify($archive,$stage,$request["to_version"],true);};';
  file_put_contents($live.'/bin/run-update.php',substr($entry,0,$start).$fixture.substr($entry,$end));
- $scheduled=static function()use($live):array{
-  $process=proc_open([PHP_BINARY,$live.'/bin/update-execution-worker.php','--cycles=1'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$live);if(!is_resource($process))throw new RuntimeException('Scheduler unavailable');fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);return [$exit,json_decode(trim($out),true,flags:JSON_THROW_ON_ERROR),$err];
+ $scheduled=static function(bool $drain=false)use($live,$startedPath):array{
+  $command=[PHP_BINARY,$live.'/bin/update-execution-worker.php'];if(!$drain)$command[]='--cycles=1';
+  $process=proc_open($command,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$live);if(!is_resource($process))throw new RuntimeException('Scheduler unavailable');fclose($pipes[0]);unset($pipes[0]);
+  $stop=static function()use($live):int{$control=proc_open([PHP_BINARY,$live.'/bin/update-execution-worker.php','--stop'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$controlPipes,$live);if(!is_resource($control))throw new RuntimeException('Stop unavailable');fclose($controlPipes[0]);stream_get_contents($controlPipes[1]);stream_get_contents($controlPipes[2]);fclose($controlPipes[1]);fclose($controlPipes[2]);return proc_close($control);};
+  try{
+   if($drain){$until=microtime(true)+10;while(!is_file($startedPath)){if(microtime(true)>=$until)throw new RuntimeException('Real worker not ready');usleep(10000);}if($stop()!==0)throw new RuntimeException('Drain failed');}
+   $out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);$exit=proc_close($process);$process=null;$rows=array_map(fn($line)=>json_decode($line,true,flags:JSON_THROW_ON_ERROR),explode("\n",trim($out)));return [$exit,$rows[0],$err,$drain&&array_column($rows,'status')===['finished','stopped']];
+  }finally{if(is_resource($process)){$stop();proc_close($process);}foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);}
  };
  // The HTTP response is complete; the scheduler creates a fresh child for the actual Engine.
- [$exit,$result,$err]=$scheduled();$check($exit===0&&$result['status']==='finished'&&$err==='','scheduler runs accepted HTTP update in separate PHP child');
+ [$exit,$result,$err,$drained]=$scheduled(true);$check($exit===0&&$result['status']==='finished'&&$err==='','scheduler runs accepted HTTP update in separate PHP child');
+ $check($drained,'stop request drains actual Engine child before daemon exits');
  $state=$commands->status();$check($state['request']['status']==='complete'&&$engine->status()['job']['request_id']===$requestId,'audited HTTP request reaches real update engine after response');
  [$status,$body]=$http('/api/admin/update');$data=json_decode($body,true,flags:JSON_THROW_ON_ERROR)['data'];$check($status===200&&$data['current_version']==='2.0.0'&&$data['execution']['request']['status']==='complete','fresh HTTP serves updated version and completed outcome');
  [$status,$html]=$http('/admin/update');$check($status===200&&str_contains($html,'generated-update-code-v2'),'HTTP renders changed PHP template after actual Engine replacement');

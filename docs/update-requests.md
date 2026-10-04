@@ -1,5 +1,7 @@
 # 更新・復元の管理受付
 
+最新の停止検証: 専用Apacheと両DBのHTTP試験で、更新中のworkerへstopを要求し、実Engineの完了後に常駐processが終了することを各23項目確認。変更PHP/復元/履歴/config保持も確認。停止CLIの最終25試験、候補13probe/20試験、最終配布物231files/3486208bytes/PHP160成功。以下の22以前の数値は以前の記録。systemdの自動起動は未確認。
+
 最新のWeb検証: [update-web-cache.md](update-web-cache.md)のとおり、専用Apacheと両DBで実更新/変更PHP画面表示/復元/旧PHP画面表示を各22項目確認。候補のWeb Cache/hookを必須にして12probe/19試験成功、最終配布物230files/PHP160構文成功。以下の20項目やApache未確認は以前の検証記録。FPM・サービス起動・ブラウザ実行操作は残る。
 
 2026-10-04追記: 定期workerの別PHP子を使う実HTTP受付→適用→更新後HTTP→手動復元→復元後HTTPを専用tmpfsの両DBで各20項目確認した。applyの取得callbackだけfixture、rollbackは更新された本来のrun-update.phpを実行する。候補互換性はworkerの必須化と二重起動拒否を追加して11probe/17試験、asset94成功。最新配布物は229files/3474944bytes/PHP159構文成功。以下の17項目/15項目/228filesは前回の検証記録。サービス自動起動・長時間常駐・Apache/FPM OPcache・ブラウザ操作は引き続き未確認。

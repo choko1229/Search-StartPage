@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 常駐workerの安全な停止（2026-10-04）
+
+- Files: update-execution-worker.phpの--stop/instance control、試験、候補停止probe、HTTP実Engine停止試験、配布用bin/systemd/search-update-execution.service、docs/update-execution-service.md。
+- DB/API/UI: 新Migration/API/JSなし。stopは実行中の子を打ち切らず完了まで待ち、待機中は確認して終了。現在instanceの制御/markerを私有にし、破損/symlink拒否。子成功後の制御故障はexit1。候補は停止の13probe/20試験。
+- Tests1: fixture実processは22→23→最終25成功。実行中完了待ち/idle停止/次child抑止/restart/停止冪等/私有lock/制御故障/秘密非公開。systemd-analyzeなし、unit実稼働未確認。
+- Tests2: 専用tmpfs両DB+Apacheで各HTTP23/互換性20/asset94成功。HTTP受付後の常駐workerへ実Engine処理中にstop、更新完了/新PHP/手動復元/旧PHP/履歴/config保持。2498 exit0、専用appとtmpfs DB清掃。取得archiveのみfixture。
+- Tests3: 別clone両worker23/受付24/rescue17/基盤40/配布物230成功（81562）。追加idle guard/サービス同梱後に最終両worker25/配布物231files/3486208bytes/PHP160/独立tar/hash/config保持/private除外成功（65614 exit0）。全clone清掃、git diff --check成功、spec.md非変更。
+- Security/Issues: 通常app/DB/権限/worker非変更、Secret非記録、SQL非追加。systemdのenable/boot/restart/manager停止、長時間常駐、FPM/別poolは未確認。unitが配布にあるだけで運用完成と扱わない。DB Apache23はidle guard追加前、最終guardは25で確認。
+- Next: 管理実行操作の実UI、FPM/サービス運用の隔離確認、Phase9旧ゲート。Phase9未完了/Phase10正式移行前/Version1.0未完成。
+
 ## Phase9 Webキャッシュ刷新とApache実更新（2026-10-04）
 
 - Files: UpdateWebCache、public/index.php、UpdateCompatibility、cache CLI/Apache試験、実HTTP更新試験のApache mode/変更PHPテンプレート検証、asset最小fixture、docs/update-web-cache.md。

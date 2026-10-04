@@ -2,16 +2,52 @@
 declare(strict_types=1);
 // This supervisor deliberately loads no application classes. Each operation starts fresh PHP.
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$root=dirname(__DIR__);$lock=null;$exit=1;
+$root=dirname(__DIR__);$lock=null;$exit=1;$instance=null;$stopping=false;
 try{
-    $cycles=0;
-    if(count($argv)>2||isset($argv[1])&&(getenv('SEARCH_TEST_MODE')!=='1'||!preg_match('/^--cycles=([1-9][0-9]{0,3})$/D',$argv[1],$match)))throw new RuntimeException();
-    if(isset($argv[1]))$cycles=(int)$match[1];
+    $cycles=0;$stop=($argv[1]??null)==='--stop';
+    if(count($argv)>2||isset($argv[1])&&!$stop&&(getenv('SEARCH_TEST_MODE')!=='1'||!preg_match('/^--cycles=([1-9][0-9]{0,3})$/D',$argv[1],$match)))throw new RuntimeException();
+    if(isset($argv[1])&&!$stop)$cycles=(int)$match[1];
     $storage=$root.'/storage';$path=$storage.'/update-execution-worker.lock';
     if(realpath($root)!==$root||is_link($storage)||!is_dir($storage)||is_link($path)||file_exists($path)&&!is_file($path))throw new RuntimeException();
+    $stopPath=$storage.'/update-execution-worker.stop';
+    $readStop=static function()use($stopPath):?string{
+        clearstatcache(true,$stopPath);if(is_link($stopPath)||file_exists($stopPath)&&!is_file($stopPath))throw new RuntimeException();
+        if(!file_exists($stopPath))return null;
+        if(filesize($stopPath)!==32||(fileperms($stopPath)&0077)!==0)throw new RuntimeException();
+        $value=file_get_contents($stopPath);if(!is_string($value)||!preg_match('/^[a-f0-9]{32}$/D',$value))throw new RuntimeException();return $value;
+    };
+    if($stop){
+        $readStop();
+        if(file_exists($path)){
+            $lock=fopen($path,'r+');if($lock===false)throw new RuntimeException();
+            $deadline=microtime(true)+2;$target=null;
+            do{
+                if(flock($lock,LOCK_EX|LOCK_NB))break;
+                rewind($lock);$value=stream_get_contents($lock,33);
+                if(is_string($value)&&preg_match('/^[a-f0-9]{32}$/D',$value)){$target=$value;break;}
+                if(microtime(true)>=$deadline)throw new RuntimeException();usleep(10000);
+            }while(true);
+            if($target!==null){
+                $readStop();$temporary=tempnam($storage,'.worker-stop-');if($temporary===false)throw new RuntimeException();
+                try{if(!chmod($temporary,0600)||file_put_contents($temporary,$target)!==32||!rename($temporary,$stopPath))throw new RuntimeException();}
+                finally{if(is_file($temporary))unlink($temporary);}
+                // Wait for this instance to drain its child and release the singleton lock.
+                do{
+                    if(flock($lock,LOCK_EX|LOCK_NB))break;
+                    rewind($lock);$value=stream_get_contents($lock,33);
+                    if(is_string($value)&&preg_match('/^[a-f0-9]{32}$/D',$value)&&$value!==$target)break;
+                    usleep(100000);
+                }while(true);
+            }
+        }
+        echo json_encode(['status'=>'stopped'],JSON_THROW_ON_ERROR)."\n";$exit=0;
+    }else{
     $lock=fopen($path,'c');
     if($lock===false||!chmod($path,0600)||!flock($lock,LOCK_EX|LOCK_NB))throw new RuntimeException();
+    $stale=$readStop();if($stale!==null&&!unlink($stopPath))throw new RuntimeException();
+    $instance=bin2hex(random_bytes(16));if(!ftruncate($lock,0)||fwrite($lock,$instance)!==32||!fflush($lock))throw new RuntimeException();
     for($cycle=0;$cycles===0||$cycle<$cycles;$cycle++){
+        if($readStop()===$instance){$stopping=true;break;}
         $script=$root.'/bin/run-update.php';$process=null;$pipes=[];$code=1;
         try{
             if(is_link($root.'/bin')||realpath($root.'/bin')!==$root.'/bin'||is_link($script)||!is_file($script))throw new RuntimeException();
@@ -40,8 +76,15 @@ try{
         }
         $exit=$code===0?0:1;
         echo json_encode(['at'=>gmdate(DATE_ATOM),'status'=>$exit===0?'finished':'failed'],JSON_THROW_ON_ERROR)."\n";flush();
-        if($cycles===0||$cycle+1<$cycles)sleep($exit===0?5:30);
+        if($readStop()===$instance){$stopping=true;break;}
+        if($cycles===0||$cycle+1<$cycles){
+            $until=microtime(true)+($exit===0?5:30);
+            do{if($readStop()===$instance){$stopping=true;break;}usleep(100000);}while(microtime(true)<$until);
+            if($stopping)break;
+        }
     }
-}catch(Throwable){fwrite(STDERR,"Update execution worker unavailable.\n");}
-finally{if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}
+    if($stopping){$exit=0;echo json_encode(['status'=>'stopped'],JSON_THROW_ON_ERROR)."\n";}
+    }
+}catch(Throwable){$exit=1;fwrite(STDERR,"Update execution worker unavailable.\n");}
+finally{if(is_resource($lock)){if($instance!==null){try{if($readStop()===$instance)unlink($stopPath);}catch(Throwable){}ftruncate($lock,0);fflush($lock);}flock($lock,LOCK_UN);fclose($lock);}}
 exit($exit);

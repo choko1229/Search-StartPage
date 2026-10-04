@@ -1,0 +1,22 @@
+[Unit]
+Description=Search StartPage update execution worker
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/search-startpage
+ExecStart=/usr/bin/php /srv/search-startpage/bin/update-execution-worker.php
+ExecStop=/usr/bin/php /srv/search-startpage/bin/update-execution-worker.php --stop
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=infinity
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

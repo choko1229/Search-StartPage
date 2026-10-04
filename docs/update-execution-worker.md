@@ -1,5 +1,7 @@
 # 更新受付の定期実行
 
+停止・常駐の設定は[update-execution-service.md](update-execution-service.md)。現在のworkerは `--stop` で実行中の子を完了させてから終了し、待機中はすぐ停止する。候補に停止互換性のprobeも追加（13probe/20試験）。最終停止試験25、専用Apache/両DBの実Engine停止試験23成功。systemd unitの実enable/自動起動・長時間常駐は未確認。
+
 `php bin/update-execution-worker.php` は、5秒間隔で固定の `bin/run-update.php` を新しいPHP CLIプロセスから呼び出す。失敗時は30秒待って再試行する。受付・管理権限の再確認と中断回復は既存UpdateRunnerが担当する。HTTPから子プロセスを直接起動する必要はない。HTTP処理中ならEngineの既存アクセス排他が通常リクエストの終了を待つ。
 
 このworker自身はアプリのクラスやconfigを読み込まない。更新・復元後も次の子プロセスが現在のPHPコードを読む。storageのprivate lockで同じ配置の二重起動を拒否する。子の出力は保存・公開せず、時刻と固定のfinished/failedだけを出力する。更新中の子を時間制限で強制終了しない。

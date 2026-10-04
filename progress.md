@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・workerの安全な停止）
+
+前のGoalターンはd041e64のWeb OPcache実装/Apache・両DB検証/保存による進捗。今回は常駐workerの安全な停止と配布用サービス設定例を追加した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: --stopが実際にheldなsingleton lockのinstance IDへprivate stop markerを結び付け、実行中の子を完了させてから常駐parentの解放を待つ。待機中は100ms単位で停止を確認。停止確認後は次の子を起動しない。終了時ID/marker清掃、明示restartは有効な旧marker清掃。破損/symlink/private権限を拒否、子の成功後の制御故障もexit1。CLI診断/Secretを公開しない。候補の--stop互換性を追加（13probe）。bin/systemd/search-update-execution.serviceを配布に含めるが本番へenableしていない。
+
+検証1: /tmpの実process試験は22→子成功後の制御故障exit1を補修して23→停止済みの破損/symlink拒否を加えて最終25成功。子1.5秒の完了待ち、idle停止、次child抑止、restart、停止冪等、私有lock/制御、出力非公開を確認。66880/4e2fa7は終了exit0。systemd-analyzeはコンテナに無し、unitの実enable/boot/restart未確認。
+検証2: 専用tmpfs/no port MySQL8/MariaDB10.11+使い捨てApacheで、HTTP受付後のcyclesなしworkerが実Engine子を処理中に--stopを発行し、実file/DB/Migration/health完了後にparent終了、新PHP表示→本来の入口から手動復元→旧PHP表示/両履歴/config保持を各23成功。両互換性20/asset94成功（2498 exit0）。取得archiveだけfixture。作成app全除去、exact2 DBはtmpfs確認後除去。
+検証3: 別clone両環境でworker23/受付24/rescue17/基盤40/配布物230files/PHP160成功（81562 exit0）。最終の停止済み破損/symlink guardとservice同梱後は両worker25/最終配布物231files/3486208bytes/PHP160/独立tar/hash/config保持/private除外成功（65614 exit0）。cloneと初回/tmp試験配置清掃。git diff --check成功、spec.md非変更。DB Apache23は停止済み追加guard前、追加guardは最終25と配布物で確認。
+
+次に実行すること:
+1. 管理実行ボタン/状態再確認を接続し、日英/mobile/Consoleを実画面で確認する。普通のreadonly開発環境へ更新workerを起動せず、実適用は隔離環境のみ。
+2. FPM/複数pool、サービス設定例のsystemd実起動/停止/再起動と長時間常駐を追跡して可能な隔離環境で確認する。unitの存在や短時間daemon試験をboot成功と扱わない。
+3. Phase9旧ゲート残件を閉じる。実OAuth/GitHub/Glass/全browser/Phase11〜12/全DoD未達。docs/update-execution-service.md参照。
+
 ## 最新の再開地点（2026-10-04・Web OPcache刷新）
 
 前のGoalターンは9f77fd5の定期worker実接続/両DB検証/記録による進捗。今回はWebキャッシュ切替を実装し、専用Apacheで実PHP表示切替と両DBの実更新/復元を確認した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
