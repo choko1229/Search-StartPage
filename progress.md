@@ -1,5 +1,23 @@
 # 再開ポイント
 
+## 最新の再開地点（2026-10-04・手動復元のデータ保持）
+
+Phase9進行中、Phase10正式移行前、Version1.0未完成。UpdateDatabaseMerge/Engineの手動復元修正を完了・検証。更新前・直後・現在の3状態を比較し、後からの編集・追加・削除、ID上限、同期状態、更新履歴・監査を保持する。安全に旧schemaへ戻せない変更はlive変更前に拒否。手動合成snapshotの破損・descriptor消失時は古いDBへ代替復元せず停止を維持。private rescueは比較処理を含む固定20依存を保持する。
+
+検証1: 専用tmpfs/no host portのMySQL8/MariaDB10.11でDB比較各19、Engine各36成功（81186/18021 exit0）。Runnerは最初19成功後、全25受付の監査50件保持を追加して各20成功（79217/45140 exit0）。実file/DDL/DB復元、独立rescue、実process中断、破損/消失からの安全な停止と修復後再開、readonly配置拒否、config/upload/manual maintenance保持。
+検証2: 両候補互換性14/asset94/rescue17/実HTTP停止復帰30/管理更新36/基盤40成功（75415 exit0）。最初57278/73007はrescue依存不足で失敗後終了を確認。launcher allowlist修正後95042でrescue/HTTP/admin/基盤/配布物が両成功、最終75415で候補/assetも含め再成功。
+検証3: 最終両実配布物227files/3456000bytes/PHP157構文成功、独立tar一覧・hash/config不変・保護領域除外を確認。新Migrationなし、全17Migrationの既存fresh/repeat/往復証拠を維持。JS/UI外観変更なし、日英/mobile既存証拠を維持し翻訳/escape/権限/CSRFを回帰。git diff --check成功。
+
+失敗と修正: rescue launcherへ新しい比較依存の追加漏れ、MySQL SHOW CREATEがsnapshot restore後に同じ文字コードを列へ明示する表記差を特定・修正。文字コード正規化はtable defaultと同じ冗長表記だけを除去し、collationと実schema差は保持。稼働中MariaDB試験と重なった診断試行は空DB前提で拒否・終了、成功扱いにしない。一時のschema/固定code診断は試験から除去し、秘密/SQLパラメーター/ユーザー行を出力していない。
+
+環境清掃: 専用DB exact2のtmpfs rw,size=512mを確認してrm成功、一時診断スクリプトも除去。通常8099/8100のアプリ/DB/config/user/volumes/workerは保持。通常worker起動の以前の自動承認拒否を回避していない。実更新試験は使い捨てcloneと専用DBだけ。
+
+制限: 主キーなし/対応できないschema差/旧制約違反は手動復元拒否。baselineがない旧世代も安全のため手動復元不可。台帳最大20件は維持し、現在DBのそれ以前の履歴を合成snapshotに保持する方式であり全受付の無制限privateアーカイブではない。仕様§108は更新時のみ直前1世代で常時backup不要。実Web更新/管理実行操作/実GitHub配布元404/実OAuth/Glass仕上げ/全browser/Phase11〜12/全DoD未達を維持。
+
+次に実行すること:
+1. 管理実行接続に着手する前に最新のローカルコミットとgit statusを確認。今回の復元修正は検証済み。spec.mdを変更/stageしない。
+2. 管理画面/APIの適用・手動復元受付、CSRF/CAS/状態表示とHTTP応答後のlease解放、専用worker起動を接続。実Web OPcache刷新・書込み可能な隔離配置で更新/停止/復帰を確認。通常readonly配置の権限を無断変更しない。
+3. Phase9旧残ゲート（認証済み同期/地域、EN weather/upload、cleanup故障、旧roles実UI）を閉じてPhase10正式移行。Version1.0未完成を維持。
 最終更新: 2026-10-04（Asia/Tokyo）
 
 ## 現在の状態
@@ -1381,3 +1399,7 @@ DB巻戻し対応: Commands.reprojectが台帳の保持履歴と現在受付を�
 2. 管理画面/APIの適用/手動復元受付・CSRF・状態表示、HTTP応答後のlease解放と専用worker起動を接続。
 3. Web OPcache刷新と書込み可能な隔離Apache/FPM配置で実HTTPの停止/実更新/復帰を検証。通常readonly配置の権限を無断変更しない。
 4. Phase9旧残ゲート（認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UI）を閉じてPhase10正式移行。実OAuth/実GitHub配布元404/Glass仕上げ/全browser/Extension/全DoD未達を維持。Goal継続。
+
+## 最新の次に実行すること（手動復元検証完了後・2026-10-04）
+
+冒頭「最新の再開地点」が現在の状態。比較19/Engine36/Runner20と通常回帰・実配布物の両DB検証は成功、専用DB清掃済み。復元修正をローカル保存する。次は管理画面/APIの適用・手動復元受付、CSRF/CAS/状態表示、HTTP応答後のlease解放と専用worker起動を接続し、Web OPcacheと書込み可能な使い捨て配置で実HTTP更新を検証する。旧末尾のデータ保持未実装という再開指示は今回の検証結果で更新する。Phase9残ゲート・Phase10正式移行前・Phase11/12未着手・Version1.0未完成を維持。通常DB/config/user権限/workerは保持、spec.md非変更、push/本番公開/再起動なし。

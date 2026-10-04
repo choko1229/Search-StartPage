@@ -68,6 +68,18 @@ final class UpdateEngine
         if(is_link($path)||!is_file($path)||filesize($path)>2097152||!is_string($state['job']['manifest_sha256'])||!hash_equals($state['job']['manifest_sha256'],hash_file('sha256',$path)))throw new HttpException(422,'INVALID_UPDATE_BACKUP');
         return UpdateManifest::decode(file_get_contents($path),$state['job']['to_version']);
     }
+    private function databaseDescriptor(array $state,string $purpose,?array $metadata=null):array
+    {
+        if(!in_array($purpose,['baseline','rollback-database'],true))throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');
+        $path=$this->job($state).'/'.$purpose.'.json';
+        if($metadata!==null)$this->save($path,json_encode(['format'=>1,'job_id'=>$state['job']['id'],'manifest_sha256'=>$state['job']['manifest_sha256'],'old_database_sha256'=>$state['job']['backup']['database']['sha256'],'database'=>$metadata],JSON_THROW_ON_ERROR));
+        clearstatcache(true,$path);
+        if(is_link($path)||!is_file($path)||filesize($path)>4096||(fileperms($path)&0077)!==0)throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');
+        try{$value=json_decode(file_get_contents($path),true,8,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');}
+        if(!is_array($value)||array_keys($value)!==['format','job_id','manifest_sha256','old_database_sha256','database']||$value['format']!==1||$value['job_id']!==$state['job']['id']||$value['manifest_sha256']!==$state['job']['manifest_sha256']||$value['old_database_sha256']!==$state['job']['backup']['database']['sha256']||!is_array($value['database']))throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');
+        $db=$value['database'];if(array_keys($db)!==['bytes','sha256','database','tables','rows']||!is_int($db['bytes'])||$db['bytes']<1||$db['bytes']>2147483647||!is_int($db['tables'])||$db['tables']<0||$db['tables']>4096||!is_int($db['rows'])||$db['rows']<0||!is_string($db['sha256'])||!preg_match('/^[a-f0-9]{64}$/D',$db['sha256'])||$db['database']!==$state['job']['backup']['database']['database'])throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');
+        return $db;
+    }
     private function remove(string $path): void
     {
         if(is_link($path))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
@@ -81,9 +93,10 @@ final class UpdateEngine
             $path=$this->jobs.'/'.$keep;$this->privateDirectory($path);$this->fileHash($path.'/files.tar',$state['backup']['snapshot']['files']);$this->fileHash($path.'/database.jsonl',$state['backup']['snapshot']['database']);
             $owner=null;foreach([$state['job'],...$state['history']] as $job)if($job!==null&&$job['id']===$keep)$owner=$job;
             if($owner===null)throw new HttpException(503,'UPDATE_JOURNAL_INVALID');$this->candidate(['job'=>$owner]);
+            if(file_exists($path.'/baseline.json')||is_link($path.'/baseline.json'))$this->fileHash($path.'/baseline.jsonl',$this->databaseDescriptor(['job'=>$owner],'baseline'));
         }
         foreach(scandir($this->jobs) as $name){if($name==='.'||$name==='..')continue;if(!preg_match('/^[a-f0-9]{32}$/D',$name))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');$path=$this->jobs.'/'.$name;UpdatePackagePaths::directory($path);
-            if($name!==$keep)$this->remove($path);else foreach(scandir($path) as $file)if(!in_array($file,['.','..','files.tar','database.jsonl','manifest.json'],true))$this->remove($path.'/'.$file);
+            if($name!==$keep)$this->remove($path);else foreach(scandir($path) as $file)if(!in_array($file,['.','..','files.tar','database.jsonl','manifest.json','baseline.json','baseline.jsonl'],true))$this->remove($path.'/'.$file);
         }
     }
     private function health(string $version): void {(new UpdateRuntime($this->root))->run('health',$version,$this->access);}
@@ -97,7 +110,13 @@ final class UpdateEngine
             (new UpdateFiles())->restore($directory.'/files.tar',$directory.'/restore',$this->root,$state['job']['from_version'],$manifest);
         }catch(\Throwable){$errors=true;}
         // Always attempt DB recovery as well, even if file recovery failed.
-        try{$this->database()->restore($directory.'/database.jsonl',$backup['database']);}catch(\Throwable){$errors=true;}
+        try{
+            // Manual rollback reactivates the retained successful owner. Its merged
+            // snapshot is mandatory even if the descriptor has been lost.
+            $manual=($state['backup']['id']??null)===$state['job']['id']||file_exists($directory.'/rollback-database.json')||is_link($directory.'/rollback-database.json');
+            $metadata=$manual?$this->databaseDescriptor($state,'rollback-database'):$backup['database'];
+            $this->database()->restore($directory.($manual?'/rollback-database.jsonl':'/database.jsonl'),$metadata);
+        }catch(\Throwable){$errors=true;}
         if(!$errors)try{$this->health($state['job']['from_version']);}catch(\Throwable){$errors=true;}
         if($errors){$this->advance($state,'rollback_failed',error:'UPDATE_ROLLBACK_FAILED');throw new HttpException(503,'UPDATE_ROLLBACK_FAILED');}
         $this->advance($state,'rolled_back',error:$cause);
@@ -129,7 +148,8 @@ final class UpdateEngine
                 $this->advance($state,'replacing');$this->event('replacing',$state);
                 (new UpdateFiles())->replace($directory.'/candidate',$this->root,$manifest,$previous,function(string $path)use(&$state){$this->event('file',$state,$path);});
                 $this->advance($state,'migrating');$this->event('migrating',$state);(new UpdateRuntime($this->root))->run('migrate',$state['job']['to_version'],$this->access);
-                $this->advance($state,'checking');$this->event('checking',$state);$this->health($state['job']['to_version']);$this->candidate($state);$this->advance($state,'complete');
+                $this->advance($state,'checking');$this->event('checking',$state);$this->health($state['job']['to_version']);$this->candidate($state);
+                $baseline=$this->database()->snapshot($directory.'/baseline.jsonl');$this->sync($directory.'/baseline.jsonl');$this->databaseDescriptor($state,'baseline',$baseline);$this->advance($state,'complete');
             }catch(\Throwable $error){
                 $phase=$state['job']['phase'];$cause=$error instanceof HttpException&&$error->errorCode==='UPDATE_TARGET_NOT_WRITABLE'?'UPDATE_TARGET_NOT_WRITABLE':match($phase){'migrating'=>'UPDATE_MIGRATION_FAILED','checking'=>'UPDATE_HEALTH_FAILED','replacing','backed_up'=>'UPDATE_APPLY_FAILED',default=>'UPDATE_BACKUP_FAILED'};
                 if(in_array($phase,['replacing','migrating','checking'],true))$this->restore($state,$cause);
@@ -165,7 +185,25 @@ final class UpdateEngine
     {
         $state=$this->journal->status();if($state['backup']===null||trim(file_get_contents($this->root.'/VERSION'))!==$state['backup']['to_version'])throw new HttpException(409,'UPDATE_BACKUP_UNAVAILABLE');
         if(($fromVersion!==null&&$fromVersion!==$state['backup']['to_version'])||($toVersion!==null&&$toVersion!==$state['backup']['from_version']))throw new HttpException(409,'UPDATE_SOURCE_CHANGED');
-        return $this->access->exclusive(function()use(&$state,$requestId){$state=$this->journal->beginRollback($state['revision'],$requestId);$this->restore($state,null);$this->cleanup($state);return $state;});
+        $owner=null;foreach([$state['job'],...$state['history']] as $job)if($job!==null&&$job['id']===$state['backup']['id'])$owner=$job;
+        if($owner===null)throw new HttpException(503,'UPDATE_JOURNAL_INVALID');$ownerState=['job'=>$owner];$directory=$this->job($ownerState);
+        if(!is_file($directory.'/baseline.json'))throw new HttpException(409,'UPDATE_BACKUP_UNAVAILABLE');
+        $failure=null;$result=$this->access->exclusive(function()use(&$state,$requestId,$ownerState,$directory,&$failure){
+            try{
+                $baseline=$this->databaseDescriptor($ownerState,'baseline');$this->fileHash($directory.'/baseline.jsonl',$baseline);
+                foreach(['current-database.jsonl','rollback-database.jsonl','rollback-database.json'] as $file)if(file_exists($directory.'/'.$file)||is_link($directory.'/'.$file))$this->remove($directory.'/'.$file);
+                $current=$this->database()->snapshot($directory.'/current-database.jsonl');$this->sync($directory.'/current-database.jsonl');
+                $db=\App\Database\Database::connect(\App\Config::load($this->root)->get('database'));
+                $merged=(new UpdateDatabaseMerge($db))->prepare(['path'=>$directory.'/database.jsonl','metadata'=>$ownerState['job']['backup']['database']],['path'=>$directory.'/baseline.jsonl','metadata'=>$baseline],['path'=>$directory.'/current-database.jsonl','metadata'=>$current],$directory.'/rollback-database.jsonl');
+                $this->fileHash($directory.'/rollback-database.jsonl',$merged);$this->databaseDescriptor($ownerState,'rollback-database',$merged);$this->remove($directory.'/current-database.jsonl');
+            }catch(\Throwable $error){
+                // Preparation changes only temporary tables/private files; keep the installed version.
+                foreach(['current-database.jsonl','rollback-database.jsonl','rollback-database.json'] as $file)if(file_exists($directory.'/'.$file)||is_link($directory.'/'.$file))$this->remove($directory.'/'.$file);
+                $this->health($state['backup']['to_version']);$failure=$error;return $state;
+            }
+            $state=$this->journal->beginRollback($state['revision'],$requestId);$this->event('manual_rollback',$state);$this->restore($state,null);$this->cleanup($state);return $state;
+        });
+        if($failure!==null)throw $failure;return $result;
     }
     public function status(): array {return $this->journal->status();}
 }

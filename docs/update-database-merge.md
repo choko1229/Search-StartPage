@@ -1,0 +1,17 @@
+# 手動復元と更新後データの保持
+
+手動Rollbackは、更新前(B)・更新直後(U)・復元要求時(C)のDBを比較する。更新直後のsnapshotは新health成功後、completeより前にGate排他下で保存する。復元要求時もwriterを停止してから現在のsnapshotを保存する。
+
+主キーと同じschemaを持つテーブルでは、CとUが同じ行はBへ戻す。後から削除した行は削除を保持し、追加した行は保持する。既存行の各列は、CとUが異なる列をCから、それ以外をBから選ぶ。バイナリ/nullも比較対象。AUTO_INCREMENTの現在の上限を維持し、削除済みIDを再利用しない。Migration台帳は旧版に戻す。
+
+更新で作成・変更したschemaに更新後の行変更がある場合、安全な旧schemaへの変換を証明できないためUPDATE_DB_ROLLBACK_CONFLICTとして変更前に拒否する。主キーなし、現在のschemaが更新直後と異なる場合、復元した行が旧型・CHECK・Unique・外部キーに違反する場合も拒否する。任意schema変更の自動変換を保証する処理ではない。
+
+UpdateDatabaseMergeは検証済みJSONLを読み、InnoDB一時テーブルに主キーごとの3状態を格納する。旧schemaの一時テーブルへ合成行を挿入し、全外部キーも検査する。正常な合成snapshotが同期保存されるまでliveテーブル・アプリファイル・Journalを変更しない。制約衝突時は新バージョンのhealthを確認して停止を解除する。
+
+private baseline.json/rollback-database.jsonはjob ID、manifest hash、更新前DB hash、DB識別値へ結び付ける。手動復元の合成snapshotを保存してからJournalの成功ownerをrolling_backへ移す。中断後もその合成snapshotを使い、破損・descriptor消失の場合は古いDBへ代替復元せず停止を維持する。private rescueにも同じ比較処理を保存する。
+
+自動失敗復元は更新開始前からGateを保持しており、成功後のユーザー操作がまだないため従来の更新前snapshotを使う。手動復元とは異なる。
+
+受付台帳は最大20件のまま。手動復元では現在DBにあるそれ以前の更新履歴・監査も合成snapshotへ保持し、現在処理中の受付・結果だけ台帳から再投影する。全受付の無制限privateアーカイブを実装したものではない。DBが外部で削除・破損した場合の全履歴復元は保証しない。
+
+検証はtests/update-database-merge.phpとtests/update-engine.php、tests/update-runner.phpを専用DB・使い捨て配置で実行する。新規Migrationは追加しない。管理画面接続と実Web更新検証が済むまで、内部処理の合格をVersion1.0完成扱いにしない。

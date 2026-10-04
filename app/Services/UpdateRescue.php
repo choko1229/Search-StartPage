@@ -11,7 +11,7 @@ final class UpdateRescue
         'app/Services/UpdatePackagePaths.php','app/Services/ReleaseCatalog.php','app/Services/UpdateManifest.php',
         'app/Services/LogFileLock.php','app/Services/UpdateAccess.php','app/Services/UpdateJournal.php',
         'app/Services/UpdateProcess.php','app/Services/UpdateStage.php','app/Services/UpdatePackage.php',
-        'app/Services/ReleasePackageBuilder.php','app/Services/UpdateFiles.php','app/Services/UpdateDatabase.php',
+        'app/Services/ReleasePackageBuilder.php','app/Services/UpdateFiles.php','app/Services/UpdateDatabase.php','app/Services/UpdateDatabaseMerge.php',
         'app/Services/UpdateRuntime.php','app/Services/UpdateCompatibility.php','app/Services/UpdateEngine.php',
         'app/Services/UpdateRescue.php',
     ];

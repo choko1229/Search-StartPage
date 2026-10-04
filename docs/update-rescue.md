@@ -2,7 +2,7 @@
 
 UpdateEngineは更新候補の検証後、管理対象ファイルを変更する前に、復旧用コードをprivateな `storage/updates/rescue/<32桁ID>/` に保存する。`config.php`、ユーザーデータ、アップロード、liveのautoloadはコピーしない。通常packageのstorage除外により、更新やRollbackがこのコードを上書きしない。
 
-復旧用のクラスは固定19ファイル。全PHPを別processで構文検査し、0600/0700、size/SHA-256付きruntime.json、launcherを同期保存する。pointerとlauncherは同directoryのtempからrenameする。既存のengine lock内で生成し、rescue専用lockの排他下でpointer更新と旧capsule清掃を行う。確認済みの新pointerができるまで旧capsuleは消さない。復旧依存は更新process内でも先にロードし、差し替え後のliveコードの遅延autoloadを避ける。
+復旧用のクラスは固定20ファイル（手動DB復元の比較処理を含む）。全PHPを別processで構文検査し、0600/0700、size/SHA-256付きruntime.json、launcherを同期保存する。pointerとlauncherは同directoryのtempからrenameする。既存のengine lock内で生成し、rescue専用lockの排他下でpointer更新と旧capsule清掃を行う。確認済みの新pointerができるまで旧capsuleは消さない。復旧依存は更新process内でも先にロードし、差し替え後のliveコードの遅延autoloadを避ける。
 
 launcherは `storage/updates/rescue.php`。通常WebのDocumentRoot外に置き、CLI以外では404を返す。配布元の `bin/update-rescue.php` は直接実行しない。
 

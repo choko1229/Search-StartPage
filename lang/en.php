@@ -250,4 +250,5 @@ return [
     'update_history_title'=>'Update history','update_history_empty'=>'No updates have been run yet.','update_history_when'=>'Requested / completed','update_history_action'=>'Action','update_history_versions'=>'Versions','update_history_result'=>'Result',
     'update_operation_apply'=>'Update','update_operation_rollback'=>'Restore','update_status_queued'=>'Queued','update_status_running'=>'Running','update_status_complete'=>'Update completed','update_status_failed'=>'Failed','update_status_rolled_back'=>'Restored','update_status_recovery_required'=>'Recovery required',
     'UPDATE_AUDIT_FAILED'=>'The operation history could not be saved. Check server storage.','UPDATE_COMMAND_INVALID'=>'The saved update request could not be read. Check the server update records.',
+    'UPDATE_DB_ROLLBACK_CONFLICT'=>'Restoring this version would lose newer data or violate database constraints. No application files or user data were changed.',
 ];

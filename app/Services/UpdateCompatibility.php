@@ -16,7 +16,7 @@ final class UpdateCompatibility
     public function validate(string $stage,array $manifest): int
     {
         (new UpdateStage())->validate($stage,$manifest);$stage=realpath($stage);
-        foreach(['app/Services/UpdateAccess.php','app/Services/UpdateJournal.php','app/Services/UpdateCommands.php','app/Services/UpdateRunner.php','app/Repositories/UpdateHistoryRepository.php','bin/run-update.php','bin/update-task.php','bin/log-maintenance.php','bin/update-check-worker.php'] as $path)if(!isset($manifest['files'][$path]))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
+        foreach(['app/Services/UpdateAccess.php','app/Services/UpdateJournal.php','app/Services/UpdateCommands.php','app/Services/UpdateRunner.php','app/Services/UpdateDatabaseMerge.php','app/Repositories/UpdateHistoryRepository.php','bin/run-update.php','bin/update-task.php','bin/log-maintenance.php','bin/update-check-worker.php'] as $path)if(!isset($manifest['files'][$path]))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
         $storage=$stage.'/storage';$config=$stage.'/config/config.php';
         if(file_exists($storage)||is_link($storage)||file_exists($config)||is_link($config))throw new HttpException(422,'UPDATE_GATE_INCOMPATIBLE');
         if(!mkdir($storage,0700))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');

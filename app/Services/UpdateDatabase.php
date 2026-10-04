@@ -119,6 +119,17 @@ final class UpdateDatabase
         if(!$ended)throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');return $tables;
     }
     /** Only trusted private snapshot+metadata; DDL auto-commits, so errors keep maintenance active. */
+    public function records(string $path,array $metadata): \Generator
+    {
+        UpdatePackagePaths::directory(dirname($path));
+        if(is_link($path)||!is_file($path)||filesize($path)!==($metadata['bytes']??null)||!is_string($metadata['sha256']??null)||!hash_equals($metadata['sha256'],hash_file('sha256',$path)))throw new HttpException(422,'INVALID_UPDATE_DB_BACKUP');
+        $stream=@fopen($path,'rb');if($stream===false)throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
+        try{
+            if(!flock($stream,LOCK_SH))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');
+            $this->preflight($stream,$metadata);rewind($stream);
+            while(($record=self::read($stream))!==null)yield $record;
+        }finally{flock($stream,LOCK_UN);fclose($stream);}
+    }
     public function restore(string $path,array $metadata,?\Closure $afterTable=null): void
     {
         UpdatePackagePaths::directory(dirname($path));

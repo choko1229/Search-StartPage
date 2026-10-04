@@ -1,6 +1,6 @@
 # 一括更新・復元エンジン（内部CLIサービス）
 
-UpdateEngineは非公開のCLIサービス。管理画面・更新workerからの適用入口、CSRF/管理者監査/update_historyはまだ接続していない。公開・本番適用の完了判定ではない。
+UpdateEngineは非公開のCLIサービス。更新workerとDB履歴・監査へ接続済み。管理画面の適用操作と実Web更新は未接続・未確認であり、公開・本番適用の完了判定ではない。
 
 ## 呼び出し契約
 
@@ -16,7 +16,7 @@ UpdateEngineは非公開のCLIサービス。管理画面・更新workerから�
 
 private engine lockがpreflightからcleanupまでapply/recover/rollbackを直列化する。Journalがjob IDを生成し、manifestの正規化JSONのSHA-256をjobに固定する。job内のcandidate.tar/manifest.jsonを新規0600 fileへ同期保存し、candidateを展開、構文・停止互換性を検査する。検証後にUpdateRescueが旧コードの固定依存をprivate storageへ保存し、独立復旧入口を公開領域外に用意する。
 
-Gateの排他取得で既存writerをdrainしてから旧healthとfile/DB snapshotを保存する。これはbackup中に失われる更新を発生させないための短い書込み停止でもあり、通常の手動maintenance設定は変えない。snapshotをfsync/hash検証してからbacked_up、変更前にreplacingを永続化。差し替え後は別PHPでmigrateとhealthを実行し、復元用manifestを再検証してcompleteへ進む。
+Gateの排他取得で既存writerをdrainしてから旧healthとfile/DB snapshotを保存する。これはbackup中に失われる更新を発生させないための短い書込み停止でもあり、通常の手動maintenance設定は変えない。snapshotをfsync/hash検証してからbacked_up、変更前にreplacingを永続化。差し替え後は別PHPでmigrateとhealthを実行し、復元用manifestを再検証し、更新直後DBのbaselineも同期保存してcompleteへ進む。
 
 file failure/Migration failure/health failureはrolling_backへ移り、fileとDBを独立して復元する。fileの復元が失敗してもDBは試みる。両方と旧healthが通った場合だけrolled_backにし、停止を解除する。失敗時はrollback_failedとmarkerを残し、修復後のrecoverを可能にする。
 
@@ -24,7 +24,9 @@ file failure/Migration failure/health failureはrolling_backへ移り、fileとD
 
 ## 直前1世代の清掃
 
-成功世代pointerはhealth後にだけ切り替える。新世代のfile/DB hashとmanifestを検証してから旧jobを削除する。保持するのは成功ownerのfiles.tar/database.jsonl/manifest.jsonだけ。failed/rolled_back jobの物理作業物は清掃し、journal metadataは最大20件保持する。次の更新失敗でも以前の成功世代を維持する。
+成功世代pointerはhealth後にだけ切り替える。新世代のfile/DB hashとmanifestを検証してから旧jobを削除する。保持するのは成功ownerのfiles.tar/database.jsonl/manifest.json/baseline.json/baseline.jsonl。failed/rolled_back jobの物理作業物は清掃し、journal metadataは最大20件保持する。次の更新失敗でも以前の成功世代を維持する。
+
+手動復元は更新前・直後・現在の3状態から、後からのユーザー変更を保持したDBを準備する。旧schemaの制約検査と同期保存を完了してからJournalを復元中へ移す。中断後は合成snapshotを使い、descriptor消失・破損なら古いDBへ代替復元せず停止を維持する。baselineを持たない以前の保存世代は手動復元を拒否する。schema変更の制限と詳細は[update-database-merge.md](update-database-merge.md)を参照。
 
 cleanup failureは停止を維持する。complete後なら更新を再度戻さず、recoverで新healthとcleanupを再試行する。通常の手動maintenance=trueは復元・healthでも保持する。
 
@@ -36,6 +38,6 @@ Journalはmanifest hashと受付/手動復元IDを含むformat3。format2は既�
 
 書き込み不可の管理directoryはbacked_upでpreflightし、replacingより前にUPDATE_TARGET_NOT_WRITABLEで拒否する。旧healthとcleanupが成功すれば停止を解除し、file/DBは変更しない。通常の隔離開発アプリはwww-dataからroot/appへ書き込めないことを確認した。通常配置の権限は変更しておらず、実Web更新に対応した配置設計は残る。
 
-最終tests/update-engine.phpはMySQL 8/MariaDB 10.11で各32項目成功。独立入口による主要PHP破損後の回復と手動復元を含む。書き込み不可の配置から安全に復帰する試験も含む。ファイル単体44、journal43、package64、stage29、asset94、access34、task20、基盤40も両環境で成功。
+最終tests/update-engine.phpはMySQL 8/MariaDB 10.11で各36項目成功。独立入口による主要PHP破損後の回復と手動復元、旧schemaへ戻せない新規データの変更前拒否、手動復元中の実process中断、合成snapshot破損・descriptor消失時の停止、修復後のユーザー変更保持を含む。DB比較19/Runner20、候補互換性14/asset94/rescue17/実HTTP停止復帰30/管理更新36/基盤40も両環境で成功。最終実配布物は227files/3456000bytes/PHP157構文検査成功。
 
-独立rescue入口はdocs/update-rescue.md参照。主要なlive PHPを壊した後のCLI復旧も専用DBで確認する。web OPcache刷新、FPM/実HTTPの更新適用、CLI適用worker/DB監査は接続・検証済み（docs/update-runner.md）。管理UI操作は未接続。完全な停電時のdirectory fsync耐久性、Windows native/networkFSも未確認。現在の確認をVersion1.0 DoDの合格へ拡張しない。
+独立rescue入口はdocs/update-rescue.md参照。主要なlive PHPを壊した後のCLI復旧も専用DBで確認する。CLI適用worker/DB監査は接続・検証済み（docs/update-runner.md）。Web OPcache刷新、FPM/実HTTPの更新適用と管理UI操作は未確認・未接続。完全な停電時のdirectory fsync耐久性、Windows native/networkFSも未確認。現在の確認をVersion1.0 DoDの合格へ拡張しない。

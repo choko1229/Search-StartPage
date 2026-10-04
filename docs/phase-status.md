@@ -1,5 +1,19 @@
 # 実装と検証の記録
 
+## Phase9 更新後データを保持する手動復元（2026-10-04）
+
+Phase9未完了、Phase10正式移行前、Version1.0未完成。新しいDB比較・Engine接続・独立rescue修正を検証した。
+
+- 実装/Files: UpdateDatabaseMerge、UpdateDatabase.records、Engineの更新直後baseline保存/合成snapshot/descriptor/中断回復、rescue serviceとlauncherの固定20依存、候補必須ファイル、固定error codeの日英翻訳。
+- DB: Migration追加なし。更新前/直後/現在の3状態を主キーと列ごとに比較し、後からの編集・追加・削除・ID上限を保持。合成行は一時テーブルで旧型/CHECK/Unique/FKを変更前に検証。復元不可能なschema差は拒否。
+- API/UI: 管理実行POSTは未接続。既存履歴画面のUIは変更せず、権限/CSRF/Validation/日英/escapeを実HTTPで回帰。新エラー説明のみ追加。
+- Tests1: 両専用DBで比較19/Engine36/Runner最終20成功。後からのお気に入り・同期状態、20件を超える25履歴と監査50件保持、手動復元の実中断、合成snapshot破損/descriptor消失時の停止と修復後再開、独立rescue、自動失敗復元を確認。
+- Tests2: 両compatibility14/asset94/rescue17/HTTP停止復帰30/管理更新36/基盤40成功。75415終了確認済み。Runner追加前19と最終20を区別し、79217/45140 exit0。
+- Tests3: 両実配布物227files/3456000bytes/PHP157構文、独立tar一覧/hash/config不変/保護領域除外成功。全17Migration既存fresh/repeat/往復証拠維持。git diff --check成功。
+- Issues: 最初のrescue依存漏れとMySQLの冗長CHARACTER SET表記による誤拒否を特定・修正して再合格。空DB前提に反した重複診断試行は拒否して終了、成功扱いにしない。診断コードは最終試験から除去。
+- Security: private0600/0700、job/manifest/旧DB hash/DB識別値へdescriptorを結び付ける。手動合成情報の破損/消失時は古いDBへfallbackしない。専用tmpfs DB exact2を配置確認後に清掃。通常DB/config/user権限/worker保持、秘密値非記録、spec.md非変更。
+- Limits: 任意schema downgradeの変換は保証しない。台帳20件維持、全受付privateアーカイブではなく現在DBの監査を合成snapshotへ保持。baselineなし旧世代は手動復元拒否。Web OPcache/FPM・管理操作・実配布元/実OAuth・全browser・Glass/Extension/最終DoDは未確認/未達。
+- 次Phaseへの影響: 管理実行接続と実Web更新を確認してPhase9残ゲートを閉じる。これらが済むまでPhase10正式移行とVersion1.0完了判定をしない。契約はdocs/update-database-merge.md/update-engine.md/update-runner.md/update-rescue.md。
 更新日: 2026-10-04
 
 ## Phase一覧

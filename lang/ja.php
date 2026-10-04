@@ -250,4 +250,5 @@ return [
     'update_history_title'=>'更新履歴','update_history_empty'=>'更新の実行履歴はまだありません。','update_history_when'=>'受付 / 完了日時','update_history_action'=>'操作','update_history_versions'=>'バージョン','update_history_result'=>'結果',
     'update_operation_apply'=>'更新','update_operation_rollback'=>'復元','update_status_queued'=>'受付済み','update_status_running'=>'実行中','update_status_complete'=>'更新完了','update_status_failed'=>'失敗','update_status_rolled_back'=>'復元済み','update_status_recovery_required'=>'復旧が必要',
     'UPDATE_AUDIT_FAILED'=>'操作履歴を保存できませんでした。サーバーの保存状態を確認してください。','UPDATE_COMMAND_INVALID'=>'保存した更新依頼を読み取れません。サーバーの更新記録を確認してください。',
+    'UPDATE_DB_ROLLBACK_CONFLICT'=>'このバージョンへの復元では新しいデータを失うか、データベースの制約に違反します。アプリのファイルとユーザーデータは変更していません。',
 ];
