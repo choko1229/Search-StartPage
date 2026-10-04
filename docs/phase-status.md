@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## Phase9 管理者権限の実画面確認（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前Goalターンe120f36はFPM実HTTP/Engine検証の進捗。
+- Files: tests/admin-roles-ui-development.php、tests/run-admin-roles-ui.ps1、docs/admin-roles-ui.md。製品コード/schema/API/UI変更なし。固定専用host/marker/CLI/testmode/空schemaから設定・生成admin/一般target・deviceを準備。observeはSecretなしの権限/監査件数/一致bool。
+- 検証1/2/3: 両専用MySQL8/MariaDB10.11でroles29/基盤40を各3回成功（23966 exit0）、fresh全17/repeat。権限/CSRF/入力/失効/監査/file/最後の管理者保護を回帰。
+- 実UI: 対象・範囲を示しユーザーの操作時点承認後、IAB MySQL日本語/MariaDB英語で付与→解除→最後の管理者解除拒否。390px/page375/Console両0、MySQLdesktopも確認。最終DB operator1/target0、監査2件/版13→15/対象・前後・版/file配送一致true、helper最終構文両成功。
+- Issues/Security: 初回共有hostでCookie干渉が疑われる401拒否。DB未変更を確認し成功扱いにせず、専用roles-*.localhostへ分離後に成功。既存タブCookie非変更は主張しない。以前のauto-review拒否を無断再試行しない。Secret/spec.md非保存。
+- 清掃/Next: viewport reset、新規3tab close、tmpfs確認後専用app2/DB2除去/prefix空。通常DB/users/権限/worker非変更。旧roles実UI限定残件は確認済み。他端末/地域警告因果/外部連携/サービス運用/Glass/全browser/Phase11〜12/全DoDを継続。
+
 ## Phase9 FPM/Nginx経由の実更新・復元（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前Goalターンecf5b01は製品ログ補修と検証の進捗。

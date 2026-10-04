@@ -1,4 +1,23 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・管理者権限の実画面）
+
+前Goalターンe120f36はFPM実HTTP/Engine更新検証・保存による進捗。今回はPhase9旧roles実UI残件を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+Files: tests/admin-roles-ui-development.php、tests/run-admin-roles-ui.ps1、docs/admin-roles-ui.md追加。固定専用host/marker/CLI/testmode/configなし/空schemaに限定しfresh全17/repeat、生成operatoradmin+target一般/device/test-only login。observeは生成権限/監査件数と一致boolだけでSecret非出力。製品コード/schema/API/UI変更なし。
+
+検証1〜3: 両専用DBでadmin-roles29/基盤40を各3回成功（23966 exit0）。guest/通常user/CSRF/入力/失効/古い版拒否・前後監査/file配送・最後の管理者保護、17fresh/repeatを確認。
+
+実画面: 8109/8110専用2環境の対象と範囲を示してaction-time承認を受け、IAB MySQL日本語/MariaDB英語でtarget付与→解除→最後のoperator解除拒否。両390px/page375、MySQLdesktopも確認、Console warn/error両0。DB最終operator1/target0、operator監査2件、版13→15、対象/前後/版/file_written一致true。新helper最終PHP構文両成功。画像roles-ui-granted-ja-mobile/roles-ui-granted-en/roles-ui-last-admin-ja/en。
+
+初回問題: 127.0.0.1/localhostの既存開発タブとCookie干渉が疑われるログイン失効があり、MySQL初回付与/MariaDB初回解除が401。DB未変更を観測し成功扱いにせず、roles-mysql.localhost:8109/roles-maria.localhost:8110で分離後に確認。既存タブのブラウザCookie非変更は主張しない。通常DB/user権限/workerは変更なし。以前の権限auto-review拒否を無断再試行していない。
+
+清掃: viewport reset、新規3tab close（途中の旧MySQLtabを含む）。DB tmpfs512MiB配置を確認後、専用app2/DB2を除去して最終prefix空。生成admin/user/device/config/login入口/log清掃。spec.md非変更・非stage、push/本番公開/再起動なし。
+
+次に実行すること:
+1. Phase9残ゲートの他端末認証済みUI/過去地域保存警告との因果を具体的な隔離検証で照合する。roles実UI限定範囲は今回確認済み。以後のブラウザ試験は既存Cookieと分離する専用host名を使う。
+2. サービスboot/stop/restart/長時間運用と実配布元を可能な範囲で進め、独立複数FPM masterでの実DB更新等を最終監査へ追跡。
+3. Phase9合格後にPhase10正式移行。実OAuth/OS chooser/Glass仕上げ/全browser/Phase11〜12/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・FPM経由の実HTTP更新）
 
 前Goalターンecf5b01は更新エラーの製品補修/検証/保存による進捗。今回FPM経由の実HTTP/Engine/DB更新という環境残件を確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。

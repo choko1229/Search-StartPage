@@ -6,7 +6,7 @@
 |---|---|---|
 | Admin Auth | 両DB admin72/roles29。guest401、user403、現在のDB権限、CSRF。通常tokenの実画面 | 実Discord OAuthはユーザー指示で最終監査へ留保 |
 | Dashboard | 実DB件数、圧縮可否、通常管理者の実画面。保存済み候補の新リリース通知、管理者homeの通知とguest/user非通知・権限解除で非通知を両DBで確認 | 対象GitHubの実候補取得は404のため未確認 |
-| Users | 検索/ページング/escape/日英UI、roles29/競合13/016Migration6 | 実画面の権限付与・解除・最後の管理者拒否は明示承認待ち。レビュー拒否後は未実行 |
+| Users | 検索/ページング/escape/日英UI、roles29/競合13/016Migration6。両専用DB roles29/基盤40を各3回。ユーザーの操作時点承認後、IAB MySQL日本語/MariaDB英語で実付与・解除・最後の管理者拒否、390px、最終operator1/target0・監査2件/前後/版/file配送一致を確認（docs/admin-roles-ui.md） | 実Discord OAuth/全browserは未確認。最初の共有hostでのログイン失効（Cookie干渉疑い）が疑われる401は成功扱いにせず、専用host名で分離後に確認 |
 | Storage | 両DB admin72/backgroundAPI56、全保存・active・archive容量、容量順、有効quota、超過時保持。日英390px、EN quota保存/再読込。実アップロード2394813bytes/1件を100制限に下げても保持・超過説明表示 | 一時・未参照ファイルは容量表示対象外。非ゼロ超過表示のEN/全browser確認は残る |
 | Presets | 両DB36、日英実追加/編集/削除/reload/390px、ユーザー明示追加と独自一覧保持、全15/16Installer | cache破損/実DB障害/大量同時編集、実Extensionとcloud共有は未確認 |
 | Feature Flags / Limits | 両DB policy29、権限/CSRF/CAS、日英管理UI、容量保存。実クラウド同期停止・再開、日英account停止理由/復旧。JAとENのupload停止中に端末保存→再開でcloud1件。EN専用MySQL/IABで68byte/0→1file、390px、weather停止理由/POST403→再開200/理由解除、認証済み公開地域の保存/reload/実cloud一致/警告なしを確認 | OS filechooser APIは今回反映なし、生成File選択fixtureで保存・同期を確認。過去の警告との因果・他端末認証済みUI・全browser/MariaDB実画面は残る。docs/policy-ui-verification.md参照 |

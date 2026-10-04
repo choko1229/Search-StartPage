@@ -1,5 +1,7 @@
 # 管理者権限の変更
 
+最新の実画面検証は [admin-roles-ui.md](admin-roles-ui.md)。専用MySQL/MariaDBで、操作時点のユーザー承認後に付与・解除・最後の管理者拒否を実際に確認した。下の「実ブラウザ未実行・承認待ち」は当時の記録であり、今回の限定範囲は解消済み。実OAuthや全browserの証拠にはしない。
+
 `/admin/users` の各ユーザーで管理者権限の付与・解除を行う。初期管理者はInstallerで登録したDiscord IDが最初に認証された際に作成する既存方式を維持する。通常ユーザーや未ログイン利用者は操作できない。
 
 APIは `POST /api/admin/users/role`。CSRFトークンと以下のJSONを送る。
