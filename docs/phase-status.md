@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase9ゲート確定・Phase10正式開始（2026-10-04）
+
+- 判定: 添付Phase9完了条件10項目とspec §90〜100/118を既存証拠へ照合、Phase9機能ゲート検証済み。Phase10進行中、Phase11〜12未着手、Version1.0未完成。
+- Files: docs/phase9-gate.md / docs/spec-audit.md / 新規docs/phase10-gate.md / progress.md。製品・DB・API・UI変更なし。
+- 照合1〜3: 添付条件との対応、spec詳細、最新実権限/障害復旧/Maintenance/同期UI証拠と清掃を確認。新機能テストを実行したとは数えず、既存各3回検証の記録を保持。
+- Issues/Security: 実OAuthはユーザー指示で留保。全browser/性能/Glass/OS chooserはPhase12、ExtensionはPhase11〜12、実GitHub配布元/サービス運用/停止中失敗自動復元はPhase10。未確認を合格証拠に含めない。spec.md非変更、通常環境非変更、push/公開/再起動なし。
+- Next: Phase10の明記9条件を既存実装で監査し、専用両DB/FPMでMaintenance中の更新失敗→自動復元を各3回検証する。Phase10合格後のみPhase11へ進む。
+
 ## Phase9 独立保存領域の実UI同期と停止復旧（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。45d41a0の確認待ち後、ユーザーの明示許可で同じnavigation再試行が成功し検証完了。

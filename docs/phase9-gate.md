@@ -1,6 +1,14 @@
 # Phase 9 ゲート監査
 
-2026-10-04。判定: **進行中**。Phase10へまだ進まない。仕様はユーザー提供の `spec.md` §90〜99/118/Phase9と添付Phase別仕様。Version1.0全体の完成判定とは別に、未確認を残して成功としない。
+2026-10-04。判定: **Phase9機能ゲート検証済み、Phase10へ移行**。仕様はユーザー提供の `spec.md` §90〜100/118/Phase9と添付Phase別仕様。Version1.0全体の完成判定とは別に、未確認を残して成功としない。
+
+## 最終ゲート判定
+
+添付仕様の「Phase 9完了条件」はadmin auth / users / storage / statistics / logs / audit / maintenance / feature flags / limits / presetsの10項目。以下の表に全項目の実装・両DB検証・実UI証拠がある。各機能の最低3回の検証は既存Phase9記録と専用harnessの結果を参照し、今回の文書照合を新たな機能テストとは数えない。
+
+照合1: 添付仕様の完了条件10項目を表と対応付けた。照合2: spec §90〜100/118の管理権限、容量、匿名統計、ログ/監査、停止、制限、プリセットとAPI保護の記録を確認。照合3: 最新の権限実操作、DB障害復旧、更新中のMaintenance維持、独立2保存領域の同期停止/復帰の証拠と清掃記録を確認。Phase9内の既知機能不具合は補修後の検証済み。
+
+残る未確認は消さない。実Discord OAuthはユーザーの「ログインできたていですすめて」により留保。全browser/実端末/OS chooser/大規模性能/アクセシビリティと最終Glass調整はPhase12、Extension実利用はPhase11〜12、実GitHub配布元・サービス運用・更新失敗時のMaintenance自動復元はPhase10で追跡する。本番配置は自動実行しない。これらをPhase9合格やVersion1.0完成の証拠に含めない。下表の未確認欄は引継ぎ一覧で、更新機能はPhase9中に接続・先行検証した実装をPhase10で再監査する。
 
 | 条件 | 確認できた証拠 | 残る確認・実装 |
 |---|---|---|
@@ -9,12 +17,12 @@
 | Users | 検索/ページング/escape/日英UI、roles29/競合13/016Migration6。両専用DB roles29/基盤40を各3回。ユーザーの操作時点承認後、IAB MySQL日本語/MariaDB英語で実付与・解除・最後の管理者拒否、390px、最終operator1/target0・監査2件/前後/版/file配送一致を確認（docs/admin-roles-ui.md） | 実Discord OAuth/全browserは未確認。最初の共有hostでのログイン失効（Cookie干渉疑い）が疑われる401は成功扱いにせず、専用host名で分離後に確認 |
 | Storage | 両DB admin72/backgroundAPI56、全保存・active・archive容量、容量順、有効quota、超過時保持。日英390px、EN quota保存/再読込。実アップロード2394813bytes/1件を100制限に下げても保持・超過説明表示 | 一時・未参照ファイルは容量表示対象外。非ゼロ超過表示のEN/全browser確認は残る |
 | Presets | 両DB36、日英実追加/編集/削除/reload/390px、ユーザー明示追加と独自一覧保持、全15/16Installer。専用両DBで破損JSON/無効schemaのcache修復・実DB stop/start時の公開API/home保持/初期値fallback/復旧/監査保持を各3回31項目、基盤40、fresh全17/repeat成功 | 障害中の実ブラウザ操作/大量同時編集、実Extensionとcloud共有は未確認。docs/admin-presets.md参照 |
-| Feature Flags / Limits | 両DB policy29、権限/CSRF/CAS、日英管理UI、容量保存。実クラウド同期停止・再開、日英account停止理由/復旧。JAとENのupload停止中に端末保存→再開でcloud1件。EN専用MySQL/IABで68byte/0→1file、390px、weather停止理由/POST403→再開200/理由解除、認証済み公開地域の保存/reload/実cloud一致/警告なしを確認 | OS filechooser APIは今回反映なし、生成File選択fixtureで保存・同期を確認。過去の警告との因果・他端末認証済みUI・全browser/MariaDB実画面は残る。docs/policy-ui-verification.md参照 |
+| Feature Flags / Limits | 両DB policy29、権限/CSRF/CAS、日英管理UI、容量保存。実クラウド同期停止・再開、日英account停止理由/復旧。JAとENのupload停止中に端末保存→再開でcloud1件。EN専用MySQL/IABで68byte/0→1file、390px、weather停止理由/POST403→再開200/理由解除、認証済み公開地域の保存/reload/実cloud一致/警告なしを確認 | OS filechooser APIは今回反映なし、生成File選択fixtureで保存・同期を確認。独立2originの同期停止/復帰は下記追記で確認済み。実2台/全browser/過去警告因果はPhase12へ留保。docs/policy-ui-verification.md参照 |
 | Maintenance | サーバー全面停止・管理者通常利用・API保護の既存検証、日英画面。両専用DB/FPMで実HTTP停止→実Engine更新→公開再開→実runner手動復元を各3回33項目/基盤40。停止中の匿名503/管理者200、更新後の停止維持、復元後の最新解除version/signal/監査2件保持を確認 | 全ブラウザ、停止中の更新失敗による自動復元経路は未確認。docs/update-fpm-http.md参照 |
 | Logs / Audit | DB/file、安全なエラー、フィルター、監査の同一transaction/outbox、90日整理CLI。専用Docker両DBの実2cycle/二重起動拒否。実PDO接続失敗→同じworkerの2秒後再試行/復旧を各3回、unsafe file lock失敗→修復/再試行を各3回確認。更新workerの失敗をupdate_errorへ同一transactionで分類し、結果再投影・file配送再試行・ApplicationLogger queue分離を専用試験で確認。実Engine復元後にも25件の失敗記録を保持 | 本番ホスト未配置。実1時間待機、DBサーバー停止、disk full/OS権限障害は別の未確認。file配送は管理ログ閲覧/整理時で、即時配送や中断時のexactly-onceではない |
 | Statistics | 両DB collection30/admin48、期間/指標/日別表/SVG、匿名schema、日英mobile、JA/EN期間操作。実MySQL停止503→復旧・reload再送、再読込で検索重複なし、実2タブ同時検索 | 大規模性能、実Extension、実端末のACK保存失敗・多数タブstress・完全ネットワークofflineは未確認 |
 | Statistics 実操作 | localhost専用DBへWeb/AI/favorite/Palette操作を保存。通常UIから生成背景2件保存に対応するfeature background2を観測 | 実Discord認証の同期、実外部preset分類、未配信イベントの端末上のACK確認は未確認 |
-| Update Management | Release取得/4channel選択と管理者check/API/CSRF/監査/通知。両DBで実配布物/検査/backup/file+DB置換/Migration/health/自動・手動復元/ユーザー変更保持/中断rescue/安全停止、専用Apache変更PHP反映を確認。MySQL管理画面の実更新・復元、日英/390px/Console0。PHP8.2/8.3の独立2 FPM master・各2 childでcache刷新/復元を各3回22項目。PHP8.3/Nginxの実HTTP受付→worker/Engine/両DB更新→新PHP→復元/旧PHPも各3回24項目確認（docs/update-fpm-http.md） | 対象repo404/実GitHub取得、独立複数FPM masterでの実DB更新、サービスboot/restart/長時間運用、本番配置、全browser/実MariaDBブラウザ操作は未確認。Phase10正式移行前 |
+| Update Management | Release取得/4channel選択と管理者check/API/CSRF/監査/通知。両DBで実配布物/検査/backup/file+DB置換/Migration/health/自動・手動復元/ユーザー変更保持/中断rescue/安全停止、専用Apache変更PHP反映を確認。MySQL管理画面の実更新・復元、日英/390px/Console0。PHP8.2/8.3の独立2 FPM master・各2 childでcache刷新/復元を各3回22項目。PHP8.3/Nginxの実HTTP受付→worker/Engine/両DB更新→新PHP→復元/旧PHPも各3回24項目確認（docs/update-fpm-http.md） | 対象repo404/実GitHub取得、独立複数FPM masterでの実DB更新、サービスboot/restart/長時間運用、本番配置、全browser/実MariaDBブラウザ操作は未確認。Phase10で追跡 |
 | DB / Regression | 両DB全17Migration fresh/repeat/往復、Installer各40、最新配布物PHP160構文。今回のログ障害試験は両専用DBでfresh17/repeatと基盤40・scheduleを各3回確認 | 新しいMigrationが増えたら新規環境で再確認。実ブラウザの未確認は上記各行を参照 |
 
 2026-10-04サービス設定追記: 出荷unitを専用PHP8.3/Debian Bookwormのsystemd-analyzeで診断なしと確認。欠落実行ファイル/無効Type/不明設定名の負例を含む静的9項目と、既存CLI実プロセス25項目を各3回成功。Windowsコピーの実行権限警告を0644へ修正して全3回再検証。managerは起動せず、実enable/boot/restart/manager stop/長時間運用は上表の未確認を維持。docs/update-execution-service.md参照。

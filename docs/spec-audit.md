@@ -14,8 +14,8 @@
 | 6 | Appearance §37/53–56/68–82 | カテゴリmodal/Undo20/reset、テーマ/複数Custom/太陽時近似/フォント/Animation、検索欄Glass、時計/日付/挨拶基本表示を実装。JS appearance37/history19と既存回帰、両DB構文84/基盤39/sync17、ブラウザreset/Undo/Close/resize/mobile、Dark/Custom/font実読込、表示の保存、検索欄固定幅/高さ/透過/ぼかしを確認。時計/日付style・ヘッダーも実装し日英/再読込/390pxで確認。Google Font読込・架空地域の昼夜も確認。初回ウィザード18単体と日英/Skip/Back/Later/再開/完了/390px実UIも確認。docs/phase6-gate.mdで照合、実OS motion切替は最終監査へ留保 | 機能ゲート検証済み（実OAuth留保） |
 | 7 | Background §57–67/120–121 | 全11条件/複合編集・実天気/地域UI・動画手動操作・単位背景同期/原子的Blob・中断receipt回復・競合ルール共有・孤立清掃を実装。両DB API55/2端末8group/500MiB実HTTP12/実圧縮quota8/圧縮HTTP15/孤立回収15。新規全9Migration/Installer各40、全PHP114/JS27。初回案内Preset/libraryも日英/mobile実UI確認。docs/phase7-gate.mdで証拠と留保を追跡 | 機能ゲート検証済み（未確認はPhase12で追跡） |
 | 8 | Palette §48–52 | 全8カテゴリ/5初期groups/ランキング/実操作/操作別確認と同期/reset/拡張登録/原子削除/Logout回復を実装。JS31、両DB認証43/Logout実HTTP6/確認同期4、日英/mobile/履歴再検索/拡張UI/専用実IndexedDB失敗回復を検証。docs/phase8-gate.mdで7完了条件を照合 | 機能ゲート検証済み（実OAuth等はPhase12へ留保） |
-| 9 | Admin §90–100/118 | 管理権限、各管理機能、統計、90日ログ、監査、メンテが必要 | 未着手 |
-| 10 | Update §104–109 | GitHub/チャンネル/24h確認/検証/バックアップ/安全置換/DB/失敗復旧・手動Rollbackが必要 | 未着手 |
+| 9 | Admin §90–100/118 | 添付の完了条件10項目をdocs/phase9-gate.mdで照合。権限実付与/解除、容量、匿名統計、DB/fileログ/監査、停止、flags/limits、presetsの両DB/API/日英UI証拠あり。独立2originの同期停止/復帰も確認。実OAuth/全browser等の未確認は保持 | 機能ゲート検証済み（未確認は後続Phaseで追跡） |
+| 10 | Update §104–109 | Phase9中の管理接続でチェック/4channel/配布物検査/backup/file+DB更新/Migration/自動・手動Rollback/history/UIを実装・先行検証済み。実GitHub対象配布物取得、サービス運用、停止中の失敗自動復元等を正式監査する。docs/phase10-gate.md参照 | 進行中・実配布元未確認 |
 | 11 | Extension §110–114 | New Tab、共有UI/設定、認証同期、列挙されたOffline機能、復帰同期が必要 | 未着手 |
 | 12 | Quality §6/83/120–128 | 4ブラウザ、Mobile、a11y、セキュリティ、翻訳、性能、全回帰が必要 | 未着手 |
 
