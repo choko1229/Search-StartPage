@@ -1,0 +1,25 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/autoload.php';
+use App\Services\{UpdateCompatibility,UpdatePackage,ReleasePackageBuilder};
+use App\Http\HttpException;
+if(PHP_SAPI!=='cli'||getenv('SEARCH_TEST_MODE')!=='1')exit(1);
+$directory=sys_get_temp_dir().'/update-compat-'.bin2hex(random_bytes(8));mkdir($directory,0700);$count=0;$root=dirname(__DIR__);
+$check=static function(bool $ok,string $name)use(&$count){if(!$ok)throw new RuntimeException($name);++$count;echo "PASS: $name\n";};
+$remove=function($path)use(&$remove){if(is_dir($path)&&!is_link($path)){foreach(scandir($path) as $name)if($name!=='.'&&$name!=='..')$remove($path.'/'.$name);rmdir($path);}else unlink($path);};
+try{
+    $before=hash_file('sha256',$root.'/config/config.php');(new ReleasePackageBuilder())->build($root,$directory.'/release.tar');$version=trim(file_get_contents($root.'/VERSION'));
+    $manifest=(new UpdatePackage())->verify($directory.'/release.tar',$directory.'/stage',$version,true);$validator=new UpdateCompatibility();$stage=$directory.'/stage';
+    $check($validator->validate($stage,$manifest)===9,'real candidate HTTP worker and descriptor protocol checks');
+    $check(!file_exists($stage.'/config/config.php')&&!file_exists($stage.'/storage'),'probe configuration and storage removed');
+    foreach($manifest['files'] as $path=>$meta)if(hash_file('sha256',$stage.'/'.$path)!==$meta['sha256'])throw new RuntimeException('Candidate changed');$check(true,'all managed candidate hashes unchanged');
+    $check(hash_file('sha256',$root.'/config/config.php')===$before,'real application configuration untouched');
+    $original=file_get_contents($stage.'/public/index.php');$bad=$manifest;$body='<?php http_response_code(200);echo "unsafe";';file_put_contents($stage.'/public/index.php',$body);$bad['files']['public/index.php']=['bytes'=>strlen($body),'sha256'=>hash('sha256',$body)];
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate HTTP without update stop rejected');}$check(!file_exists($stage.'/config/config.php')&&!file_exists($stage.'/storage'),'incompatible candidate probe artifacts cleaned');file_put_contents($stage.'/public/index.php',$original);
+    $worker=$stage.'/bin/update-check-worker.php';$originalWorker=file_get_contents($worker);$body='<?php echo json_encode(["status"=>"success"]);';file_put_contents($worker,$body);$bad=$manifest;$bad['files']['bin/update-check-worker.php']=['bytes'=>strlen($body),'sha256'=>hash('sha256',$body)];
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate worker without pause rejected');}file_put_contents($worker,$originalWorker);
+    file_put_contents($stage.'/config/config.php','existing config');try{$validator->validate($stage,$manifest);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','existing stage configuration never overwritten');}$check(file_get_contents($stage.'/config/config.php')==='existing config','existing stage config preserved');unlink($stage.'/config/config.php');
+    mkdir($stage.'/storage');file_put_contents($stage.'/storage/existing','preserve');try{$validator->validate($stage,$manifest);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','existing stage storage rejected');}$check(file_get_contents($stage.'/storage/existing')==='preserve','existing stage storage preserved');unlink($stage.'/storage/existing');rmdir($stage.'/storage');
+    $check($validator->validate($stage,$manifest)===9,'clean candidate reusable after rejected probes');
+    echo "$count candidate compatibility checks passed.\n";
+}finally{$remove($directory);}

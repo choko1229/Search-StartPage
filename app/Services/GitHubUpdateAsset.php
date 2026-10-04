@@ -89,7 +89,7 @@ final class GitHubUpdateAsset
     public function prepare(int $releaseId,string $version,string $archive,string $stage): array
     {
         $asset=$this->select($releaseId);$this->download($asset,$archive);
-        try{return (new UpdatePackage())->verify($archive,$stage,$version,true);}
+        try{return (new UpdatePackage())->verify($archive,$stage,$version,false,static fn(string $candidate,array $manifest)=>(new UpdateCompatibility())->validate($candidate,$manifest));}
         catch(\Throwable $error){if(!unlink($archive))throw new HttpException(503,'UPDATE_STORAGE_UNAVAILABLE');throw $error;}
     }
     /** New private archive only. Failed transfers never leave a usable archive. */

@@ -1,0 +1,11 @@
+# 更新候補の停止プロトコル検査
+
+GitHubUpdateAsset.prepareは取得・外側digest・manifestの検証に続いてUpdateCompatibility.validateを必須にする。UpdatePackageの第5引数の内部preflight callbackで実行するため、構文や互換性の失敗はpackage自身が作ったstageと取得archiveを清掃する。既存のstageは変更しない。
+
+最初と最後に全対象hash/VERSIONとPHP構文を検査する。fresh stageに検査専用のprivate storageと「読まれたらmarkerを書いて失敗する」config.phpを一時生成する。このconfigは本物の接続値を含まない。候補の停止markerを有効にした状態で、通常のpublic/index.phpをGET home/account/admin API、POST sync/installer、HEADでCLIから実行する。HTTP応答code503、日英の更新表示、API UPDATE_IN_PROGRESS、HEAD本文なし、config非読込、log/log-pending非作成を確認する。
+
+log-maintenance/update-check-workerも一時wrapperのchild内だけSEARCH_TEST_MODE=1/--cycles=1で実行し、pausedとconfig非読込を確認する。候補のstandalone UpdateAccess自体を起動してprotocol1、descriptor3/4、exclusive内の通常アクセス拒否を検査する。計9経路。各childにtimeout/output制限があり、失敗はUPDATE_GATE_INCOMPATIBLE。終了時に検査用config/storageを除去し、対象hashを再照合する。
+
+これは信頼するrepositoryのreleaseに対する動作検査であり、未知・悪意あるPHPのsandboxではない。候補の一部PHPを実行する点は構文検査だけのUpdateStageと異なる。新しいGate実装を禁止するhash固定方式ではなく、挙動とprotocolを確認する。CLIでHTTP globalsを模擬した入口の証拠で、Apache/FPMのheaders、実browser、web OPcacheの成功を証明するものではない。
+
+両環境tests/update-compatibility.phpは12項目成功。実配布物9経路、全hash/通常config不変、probe清掃、HTTP停止なし/worker pauseなしの候補拒否、既存stage config/storageの保持、失敗後の再利用を含む。tests/update-asset.phpは最終94項目で、外側digest整合済みの停止なし候補も拒否しarchive/stageを清掃する取得統合を確認。実GitHub対象sourceの404は未解消である。

@@ -1472,3 +1472,20 @@ DB設計確認: 公式MySQL/MariaDBのconsistent snapshot資料を確認。現�
 制限: 内部runtimeの成功は全browser/UI/auth/OAuth成功やfile+DB自動Rollbackの証明ではない。Windows native/networkFS FD、候補HTTP/worker protocol、web OPcacheは未確認。one-generation physical cleanup/engine/job中断復旧/手動Rollback/管理UI/監査/update_history未接続。対象GitHub404、Phase9残UI/故障/旧roles確認、Glass/実OAuth/各browser/Extension/全DoD未達を維持。
 
 次に実行すること: UpdateRuntimeとGate/Journal/実file+DB snapshotを更新engineへ接続。candidate gate/index/worker互換性を事前確認し、専用clone/DBでfile replace→migrate→health→complete、任意段階の例外/exit→両snapshot復元/healthまで停止維持を実証。stage/live分離、直前1世代物理清掃、job中断回復、手動Rollback/管理UI/CSRF/audit/update_historyへ接続する。Phase9残ゲートを閉じてからPhase10正式移行。spec.md変更/stageなし、Goal未完成。
+
+
+## Phase9 候補の停止互換性・private job展開先（2026-10-04）
+
+前ターンcde2e53はlock継承/Migration-health実装と両専用DB検証・配布物不足補修による進捗。progress/status/git/spec§107〜109から再開。Phase9ゲート未達、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateCompatibilityでfresh candidateの構文/全hash、候補public/indexの停止503/API/JA EN/HEAD、log/update-check workerのpaused、standalone Gate protocol1/descriptor3/4/排他を検査。候補内だけtrap config/private storageを作り実config/DBを読まないことを確認、終了時清掃/再hash。UpdatePackageの内部preflight callbackとGitHub prepareに必須接続し、互換性失敗stage/archiveも清掃。取得候補の未知PHPを安全に実行できるsandboxではなく信頼するreleaseの検査。CLIのHTTP globalsによる入口検査で、Apache/FPM/browser成功に拡張しない。
+
+UpdateFilesはroot内のstorage/updates/jobs/32hex/candidate|restore|previousだけprivate permission/ancestor linkを検査して許可。他の内部stage/root/親は拒否。管理対象allowlistはstorageを含まないためsourceとtargetは分離、ユーザーデータは更新対象へ加えない。Windowsのpath比較は大文字小文字を正規化するがnative runtime未確認は維持。docs/update-compatibility.md/update-files.md/update-stage.mdへ契約・制約を記録。
+
+検証1: 両新PHP構文とcompatibility各12。実source cloneのHTTP6/worker2/nativeGate1、managed全hash/config保持、検査config/storage清掃、停止なしHTTP/worker候補拒否、既存config/storage保持、再利用。session43458をpollしexit0。
+検証2: 両file42。内部private job apply/restore/清掃/config uploads保持、0755job拒否、app内stage拒否。asset初回91→停止なし候補の実取得統合を追加して最終94、正しい外側digestでも互換性拒否とarchive/stage清掃。package64/stage29/journal40/access34/task20/基盤40回帰成功。session76780をpollしexit0。DB/Migration/認証/UI外観変更なし、全16Migrationの前ターンfresh/repeat証拠を維持。
+検証3: 最終両実package218files/3371008bytes/PHP148構文、独立tar一覧/hash/config不変/保護領域非包含。通常appには追加service/testsと取得・展開変更だけcopy。通常DB/user/config/volumes/worker再作成なし、専用DBの追加もなし、git diff --check確認。
+
+制限: 停止プロトコルの事前検査は追加できたが、file+DB/journal/runtime一括engine、例外/exit後の自動復元、世代清掃、管理UI/update_historyは未接続。web OPcache/FPM/Windows native/実GitHub対象repo404、Phase9旧残UI/故障/旧role実UI、Glass/実OAuth/各browser/Extension/全DoD未達も維持。
+
+次に実行すること: private jobs内にcandidate manifest/archiveとfile/DB snapshotを永続化し、JournalとGate/UpdateRuntimeを接続する更新engineを実装。専用clone/DBでapply→migrate→health→completeと、file途中/DDL後/health失敗/exit後の両snapshot復元・healthまで停止維持を実証。復元失敗も停止を維持し再試行、直前1世代の物理清掃・手動Rollback・管理UI/CSRF/audit/update_historyへ接続。Phase9残ゲートを閉じてからPhase10正式移行。spec.md変更/stageなし、Goal未完成。

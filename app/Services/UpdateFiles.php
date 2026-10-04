@@ -32,7 +32,19 @@ final class UpdateFiles
     {
         $manifest=self::manifest($manifest);$previous=self::manifest($previous);UpdatePackagePaths::directory($stage);UpdatePackagePaths::directory($root);
         $stagePath=str_replace('\\','/',realpath($stage));$rootPath=str_replace('\\','/',realpath($root));
-        if($stagePath===$rootPath||str_starts_with($stagePath,$rootPath.'/')||str_starts_with($rootPath,$stagePath.'/'))throw new HttpException(422,'INVALID_UPDATE_PATH');
+        $compare=static fn(string $path):string=>PHP_OS_FAMILY==='Windows'?strtolower($path):$path;
+        $stageCompare=$compare($stagePath);$rootCompare=$compare($rootPath);
+        if($stageCompare===$rootCompare||str_starts_with($rootCompare,$stageCompare.'/'))throw new HttpException(422,'INVALID_UPDATE_PATH');
+        if(str_starts_with($stageCompare,$rootCompare.'/')){
+            // A private job stage is outside every managed target despite being under the app root.
+            $relative=substr($stagePath,strlen($rootPath)+1);
+            if(!preg_match('~^storage/updates/jobs/[a-f0-9]{32}/(?:candidate|restore|previous)$~D',$relative))throw new HttpException(422,'INVALID_UPDATE_PATH');
+            $cursor=$stagePath;
+            while($compare($cursor)!==$rootCompare.'/storage'){
+                clearstatcache(true,$cursor);$permissions=fileperms($cursor);
+                if($permissions===false||($permissions&0077)!==0)throw new HttpException(422,'INVALID_UPDATE_PATH');$cursor=dirname($cursor);
+            }
+        }
         foreach($manifest['files'] as $path=>$metadata){
             $source=self::target($stage,$path);self::target($root,$path);
             if(!is_file($source)||filesize($source)!==$metadata['bytes']||!hash_equals($metadata['sha256'],hash_file('sha256',$source)))throw new HttpException(422,'INVALID_UPDATE_PACKAGE');
