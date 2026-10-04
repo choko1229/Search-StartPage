@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase9 更新workerの失敗ログ（2026-10-04）
+
+- 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前Goalターンは進捗報告のみ。未保存変更を確認して最終検証。
+- Files: UpdateHistoryRepository、AdminAuditLogger、tests/update-outcome-logs.php、tests/update-runner.php。docs/admin-logs.md/update-commands.md/phase9-gate.mdの古い未接続記録を修正。
+- DB/API/UI: 新Migration/API/UIなし。完了結果の固定エラーを履歴/監査と同一transactionでupdate_errorへ投影。決定的event ID、private台帳再投影、update_job outboxの限定配送。Controller/ViewへSQLを追加しない。
+- 検証1/2/3: 専用MySQL8/MariaDB10.11で最終ログ18/受付45/基盤40を各3回成功（53875 exit0）。全17Migration fresh/repeat、実error INSERT故障のtransaction rollback、再投影重複なし、unsafe file lock故障/復旧、type filter、成功時エラーなし、実ApplicationLogger queue分離/復旧。テスト時刻境界も補修。
+- 実Engine: 両DB第3回Runner22成功。更新・手動復元後の25失敗をupdate_errorに分類/保持しfile配送、50監査と後のfavorites/sync保持、中断回復を確認。取得archiveだけfixture。UI/実OAuth/GitHub/FPM/systemdの証拠ではない。
+- Issues/Security: file配送はログ閲覧/整理時。中断/DB復元によるfile重複の可能性をevent IDで識別、exactly-onceと称しない。旧handle47653不存在は成功と推測せず、新handle53875の終了を確認。Secret/任意例外本文非記録、spec.md非変更・非stage。
+- 清掃/Next: harness finallyで専用app/tmpfs確認済みDB清掃、通常配置/DB/users/権限/worker非変更。旧roles実UI/他端末/過去警告因果、実外部連携/FPM経由Engine/サービス運用/Glass/全browser/Phase11〜12/全DoDを継続。
+
 ## Phase9 PHP8.2/8.3 FPMの独立cache刷新（2026-10-04）
 
 - 状態: Phase9進行中/Phase10正式移行前/Version1.0未完成。前ターン7e056f7はEN停止・復旧/地域保存の検証による進捗。今回は環境依存のFPM cacheを確認。

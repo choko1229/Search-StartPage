@@ -1,6 +1,6 @@
 # 更新受付と履歴
 
-現在は内部受付サービスと管理画面の履歴表示まで実装している。UpdateCommandsは更新を実行しない。管理画面からの適用/手動Rollback POST、実行worker、Engine journalと受付IDの対応付けは未接続。更新確認POSTは従来どおりリリース情報だけを確認する。
+UpdateCommandsは受付と履歴を担当し、更新自体は専用workerが実行する。管理POST・実行worker・Engine journalへの受付ID対応・管理画面の適用/復元操作は接続済み。実操作の検証範囲は docs/update-management-ui.md、キャッシュの検証範囲は docs/update-web-cache.md を参照。実GitHub配布元・サービス運用等の最終確認は残る。
 
 ## 保存と権限
 
@@ -9,6 +9,8 @@ UpdateCommandsはprivate directory内のcommands.jsonへformat 1の台帳を保�
 受付時はpreparedを保存し、DB履歴と監査ログを同一transactionで記録してからqueuedにする。DB監査失敗は実行可能な状態にしない。claimは受付時と独立して現在の管理者権限とDBの不変metadataを再確認する。同じrevisionの二つのprocessは一つだけclaimできる。preparedで中断した場合も、DB記録が確認できる場合だけclaimする。
 
 完了結果はprivate台帳へ先に保存し、DBへ投影する。DB記録失敗時のreconcileは記録だけを再試行し、更新を再実行しない。完了結果を別の結果へ変更したり、過去のqueuedへ戻したりするDB投影は拒否する。request/event/statusから作る監査event IDで再試行の重複を防ぐ。
+
+固定エラーを持つ完了結果は同じtransactionで `update_error` にも保存する。決定的event IDでDB重複を防ぎ、DB復元で消えた保持対象の結果は再投影する。ファイル配送は管理ログ閲覧・整理時のoutbox再試行で行い、ApplicationLogger独自のpendingを消費しない。ファイルへの配送直後に中断すると重複し得るためevent IDを保持する。tests/update-outcome-logs.phpで実DB挿入失敗時のtransaction rollback・再投影・file lock故障/復旧・queue分離を検証する。
 
 Migration 017_update_historyはspecのid/from_version/to_version/channel/status/created_at/completed_atに、受付ID・操作・リリース識別・要求者・固定error codeを追加する。requested_byにユーザー削除cascadeを付けず、アカウント削除後も更新履歴を保持する。SQLはUpdateHistoryRepositoryに限定しPDO prepared statementsを使う。
 
@@ -28,6 +30,6 @@ GET /admin/updateとGET /api/admin/updateは既存の認証・サーバー側管
 
 ## 次の接続条件
 
-request IDとEngineのjob IDを永続的に対応付け、process中断後に別の更新結果を受付へ結び付けないこと。HTTPの通常leaseを解放した後、専用workerが排他を取得して更新を実行すること。DB restoreが監査履歴を巻き戻した場合はprivate台帳から正しい結果を再投影すること。Web OPcache刷新・書込み可能な隔離配置・実HTTPの停止/更新/復帰も検証してから管理画面の実行操作を有効にする。
+初期の接続条件であったrequest/job IDの永続対応、HTTP応答後の排他実行、DB復元後の結果再投影、隔離Apacheでの実HTTP停止/更新/復帰は後続実装・検証で確認済み。FPMのcache単体検証をFPM経由のEngine/DB更新成功へ拡張せず、サービス運用・実外部連携とともに最終監査へ追跡する。
 
-CLI workerとrequest/job IDの対応付け・DB巻戻し後の再投影を実装し、両専用DBで受付45/runner17/engine32項目を確認した。docs/update-runner.md参照。管理POST/実Web更新は引き続き未接続・未確認。
+CLI workerとrequest/job IDの対応付け・DB巻戻し後の再投影は実装・検証済み。管理POST/Apache実Web更新/管理画面の実操作も後続検証済み（docs/update-runner.md、docs/update-requests.md、docs/update-management-ui.md）。上の初期検証記録を現在の未接続条件として扱わない。FPM経由Engine/DB更新・サービス運用・実配布元は引き続き未確認。

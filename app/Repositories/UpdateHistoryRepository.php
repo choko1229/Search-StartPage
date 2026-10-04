@@ -29,6 +29,10 @@ final class UpdateHistoryRepository
             // A DB snapshot predates later requests. Restore their acceptance audit too.
             (new LogRepository($this->pdo))->recordApplication(['event_id'=>substr(hash('sha256',$request['id'].':requested:queued'),0,32),'type'=>'admin_audit','error_code'=>$request['operation']==='apply'?'UPDATE_APPLY_REQUESTED':'UPDATE_ROLLBACK_REQUESTED','user_id'=>$request['actor'],'context'=>['request_id'=>$request['id'],'operation'=>$request['operation'],'from_version'=>$request['from_version'],'to_version'=>$request['to_version'],'channel'=>$request['channel'],'status'=>'queued','error'=>null],'created_at'=>gmdate('Y-m-d H:i:s',$request['created_at']),'file_written'=>false]);
             (new LogRepository($this->pdo))->recordApplication(['event_id'=>substr(hash('sha256',$request['id'].':'.$event.':'.$status),0,32),'type'=>'admin_audit','error_code'=>$event==='requested'?($request['operation']==='apply'?'UPDATE_APPLY_REQUESTED':'UPDATE_ROLLBACK_REQUESTED'):'UPDATE_JOB_'.strtoupper($status),'user_id'=>$request['actor'],'context'=>['request_id'=>$request['id'],'operation'=>$request['operation'],'from_version'=>$request['from_version'],'to_version'=>$request['to_version'],'channel'=>$request['channel'],'status'=>$status,'error'=>$request['error']],'created_at'=>gmdate('Y-m-d H:i:s',$request['updated_at']),'file_written'=>false]);
+            if($event==='finished'&&$request['error']!==null){
+                // Same transaction and stable ID let snapshot reprojection restore errors without duplicates.
+                (new LogRepository($this->pdo))->recordApplication(['event_id'=>substr(hash('sha256',$request['id'].':update-error:'.$status.':'.$request['error']),0,32),'type'=>'update_error','error_code'=>$request['error'],'user_id'=>$request['actor'],'context'=>['outbox'=>'update_job','request_id'=>$request['id'],'operation'=>$request['operation'],'status'=>$status],'created_at'=>gmdate('Y-m-d H:i:s',$request['updated_at']),'file_written'=>false]);
+            }
             $this->pdo->commit();
         }catch(\Throwable $error){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }

@@ -1,4 +1,21 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・更新失敗のログ分類）
+
+前Goalターンは進捗報告のみで機能進捗なし。未保存だった更新エラーログ補修を再確認し、最終ソースを両専用DBで検証。Phase9進行中、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateHistoryRepositoryが固定エラーを持つ完了結果を履歴/管理監査と同一transactionでupdate_errorへ保存。決定的event IDで再投影のDB重複を防ぐ。AdminAuditLoggerはupdate_jobマーカーのある未配送エラーだけを追加配送し、ApplicationLoggerの独立pending queueは消費しない。file配送は管理ログ閲覧/整理時。配送後中断/DB復元時のfile exactly-onceを保証しない。schema/API/UI変更なし。
+
+検証1〜3: 最終tests/update-outcome-logs.php18/受付45/基盤40をMySQL8・MariaDB10.11で各3回成功（53875 exit0）。fresh全17Migration/repeat、実CHECK制約でerror INSERT失敗→履歴/監査transaction rollback、再投影、unsafe file lock拒否/修復配送、filter、成功時エラーなし、実ApplicationLogger queue分離/復旧。時刻境界で試験completed_atがupdated_atを超えないよう補修。
+
+実Runner/Engine: 両DB第3回に22項目成功。実file/DB更新・手動復元、後からの25件の失敗記録と50監査保持、update_error25件分類/file配送、後のfavorites/sync保持、中断回復を確認。取得archiveだけfixture。実Discord/GitHub/UI/FPM/systemdを今回成功扱いにしない。以前の検証handle47653は現時点で不存在のため終了成功を推測せず、53875で再検証した。
+
+環境: 専用tmpfs/no DB host port/生成password、使い捨てclone。harness finallyで専用app/配置確認済みDBを除去。通常8099/8100/config/DB/users/権限/worker非変更。Secret/spec.md非変更・非stage。
+
+次に実行すること:
+1. Phase9残ゲートの旧roles実UI・他端末認証済みUI/過去保存警告因果を照合し、具体的な隔離検証を進める。以前の権限操作auto-review拒否を無断再試行しない。
+2. 実HTTP proxy/FPM経由Engine・DB更新、systemd boot/stop/restart/長時間運用、実GitHubを継続。今回ログ試験をこれらの証拠へ拡張しない。
+3. Phase9合格後にPhase10正式移行。実OAuth/OS chooser/Glass仕上げ/全browser/Phase11〜12/全DoD未達を保持。
+
 ## 最新の再開地点（2026-10-04・独立FPM cache刷新）
 
 前Goalターン7e056f7はEN停止/復旧・認証済み地域保存の実検証による進捗。今回は更新の環境依存FPM cacheを実processで確認。Phase9進行中、Phase10正式移行前、Version1.0未完成。
