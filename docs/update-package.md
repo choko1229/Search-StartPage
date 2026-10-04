@@ -6,7 +6,7 @@ GitHub Releasesへ添付するアプリ専用の更新配布物を作成・取�
 
 配布形式は、[GNU tarの標準ヘッダー仕様](https://www.gnu.org/software/tar/manual/html_node/Standard.html)を確認したUSTARの限定形式です。圧縮しない通常ファイルだけを含み、先頭に `release-manifest.json` を置きます。manifestはformat=1、version、php_min、各ファイルのbytes/sha256を持ちます。GitHubの自動生成source archiveや、任意のZIP/TARをこの検証器でそのまま適用するものではありません。公開側と取得側を同じ配布契約で接続する必要があります。
 
-対象は `app/`、`public/`、`lang/`、`database/`、`bin/`、将来の `extension/` と、`VERSION`、`README.md`、`composer.json`、`config/config.example.php` です。`config/config.php`、セットアップキー、`storage/` 全体、Git管理情報、ユーザー提供の `spec.md`、進捗記録、tests、`public/_test/` は配布対象外です。管理画面の一時認証入口も出荷しません。資料・Docker設定・開発検証記録はこの更新配布物に含めません。
+対象は `app/`、`public/`、`lang/`、`database/`、`bin/`、将来の `extension/` と、`VERSION`、`README.md`、`composer.json`、`config/config.example.php`、Git管理の標準検索先定義 `config/providers.php` です。`config/config.php`、セットアップキー、`storage/` 全体、Git管理情報、ユーザー提供の `spec.md`、進捗記録、tests、`public/_test/` は配布対象外です。管理画面の一時認証入口も出荷しません。資料・Docker設定・開発検証記録はこの更新配布物に含めません。
 
 検証は既存のアプリ領域へ直接展開せず、新規の非公開stageへ行います。ファイル名・サイズ・SHA-256・全件の過不足・VERSIONとリリースタグ・PHP最低バージョンを確認します。正式SemVerの`v`接頭辞差だけを許容し、異なるbuild metadataのバージョンを同一扱いにしません。文字コードや大文字小文字による曖昧なファイル名、Windowsの予約名/代替stream、絶対パス、`..`、リンク、重複、PAX/GNU拡張、ディレクトリentry、非ゼロpadding、切れたarchiveを拒否します。パスは240文字以内の限定ASCII、最大10000ファイル/単体64MiB/内容合計256MiB、manifest2MiBです。VERSIONは512bytes以内です。
 

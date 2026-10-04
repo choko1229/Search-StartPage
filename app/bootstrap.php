@@ -235,6 +235,8 @@ $router->add('GET', '/api/favorites/metadata', (new App\Controllers\FavoriteMeta
 $router->add('POST', '/locale', $core->locale(...), [new Csrf()]);
 $router->add('GET', '/installer', $installer->handle(...));
 $router->add('POST', '/installer', $installer->handle(...), [new Csrf()]);
+// Internal inherited-lock health task builds the same routes without altering maintenance.
+if(PHP_SAPI==='cli'&&isset($updateHealthProbe)&&$updateHealthProbe===true)return $router;
 // Apply the full stop before parsing JSON or reaching route middleware.
 // Malformed mutation bodies must not expose a normal API during maintenance.
 $request=new Request($_SERVER['REQUEST_METHOD'] ?? 'GET',parse_url($_SERVER['REQUEST_URI'] ?? '/',PHP_URL_PATH) ?: '/');

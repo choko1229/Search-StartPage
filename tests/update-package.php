@@ -11,14 +11,15 @@ $write=static function(string $path,string $contents)use($root):void{$parent=dir
 $remove=static function(string $path):void{if(is_link($path)||is_file($path)){unlink($path);return;}if(is_dir($path)){$files=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);foreach($files as $file){if($file->isDir()&&!$file->isLink())rmdir($file->getPathname());else unlink($file->getPathname());}rmdir($path);}};
 $pack=static function(array $entries,string $path):void{$stream=fopen($path,'wb');foreach($entries as $name=>$data){fwrite($stream,UpdatePackage::header($name,strlen($data)));fwrite($stream,$data);if(strlen($data)%512)fwrite($stream,str_repeat("\0",512-strlen($data)%512));}fwrite($stream,str_repeat("\0",1024));fclose($stream);};
 try{
-    foreach(['VERSION'=>"1.2.0\n",'app/autoload.php'=>'<?php // generated','app/bootstrap.php'=>'<?php // generated','public/index.php'=>'<?php // generated','config/config.example.php'=>'<?php return [];','public/assets/a.js'=>'console.log(1);','public/.htaccess'=>'Require all granted',
+    foreach(['VERSION'=>"1.2.0\n",'app/autoload.php'=>'<?php // generated','app/bootstrap.php'=>'<?php // generated','public/index.php'=>'<?php // generated','config/providers.php'=>'<?php return [];','config/config.example.php'=>'<?php return [];','public/assets/a.js'=>'console.log(1);','public/.htaccess'=>'Require all granted',
         'config/config.php'=>'secret_marker','config/install.key'=>'setup_marker','storage/uploads/backgrounds/user.png'=>'user_bytes','storage/user-data.json'=>'user_data_marker','spec.md'=>'user_spec_marker','progress.md'=>'progress_marker','tests/test.php'=>'test_marker','public/_test/preview.php'=>'preview_marker'] as $path=>$contents)$write($path,$contents);
     $long='public/assets/'.str_repeat('a',90).'/long.txt';$write($long,'long path');
     $archive=$temporary.'/release.tar';$built=(new ReleasePackageBuilder())->build($root,$archive);
-    $check($built['version']==='1.2.0'&&$built['files']===8,'builder includes only distribution files');
+    $check($built['version']==='1.2.0'&&$built['files']===9,'builder includes only distribution files');
     $contents=file_get_contents($archive);$check(strlen(UpdatePackage::header('VERSION',6))===512,'standard header size');
     foreach(['secret_marker','setup_marker','user_bytes','user_data_marker','user_spec_marker','progress_marker','test_marker','preview_marker'] as $marker)$check(!str_contains($contents,$marker),'protected contents excluded '.$marker);
     $stage=$temporary.'/stage';$manifest=(new UpdatePackage())->verify($archive,$stage,'v1.2.0');
+    $missing=$manifest;unset($missing['files']['config/providers.php']);$reject(fn()=>UpdateManifest::decode(json_encode($missing,JSON_THROW_ON_ERROR),'1.2.0'),'INVALID_UPDATE_PACKAGE');
     $check($manifest['version']==='1.2.0'&&file_get_contents($stage.'/'.$long)==='long path','verified package supports conventional v tag and prefix header');
     $check((fileperms($stage.'/app/bootstrap.php')&0777)===0600&&(fileperms($stage)&0777)===0700,'staged code is private');
     $check(!is_file($stage.'/config/config.php')&&!is_dir($stage.'/storage'),'stage contains no writable user data');

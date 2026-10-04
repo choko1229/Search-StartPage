@@ -34,7 +34,7 @@ final class UpdateManifest
                 if($total>self::TOTAL_LIMIT)throw new \RuntimeException();
             }
             foreach(array_keys($seen) as $path){$parent=dirname($path);while($parent!=='.'){if(isset($seen[$parent]))throw new \RuntimeException();$parent=dirname($parent);}}
-            foreach(['VERSION','app/autoload.php','app/bootstrap.php','public/index.php','config/config.example.php'] as $required)if(!isset($value['files'][$required]))throw new \RuntimeException();
+            foreach(['VERSION','app/autoload.php','app/bootstrap.php','public/index.php','config/config.example.php','config/providers.php'] as $required)if(!isset($value['files'][$required]))throw new \RuntimeException();
             if($value['files']['VERSION']['bytes']<1||$value['files']['VERSION']['bytes']>512)throw new \RuntimeException();
             if(version_compare(PHP_VERSION,$value['php_min'],'<'))throw new HttpException(422,'UPDATE_PHP_REQUIRED');
             return $value;

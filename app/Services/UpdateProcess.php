@@ -13,10 +13,18 @@ final class UpdateProcess
     }
     public function script(string $file,array $arguments=[],int $timeout=120): string
     {
+        return $this->executeScript($file,$arguments,$timeout,[]);
+    }
+    public function guardedScript(string $file,array $arguments,UpdateAccess $access,int $timeout=120): string
+    {
+        return $this->executeScript($file,$arguments,$timeout,$access->childDescriptors());
+    }
+    private function executeScript(string $file,array $arguments,int $timeout,array $descriptors): string
+    {
         $file=$this->file($file);
         if(!array_is_list($arguments))throw new HttpException(422,'INVALID_UPDATE_PROCESS');
         foreach($arguments as $argument)if(!is_string($argument)||str_contains($argument,"\0")||strlen($argument)>4096)throw new HttpException(422,'INVALID_UPDATE_PROCESS');
-        return $this->run([PHP_BINARY,'-d','display_errors=0','-d','log_errors=0',$file,...$arguments],dirname($file),$timeout);
+        return $this->run([PHP_BINARY,'-d','display_errors=0','-d','log_errors=0',$file,...$arguments],dirname($file),$timeout,$descriptors);
     }
     private function file(string $file): string
     {
@@ -24,11 +32,11 @@ final class UpdateProcess
         if(is_link($file)||!is_file($file))throw new HttpException(422,'INVALID_UPDATE_PATH');
         $resolved=realpath($file);if($resolved===false)throw new HttpException(422,'INVALID_UPDATE_PATH');return $resolved;
     }
-    private function run(array $command,string $directory,int $timeout): string
+    private function run(array $command,string $directory,int $timeout,array $descriptors=[]): string
     {
         if(PHP_SAPI!=='cli')throw new HttpException(503,'UPDATE_PROCESS_UNAVAILABLE');
         if($timeout<1||$timeout>300)throw new HttpException(422,'INVALID_UPDATE_PROCESS');
-        $process=@proc_open($command,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$directory,null,['bypass_shell'=>true]);
+        $process=@proc_open($command,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']]+$descriptors,$pipes,$directory,null,['bypass_shell'=>true]);
         if(!is_resource($process))throw new HttpException(503,'UPDATE_PROCESS_UNAVAILABLE');
         $output='';$bytes=0;$exit=null;$started=hrtime(true);
         try{

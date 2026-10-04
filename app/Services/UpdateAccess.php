@@ -5,6 +5,10 @@ namespace App\Services;
 /** No autoload/config/DB dependencies: entry points acquire this before loading app code. */
 final class UpdateAccess
 {
+    public const PROTOCOL=1;
+    private bool $exclusiveActive=false;
+    private $exclusiveOwner=null;
+    private $exclusiveAccess=null;
     public function __construct(private readonly string $directory) {}
     private function initialize(): void
     {
@@ -57,12 +61,47 @@ final class UpdateAccess
             }
             $access=$this->lock('access.lock');$deadline=microtime(true)+$timeout;
             while(!flock($access,LOCK_EX|LOCK_NB)){if(microtime(true)>=$deadline)throw new UpdateAccessPaused();usleep(100000);}
+            $this->exclusiveActive=true;$this->exclusiveOwner=$owner;$this->exclusiveAccess=$access;
             $result=$operation();$this->advance();
             if(!unlink($this->directory.'/pending'))throw new \RuntimeException('UPDATE_ACCESS_UNAVAILABLE');return $result;
         }finally{
+            $this->exclusiveActive=false;$this->exclusiveOwner=null;$this->exclusiveAccess=null;
             if(is_resource($access)){flock($access,LOCK_UN);fclose($access);}flock($owner,LOCK_UN);fclose($owner);
         }
     }
+    /** Only a drained exclusive owner can hand its held lock descriptions to a child. */
+    public function childDescriptors(): array
+    {
+        if(!$this->exclusiveActive||!is_resource($this->exclusiveAccess)||!is_resource($this->exclusiveOwner)||!$this->pending())throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');
+        return [3=>$this->exclusiveAccess,4=>$this->exclusiveOwner];
+    }
+    /** Retain inherited locks through child shutdown, including if the parent exits. */
+    public static function authorizeInherited(string $directory): UpdateAccessTaskLease
+    {
+        if(PHP_SAPI!=='cli'||!is_dir($directory))throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');
+        $cursor=$directory;while(true){if(is_link($cursor))throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');$parent=dirname($cursor);if($parent===$cursor)break;$cursor=$parent;}
+        $pending=$directory.'/pending';if(is_link($pending)||!is_file($pending)||filesize($pending)!==6||file_get_contents($pending)!=='update')throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');
+        $streams=[];
+        try{
+            foreach([3=>'access.lock',4=>'operation.lock'] as $descriptor=>$name){
+                $path=$directory.'/'.$name;if(is_link($path)||!is_file($path))throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');
+                $stream=@fopen('php://fd/'.$descriptor,'r+');if($stream===false)throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');$streams[]=$stream;
+                $inherited=fstat($stream);$expected=stat($path);
+                if($inherited===false||$expected===false||($inherited['mode']&0170000)!==0100000||$inherited['dev']!==$expected['dev']||$inherited['ino']!==$expected['ino'])throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');
+                $probe=@fopen($path,'r+');if($probe===false)throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');
+                try{
+                    // Shared access must fail, proving an exclusive drain, not just a pending marker.
+                    if(flock($probe,($descriptor===3?LOCK_SH:LOCK_EX)|LOCK_NB)){flock($probe,LOCK_UN);throw new \RuntimeException('UPDATE_TASK_NOT_AUTHORIZED');}
+                }finally{fclose($probe);}
+            }
+            return new UpdateAccessTaskLease($streams);
+        }catch(\Throwable $error){foreach($streams as $stream)fclose($stream);throw $error;}
+    }
+}
+final class UpdateAccessTaskLease
+{
+    public function __construct(private array $streams) {}
+    public function __destruct() {foreach($this->streams as $stream)if(is_resource($stream))fclose($stream);}
 }
 final class UpdateAccessLease
 {

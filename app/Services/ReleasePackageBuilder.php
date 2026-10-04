@@ -24,7 +24,7 @@ final class ReleasePackageBuilder
                 $files[$path]=['bytes'=>$file->getSize(),'sha256'=>hash_file('sha256',$file->getPathname())];
             }
         }
-        foreach(['VERSION','README.md','composer.json','config/config.example.php'] as $path){
+        foreach(['VERSION','README.md','composer.json','config/config.example.php','config/providers.php'] as $path){
             if(!is_file($root.'/'.$path))continue;
             UpdatePackagePaths::directory(dirname($root.'/'.$path));
             if(is_link($root.'/'.$path))throw new HttpException(422,'INVALID_UPDATE_PATH');

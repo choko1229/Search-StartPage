@@ -13,7 +13,7 @@ final class UpdatePackagePaths
             if($part==='.'||$part==='..'||($part[0]==='.'&&$part!=='.htaccess')||in_array(strtolower($part),['_test','tests'],true)
                 ||preg_match('/^(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i',$part)||str_ends_with($part,'.'))throw new HttpException(422,'INVALID_UPDATE_PATH');
         }
-        if(in_array($path,['VERSION','README.md','composer.json','config/config.example.php'],true))return $path;
+        if(in_array($path,['VERSION','README.md','composer.json','config/config.example.php','config/providers.php'],true))return $path;
         if(!str_contains($path,'/')||!in_array(explode('/',$path,2)[0],['app','public','lang','database','bin','extension'],true))throw new HttpException(422,'INVALID_UPDATE_PATH');
         return $path;
     }

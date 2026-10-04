@@ -1258,3 +1258,20 @@ DB設計確認: 公式MySQL/MariaDBのconsistent snapshot資料を確認。現�
 制限: script runnerはsandboxでなく内部の検証済みscript用、子孫process killは未保証。syntaxだけではgate互換性やMigration/health成功を証明しない。更新排他下の内部CLI task、OPcache、実file+DB/journalの一括engine・中断回復・手動Rollback/世代清掃/管理UI/update_historyは未接続。通常migrate CLIは共有leaseが必要で排他中に直接呼ばない。Phase9旧残件/実OAuth/各browser/Glass/Extension/全DoDも維持。
 
 次に実行すること: 候補UpdateAccess/HTTP/workerの停止protocolを検証し、排他取得後のみ生成するprivate capabilityにより新process Migration-healthを許可する内部taskへ接続。専用clone/DBでJournalと実snapshotを使う更新engine、失敗/exit後file+DB復元/healthまで停止維持を実証する。既存stage/live分離契約と直前1世代物理清掃を設計し、手動Rollback/管理UI/CSRF/監査/update_historyへ接続。Phase9残ゲートを閉じてから正式Phase10へ。spec.md変更/stageなし、Goal未完成。
+
+
+## Phase9 排他lock継承・新process Migration-health（2026-10-04）
+
+前ターンc15f4efはstage構文検査/取得接続の実装・検証による進捗。progress/status/git/spec更新手順から再開。Phase9ゲート未達、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateAccess protocol1/exclusive callback内だけchildDescriptors(3 access/4 owner)、authorizeInheritedのroot/device/inode・独立SH拒否による排他証明、child shutdownまでstream保持。UpdateProcess.guardedScript、UpdateRuntimeのexact JSON/protocol/version/PID/件数検証、CLI bin/update-taskを追加。config前に継承lock検証、exact VERSION/installed/environment、migrate新process、health全Migration checksum/通常bootstrapのroute構築/API DB health/日英home view。内部CLI probeだけdispatchを戻し、通常HTTP/手動maintenanceは変更なし。docs/update-runtime.mdへ契約/環境依存を記録。
+
+検出補修: 最初の専用clone Migrationが失敗。設定ready/接続は成功、clone限定の安全なclass/行診断でProviderPresets.php:8と特定。Git管理のconfig/providers.phpが配布物に欠けていた実不具合を発見しallowlist/builder/必須manifestへ追加。診断用のclone変更/補助scriptは最終試験から除去。config.php/key/storageは保護を維持し、static presetsとユーザーDB設定を区別。初回失敗を成功扱いにしない。初回task別配置試験もinactiveなGateを渡していたため試験側を修正し、実child拒否へ変更。
+
+検証1: 両task20。実親SIGKILL後もchildがexclusive/accessとowner lockを保持、still-running recovery拒否、child正常終了後だけrecover成功。markerのみ/shared/missing FD/別配置拒否、未許可起動config非読込。実Linux FDで検証しWindows native成功へ拡張しない。
+検証2: search-update-backup-mysql-20261004/mariadb-20261004を専用tmpfs512MiB/no host port/生成passwordで起動、両最終runtime23成功。実source cloneの全16 Migration fresh/repeat、新PID、routes/DB health/JA EN view、手動maintenance trueとsignal保持、checksum変更拒否、実DDL後例外/partial tableと停止保持、fixture除去後health回復、成功応答JSON/schema/protocol/version/PID拒否。新Migrationをアプリへ追加していない（017はclone faultのみ）。接続値・例外本文非出力。生成table/filesはfinally清掃、tmpfsをHostConfigで確認後専用DBだけrm。通常app/DB/config/user volumes/worker保持。
+検証3: 最終両実package217files/3363840bytes/stagePHP147構文、独立tar一覧/全hash/config保持/保護領域非包含。access HTTP30/34、stage29、package64（providers必須追加）、asset91/file38/journal40/基盤40。session60477/69241をpollしexit0、専用DB削除もexit0。通常UIソースの外観変更なし、HTTP regressionで通常入口200/停止503/復帰を確認。git diff --check確認。
+
+制限: 内部runtimeの成功は全browser/UI/auth/OAuth成功やfile+DB自動Rollbackの証明ではない。Windows native/networkFS FD、候補HTTP/worker protocol、web OPcacheは未確認。one-generation physical cleanup/engine/job中断復旧/手動Rollback/管理UI/監査/update_history未接続。対象GitHub404、Phase9残UI/故障/旧roles確認、Glass/実OAuth/各browser/Extension/全DoD未達を維持。
+
+次に実行すること: UpdateRuntimeとGate/Journal/実file+DB snapshotを更新engineへ接続。candidate gate/index/worker互換性を事前確認し、専用clone/DBでfile replace→migrate→health→complete、任意段階の例外/exit→両snapshot復元/healthまで停止維持を実証。stage/live分離、直前1世代物理清掃、job中断回復、手動Rollback/管理UI/CSRF/audit/update_historyへ接続する。Phase9残ゲートを閉じてからPhase10正式移行。spec.md変更/stageなし、Goal未完成。

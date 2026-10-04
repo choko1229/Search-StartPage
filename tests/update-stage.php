@@ -11,9 +11,9 @@ $remove=function($path)use(&$remove){if(is_dir($path)&&!is_link($path)){foreach(
 try{
     $source=$directory.'/source';mkdir($source);foreach(['app','config','public'] as $sub)mkdir($source.'/'.$sub);
     $marker=$directory.'/executed';
-    foreach(['VERSION'=>'1.0.0','app/autoload.php'=>'<?php','app/bootstrap.php'=>'<?php throw new RuntimeException("generated secret");','public/index.php'=>'<?php file_put_contents('.var_export($marker,true).',"executed");','config/config.example.php'=>'<?php','app/helper.inc'=>'<?php function helper(): string {return "ok";}','public/template.phtml'=>'<html><?php echo "ok"; ?></html>'] as $path=>$body)file_put_contents($source.'/'.$path,$body);
+    foreach(['VERSION'=>'1.0.0','app/autoload.php'=>'<?php','app/bootstrap.php'=>'<?php throw new RuntimeException("generated secret");','public/index.php'=>'<?php file_put_contents('.var_export($marker,true).',"executed");','config/providers.php'=>'<?php return [];','config/config.example.php'=>'<?php','app/helper.inc'=>'<?php function helper(): string {return "ok";}','public/template.phtml'=>'<html><?php echo "ok"; ?></html>'] as $path=>$body)file_put_contents($source.'/'.$path,$body);
     $build=(new ReleasePackageBuilder())->build($source,$directory.'/package.tar');$manifest=(new UpdatePackage())->verify($directory.'/package.tar',$directory.'/stage','1.0.0');$validator=new UpdateStage();
-    $check($validator->validate($directory.'/stage',$manifest)===6,'PHP and include/template files linted');$check(!file_exists($marker),'candidate runtime code never executed by lint');
+    $check($validator->validate($directory.'/stage',$manifest)===7,'PHP and include/template files linted');$check(!file_exists($marker),'candidate runtime code never executed by lint');
     $invalid='<?php function broken( { /* generated secret */';file_put_contents($directory.'/stage/app/bootstrap.php',$invalid);$bad=$manifest;$bad['files']['app/bootstrap.php']=['bytes'=>strlen($invalid),'sha256'=>hash('sha256',$invalid)];
     $reject(fn()=>$validator->validate($directory.'/stage',$bad),'UPDATE_PROCESS_FAILED');$check(!file_exists($marker),'syntax failure executes no other candidate files');
     $reject(fn()=>$validator->validate($directory.'/stage',$manifest),'INVALID_UPDATE_PACKAGE');
