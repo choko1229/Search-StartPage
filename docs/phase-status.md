@@ -1,6 +1,6 @@
 # 実装と検証の記録
 
-更新日: 2026-10-03
+更新日: 2026-10-04
 
 ## Phase一覧
 
@@ -15,7 +15,7 @@
 | 7 | Background System | 機能ゲート検証済み（外部サービス・実ブラウザの未確認は留保） |
 | 8 | Command Palette | 機能ゲート検証済み（実OAuth・環境依存の最終確認は留保） |
 | 9 | Admin | 進行中（管理基盤・一覧・メンテナンス・ログ収集/保持・機能制御/動的制限を実装、残る管理機能とUI検証を継続） |
-| 10 | Updater | 未着手 |
+| 10 | Updater | 正式移行前。Phase9更新管理と共通の取得/検証・file/DB保存復元・アクセス停止・永続記録基盤を実装。更新engine全体は未接続 |
 | 11 | Chrome Extension | 未着手 |
 | 12 | Final Polish | 未着手 |
 
@@ -1425,3 +1425,18 @@ DB設計確認: 公式MySQL/MariaDBのconsistent snapshot資料を確認。現�
 制限: UpdateAccessはまだ更新engine公開入口/journal/one-generation/file+DB一括rollbackへ未接続。HTTP更新handlerはjob登録後応答を終えて別process実行が必要。直接の外部SQL・別PHPentry・Windows設定編集・静的assetはこのguard対象外、OPcache無効化とpackage gate互換性もengine検証が必要。sleep中workerは次に実処理する前にgeneration確認しrestartするため即時の全worker再起動を保証するものではない。対象repo404/質問、Phase9旧ゲート/実OAuth/各browser/Glass/Extension/最終DoD未達は維持。
 
 次に実行すること: 永続private update journalと直前1世代metadata、Stage PHP lintとgate互換性/新process Migration-healthを実装。UpdateAccess.exclusive内で両backup→file replace→Migration/health→Complete、失敗時file+DB回復→healthのengineを専用DB/cloneで実証し、process中断journal回復/手動Rollback/管理UI/CSRF/audit/update_historyへ接続する。通常manual maintenanceは維持。Phase9残件/対象GitHub回答/Glass/実OAuth/各browser/Extension/DoDも継続。spec.md変更/stageなし、Goal未完成。
+
+
+## Phase9 更新段階の永続記録・世代metadata（2026-10-04）
+
+直前のGoalターンは進捗表の報告のみで実装進捗なし。progress/status/git/spec§104〜109を確認して再開。前実装e694aaeの停止・worker保護に続き、未保存のUpdateJournalと試験を検証して記録。Phase9ゲート未達、Phase10正式移行前、Version1.0未完成。
+
+実装: private journal.jsonの厳格schema/revision/job ID CAS、lock下の0600 temp→flush/fsync→rename、破損時初期化拒否。queuedからcomplete/failed、変更後のrolling_back/rollback_failed/再試行を管理。file/DB descriptor必須、成功時だけ直前1世代pointer昇格、失敗復元は以前の世代保持、手動復元は現在pointer消費。履歴20件と25回失敗後のsole backup owner保持。固定error codeだけ保存し任意URL/SQL/秘密/ユーザー行を拒否。docs/update-journal.mdへ契約と未接続範囲を記録。新Migration/公開API/認証/UI変更なし。
+
+検証1: 隔離app-mysql/app-mariadbにservice/testのみcopyし、両PHP構文とjournal各40成功。別PHP2processの同revision更新は成功1/409相当1、process終了後にwinning stage保持。世代切替/失敗再試行/時計逆行/private権限/破損保持/リンク/上限拒否を確認。生成/tmpだけfinally清掃。
+検証2: 両既存access34/file36/package63/基盤40回帰成功。既存通常DB、user/config/volume/workerを変更していない。変更サービスに公開入口なし、従来の全16Migration往復証拠を維持。
+検証3: 両実source package212files/3343872bytes、stagePHP142構文成功。独立GNU tar一覧一致/全hash/実config不変/保護領域非包含。最終session38109をpollしexit0。journal descriptorは生成fixtureであり実DB backupとの統合成功として数えない。Git diff --check確認。
+
+制限: journalは実snapshotの存在/hashやhealth成功を証明しない。物理旧世代清掃、UpdateAccessとfile/DB一括更新・自動復元・process中断回復、Migration-health新process、管理UI操作/update_historyは未接続。file replaceのstage/live非重複契約に合わせたprivate作業領域設計が必要。対象GitHub404/質問、Phase9残UI/故障検証、実OAuth/Glass/各browser/Extension/全DoD未達を維持。
+
+次に実行すること: stage lint/gate互換性と新process Migration-healthを準備し、専用clone/DBでUpdateAccess.exclusiveとJournal、実file/DB snapshotを接続する。差替え中の例外/process終了でも両snapshotを復元し、health成功まで停止markerを維持する。直前1世代物理清掃/手動Rollback/管理UI/CSRF/監査/update_historyへ接続。Phase9残ゲートを解消してからPhase10正式移行。spec.md変更/stageなし、Goal未完成。
