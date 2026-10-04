@@ -1381,3 +1381,17 @@ Migration015: provider_presets行のINSERT IGNORE、site_settings.value_jsonとl
 制限: 対象GitHub source404とrepo質問は未解決。SHA-256は信頼するGitHub metadataとの整合性で独立署名ではない。管理UIの取得操作/一般stagePHP lint-health入口/backup/maintenance/replace/migration/health/自動・手動Rollback/update_history未実装。成功archive/stageは後続Updaterが管理するprivate作業物。Phase9旧残件と実OAuth/各browser/Glass/Extension/最終DoDも未達のまま。
 
 次に実行すること: 一世代のfile/DB backupとmaintenance/差替え/Migration/health/失敗復元・手動Rollbackを隔離環境で実装・実証し、管理UI操作と監査へ接続する。必要に応じ取得物stageの一般PHP lintとhealthを前段に追加。対象GitHub回答があれば実認証/実asset再確認。Phase9認証済み同期/地域・EN weather/upload・cleanup故障、旧roles実UI承認待ち、Glass仕上げ等を維持。ゲート確認前にPhase10完了扱いなし、spec.md変更/stageなし、Goal未完成。
+
+## Phase9 更新前ファイルの保存・差替え・復元（2026-10-04）
+
+前ターン067791dは取得/digest/stage接続の実装・検証による進捗。progress/status/git/spec104〜109から再開。Phase9ゲート未達、10〜12/Version1.0未完成。今回一時管理者の新規作成なし。
+
+実装: UpdateFiles.snapshotが既存builderで旧アプリ管理領域のprivate archiveを保存。replaceは新旧manifest/全source hash・size/VERSION/allowlist/対象path・link/作業領域の分離を事前確認し、同directoryのprivate temp→hash再照合→renameで各file差替え。旧manifestだけのfile削除、新file追加。restoreは保存archiveを新private stageで検証し、旧file回復/更新追加file除去、復元stage清掃。config.php/storage/uploads対象外。docs/update-files.mdへ呼び出し契約・部分変更の扱い・不足を記録。サービスのみで公開入口なし、更新engineのlock/書き込み停止/DB復元への接続は未実装。常時backupは作っていない。
+
+検証1: 両PHP生成fixtureの最終update-files各36成功。正常追加/変更/削除、直前manifest全hash回復、config/upload保持、3file目で実差替え途中の例外→呼び出し側restore→全hash回復、stage改変/manifest protected path/VERSION不一致/同領域/対象symlink/対象directory拒否、temp清掃。初回protected manifestの期待codeをINVALID_UPDATE_PATHとした試験が失敗し、既存UpdateManifestがINVALID_UPDATE_PACKAGEへ正規化する仕様に合わせ修正後に成功。実production自動Rollbackと混同しない。
+検証2: 両専用www-dataで実アプリsourceから生成clone/candidateを作り、cloneの更新→保存backupへの復元を実行。210file（実source209+生成obsolete1）の全hash成功、追加file除去・削除file回復・生成private config/upload保持・実config不変。生成/tmpだけfinally清掃。実appの配置/DBは変更していない。
+検証3: 両update-package-liveで実source209file/3308032bytes、stagePHP139構文、独立GNU tar一覧一致/config不変。asset85/package63/update-checks39/基盤40も成功。追加testはtest-only。DB/Migration/UI変更なし、全16Installerの既存証拠を維持。実在しないConnection.php/tests/installer.php/tests/migrations.php/docker/compose.yamlの探索は未読としてDatabase.phpと実隔離composeを確認。git diff --check確認。
+
+DB設計確認: 公式MySQL/MariaDBのconsistent snapshot資料を確認。現在DatabaseはPDO prepared/multi-statements禁止/UTC、既存MigrationはDDL auto-commitを想定。実DBbackup/restoreはまだ未実装・未試験で、今回file復元の証拠をDBや完全Rollbackへ拡張しない。DBの専用復元環境を準備してから検証する。既存通常開発DBへ復元していない。
+
+次に実行すること: DB全schema/dataのprivate backup/restoreを専用の隔離DBで実装・検証し、更新engineの一世代管理/lock/maintenance/replace/migrate/health/自動・手動Rollbackへ接続。更新処理中のworker/通常書込みも止める設計が必要。対象GitHub404/質問、Phase9認証済み同期/地域・EN weather/upload・cleanup故障/旧roles実UI承認待ち、Glass/実OAuth/各browser/Extension/最終DoD未達を維持。spec.md変更/stageなし、Goal未完成。
