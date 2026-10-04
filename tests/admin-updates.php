@@ -26,7 +26,17 @@ try{
         $check($http(2,$route)[0]===401,'guest cannot read '.$route);$check($http(1,$route)[0]===403,'regular user cannot read '.$route);
         $check($http(2,$route,'POST',[])[0]===401,'guest cannot check '.$route);$check($http(1,$route,'POST',[])[0]===403,'regular user cannot check '.$route);
         $check($http(0,$route,'POST',[],false)[0]===403,'CSRF required '.$route);
+        foreach(['apply','rollback'] as $operation){$endpoint=$route.'/'.$operation;
+            $check($http(2,$endpoint,'POST',[])[0]===401,'guest cannot request '.$operation.' '.$route);
+            $check($http(1,$endpoint,'POST',[])[0]===403,'regular user cannot request '.$operation.' '.$route);
+            $check($http(0,$endpoint,'POST',[],false)[0]===403,'CSRF required for '.$operation.' '.$route);
+            $check($http(0,$endpoint,'POST',[])[0]===422,'missing revisions rejected for '.$operation.' '.$route);
+        }
     }
+    $check($http(2,'/api/admin/rollback','POST',[])[0]===401,'guest cannot use specified rollback API');
+    $check($http(1,'/api/admin/rollback','POST',[])[0]===403,'regular user cannot use specified rollback API');
+    $check($http(0,'/api/admin/rollback','POST',[],false)[0]===403,'specified rollback API requires CSRF');
+    $check($http(0,'/api/admin/rollback','POST',[])[0]===422,'specified rollback API requires revisions');
     $row=['id'=>1,'tag_name'=>'v999.0.0','prerelease'=>false,'draft'=>false,'published_at'=>'2026-10-04T00:00:00Z'];
     $state=(new UpdateChecks($directory,$config,trim(file_get_contents($root.'/VERSION')),static fn()=>['status'=>200,'body'=>json_encode([$row])]))->check('stable');
     [$status,$body]=$http(0,'/api/admin/update');$data=json_decode($body,true)['data'];

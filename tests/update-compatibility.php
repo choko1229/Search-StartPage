@@ -24,6 +24,8 @@ try{
     try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate without durable request binding refused');}file_put_contents($journalPath,$journalSource);
     $runnerPath=$stage.'/bin/run-update.php';$runnerSource=file_get_contents($runnerPath);unlink($runnerPath);$bad=$manifest;unset($bad['files']['bin/run-update.php']);
     try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate cannot remove next worker entry');}file_put_contents($runnerPath,$runnerSource);
+    $checksPath=$stage.'/app/Services/UpdateChecks.php';$checksSource=file_get_contents($checksPath);$legacyChecks='<?php namespace App\Services; final class UpdateChecks {}';file_put_contents($checksPath,$legacyChecks);$bad=$manifest;$bad['files']['app/Services/UpdateChecks.php']=['bytes'=>strlen($legacyChecks),'sha256'=>hash('sha256',$legacyChecks)];
+    try{$validator->validate($stage,$bad);throw new LogicException('Unexpected success');}catch(HttpException $error){$check($error->errorCode==='UPDATE_GATE_INCOMPATIBLE','candidate without server selection locking refused');}file_put_contents($checksPath,$checksSource);
     $check($validator->validate($stage,$manifest)===10,'clean candidate reusable after rejected probes');
     echo "$count candidate compatibility checks passed.\n";
 }finally{$remove($directory);}

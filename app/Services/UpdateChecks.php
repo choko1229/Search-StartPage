@@ -25,6 +25,21 @@ final class UpdateChecks
         $this->identity=hash('sha256',json_encode([$repo,$channel,$tag,$token,$current],JSON_THROW_ON_ERROR));
     }
     public function status(): array {return LogFileLock::run($this->directory,fn():array=>$this->read());}
+    /** Hold displayed metadata stable while excluding a concurrent check. */
+    public function withState(int $revision,\Closure $operation):mixed
+    {
+        return LogFileLock::run($this->directory,function()use($revision,$operation){
+            $state=$this->read();if($state['revision']!==$revision)throw new HttpException(409,'UPDATE_STATE_CHANGED');
+            return $operation($state);
+        });
+    }
+    /** Bind acceptance to an available release selected on the server. */
+    public function withSelection(int $revision,\Closure $operation):mixed
+    {
+        return $this->withState($revision,function(array $state)use($operation){
+            if($state['available']!==true||$state['release']===null||$state['error']!==null)throw new HttpException(409,'INVALID_UPDATE_RELEASE');return $operation($state);
+        });
+    }
     public function check(?string $channel=null,string $tag='',?int $revision=null,bool $onlyIfDue=false): array
     {
         $useSaved=$channel===null;

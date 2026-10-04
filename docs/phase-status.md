@@ -1,4 +1,17 @@
 # 実装と検証の記録
+## Phase9 管理HTTP受付と実行状態（2026-10-04）
+
+Phase9未完了/Phase10正式移行前/Version1.0未完成。管理POST/APIの受付まで接続した。ブラウザの実行ボタン・定期起動・Apache/FPM OPcache検証はまだ残る。
+
+- Files: UpdateRequests、Checks.withState/withSelection、Journal.withStatus、AdminUpdatesController/bootstrapの仕様APIと別入口、日英実行状態/全公開エラー説明、長い版番号の折り返し。SQLは既存HistoryRepositoryのまま、Controller/ViewへSQLを追加しない。
+- DB: 新Migrationなし。監査/受付transactionを既存017へ接続。サーバー選択/認証actor、CAS、未完了job/キュー/旧VERSIONを検証してqueuedにする。
+- API/UI: GET /api/admin/updateにexecution追加。仕様POST /api/admin/update・/api/admin/rollbackは202、Webの明示apply/rollbackは303。既存のcheck本文・監査は維持、/check明示入口追加。更新先/actorの任意本文は拒否。画面は状態表示のみ、実行操作・今回の実ブラウザ/モバイル確認は未実施。
+- Tests1: 両受付最終24、専用HTTP/実DB/Runner/Engine17成功。正規APIで202→実更新→更新後HTTP→別復元ID202→実復元→両履歴/config保持。release情報と取得だけfixture、通常HTTP/認証/CSRF/監査/ファイル/DBは実処理。PHP HTTP serverの結果をApache/FPM OPcacheや実OAuthの証拠にしない。
+- Tests2: 両管理HTTP最終56、checks39/Journal52/compatibility15/asset94/rescue17/HTTP停止復帰30/基盤40成功。候補に受付protocol1とlock methodを必須にし、古い処理を別processで拒否。通常配置で実行要求・worker起動なし。
+- Tests3: 両最終配布物228files/3469312bytes/PHP158、独立tar一覧/hash/config不変/private保護領域除外成功。全17Migration既存fresh/repeat/往復維持、git diff --check成功。
+- Security/Issues: 認証・権限・CSRF・Escape・prepared statements保持。rawSQL/例外本文/Secret/実Cookie非出力。版/候補/Commands revisionをcheck→journal→commands lock順で固定。専用HTTPは使い捨てclone/専用tmpfs DB、finally終了・削除。exact2 DB配置確認後清掃。spec.md非変更。
+- Next: 自動起動/応答後worker/Webキャッシュ/隔離Apache/FPMと実画面操作の確認、Phase9旧ゲート残件を閉じる。実配布元404/実OAuth/Glass/全browser/Phase11〜12/全DoD未達。詳細docs/update-requests.md。
+
 
 ## Phase9 更新後データを保持する手動復元（2026-10-04）
 

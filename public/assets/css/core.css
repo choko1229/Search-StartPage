@@ -70,3 +70,5 @@ dd { margin: 0 0 1rem; }
     :root { color: #e4e9f2; background: #101723; --panel: #1b2534; --border: #425169; --muted: #a9b7ca; --accent: #a8baff; }
     button, .button { color: #101723; }
 }
+
+.update-execution-status { overflow-wrap: anywhere; }

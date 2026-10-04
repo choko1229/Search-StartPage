@@ -1,4 +1,23 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-04・管理HTTP受付）
+
+前のGoalターンはe4061f6の手動復元修正・両DB検証・清掃・ローカル保存による進捗。今回は管理受付を接続した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateRequestsがcheck→Journal→Commandsの順でlock/revisionを固定し、サーバーの候補・現在VERSION・保存世代と認証ユーザーから受付を作る。GET /api/admin/updateに安全なexecution状態を追加。仕様のPOST /api/admin/updateとPOST /api/admin/rollbackで受付202、Web POSTは303。更新checkの既存payloadと監査を維持し、/check・/apply・/rollbackの明示入口も追加。未知入力/クライアント指定actor/target/古いrevision/未完了job/二重受付を拒否。GitHub失敗でも保存したローカル世代の復元受付を可能にする。HTTP自体はEngineを起動しない。
+
+UI/互換性: 実行状態・固定エラーを日英で表示し長い版番号は折り返す。実行ボタンはまだ未追加。preparedと全公開更新結果の説明欠落も補修。候補のwithState/withSelection/withStatusと受付protocol1を別processで検査。UpdateRequests/UpdateChecks欠落・古い選択処理を拒否。旧実行基盤は保持、新Migrationなし。
+
+検証1: 両一時ファイル受付は初回22→説明の網羅を追加して最終24成功。専用tmpfs/no host port DBと使い捨てアプリ・生成admin/device・コンテナloopback PHP HTTP serverで実HTTP17が両成功。初回96070/87275、互換性追加後93151/95533、仕様の正規API接続後46877/13973の全終了exit0確認。HTTP202/実DB履歴、再送409、日英HTML状態、応答後の実Runner/Engine適用、更新後HTTP、別ID手動復元、復元後両履歴/config保持を確認。release候補/取得archiveはfixtureで、本物のGitHubやOAuth成功ではない。
+検証2: 通常開発両appの管理HTTPは52→正規Rollback入口追加で最終56成功。guest/user/CSRF/入力/権限失効/監査/日英/escapeを確認し、通常配置へ実行可能な受付は作らない。両checks39/Journal52/compatibility15/asset94/rescue17/HTTP停止復帰30/基盤40成功（98576/68398 exit0）。旧末尾の管理POST未接続という記録は今回の結果で更新する。
+検証3: 最終両受付24/管理HTTP56/基盤40/実配布物228files/3469312bytes/PHP158構文成功（52883 exit0）。独立tar一覧/hash/config不変/保護領域除外、git diff --check成功。全17Migrationの既存fresh/repeat/往復証拠を維持。JS変更なし。実ブラウザの今回の状態表示/mobile操作は未確認で、以前の画面証拠を新しい操作成功へ拡張しない。
+
+環境清掃: 全専用HTTP process/cloneはfinallyで終了・削除、専用DB exact2のtmpfs rw,size=512mを確認してrm成功。通常8099/8100のapp/DB/config/user/volumes/workerは保持。通常workerへの以前の自動承認拒否を回避していない。Secret/実Cookieを記録・出力せず、spec.mdを変更/stageしない。
+
+次に実行すること:
+1. この管理受付の変更を関連docsとともにローカル保存する。
+2. 専用workerの自動起動・応答完了後の実行、Web OPcache刷新、書込み可能な隔離Apache/FPM配置で新コードのHTTP更新/停止/復帰を検証。ブラウザ実行ボタンと状態再確認を接続し日英/mobile/Consoleを実画面で確認。通常readonly配置の権限を無断変更しない。
+3. Phase9旧ゲート（認証済み同期/地域、EN weather/upload、cleanup故障、旧roles実UI）を閉じてPhase10正式移行。実OAuth/実配布元404/Glass仕上げ/全browser/Extension/最終DoD未達を維持。Goalは未完成。
+
 
 ## 最新の再開地点（2026-10-04・手動復元のデータ保持）
 
@@ -1403,3 +1422,22 @@ DB巻戻し対応: Commands.reprojectが台帳の保持履歴と現在受付を�
 ## 最新の次に実行すること（手動復元検証完了後・2026-10-04）
 
 冒頭「最新の再開地点」が現在の状態。比較19/Engine36/Runner20と通常回帰・実配布物の両DB検証は成功、専用DB清掃済み。復元修正をローカル保存する。次は管理画面/APIの適用・手動復元受付、CSRF/CAS/状態表示、HTTP応答後のlease解放と専用worker起動を接続し、Web OPcacheと書込み可能な使い捨て配置で実HTTP更新を検証する。旧末尾のデータ保持未実装という再開指示は今回の検証結果で更新する。Phase9残ゲート・Phase10正式移行前・Phase11/12未着手・Version1.0未完成を維持。通常DB/config/user権限/workerは保持、spec.md非変更、push/本番公開/再起動なし。
+
+## 最新の再開地点（2026-10-04・管理HTTP受付）
+
+前のGoalターンはe4061f6の手動復元修正・両DB検証・清掃・ローカル保存による進捗。今回は管理受付を接続した。Phase9未完了、Phase10正式移行前、Version1.0未完成。
+
+実装: UpdateRequestsがcheck→Journal→Commandsの順でlock/revisionを固定し、サーバーの候補・現在VERSION・保存世代と認証ユーザーから受付を作る。GET /api/admin/updateに安全なexecution状態を追加。仕様のPOST /api/admin/updateとPOST /api/admin/rollbackで受付202、Web POSTは303。更新checkの既存payloadと監査を維持し、/check・/apply・/rollbackの明示入口も追加。未知入力/クライアント指定actor/target/古いrevision/未完了job/二重受付を拒否。GitHub失敗でも保存したローカル世代の復元受付を可能にする。HTTP自体はEngineを起動しない。
+
+UI/互換性: 実行状態・固定エラーを日英で表示し長い版番号は折り返す。実行ボタンはまだ未追加。preparedと全公開更新結果の説明欠落も補修。候補のwithState/withSelection/withStatusと受付protocol1を別processで検査。UpdateRequests/UpdateChecks欠落・古い選択処理を拒否。旧実行基盤は保持、新Migrationなし。
+
+検証1: 両一時ファイル受付は初回22→説明の網羅を追加して最終24成功。専用tmpfs/no host port DBと使い捨てアプリ・生成admin/device・コンテナloopback PHP HTTP serverで実HTTP17が両成功。初回96070/87275、互換性追加後93151/95533、仕様の正規API接続後46877/13973の全終了exit0確認。HTTP202/実DB履歴、再送409、日英HTML状態、応答後の実Runner/Engine適用、更新後HTTP、別ID手動復元、復元後両履歴/config保持を確認。release候補/取得archiveはfixtureで、本物のGitHubやOAuth成功ではない。
+検証2: 通常開発両appの管理HTTPは52→正規Rollback入口追加で最終56成功。guest/user/CSRF/入力/権限失効/監査/日英/escapeを確認し、通常配置へ実行可能な受付は作らない。両checks39/Journal52/compatibility15/asset94/rescue17/HTTP停止復帰30/基盤40成功（98576/68398 exit0）。旧末尾の管理POST未接続という記録は今回の結果で更新する。
+検証3: 最終両受付24/管理HTTP56/基盤40/実配布物228files/3469312bytes/PHP158構文成功（52883 exit0）。独立tar一覧/hash/config不変/保護領域除外、git diff --check成功。全17Migrationの既存fresh/repeat/往復証拠を維持。JS変更なし。実ブラウザの今回の状態表示/mobile操作は未確認で、以前の画面証拠を新しい操作成功へ拡張しない。
+
+環境清掃: 全専用HTTP process/cloneはfinallyで終了・削除、専用DB exact2のtmpfs rw,size=512mを確認してrm成功。通常8099/8100のapp/DB/config/user/volumes/workerは保持。通常workerへの以前の自動承認拒否を回避していない。Secret/実Cookieを記録・出力せず、spec.mdを変更/stageしない。
+
+次に実行すること:
+1. この管理受付の変更を関連docsとともにローカル保存する。
+2. 専用workerの自動起動・応答完了後の実行、Web OPcache刷新、書込み可能な隔離Apache/FPM配置で新コードのHTTP更新/停止/復帰を検証。ブラウザ実行ボタンと状態再確認を接続し日英/mobile/Consoleを実画面で確認。通常readonly配置の権限を無断変更しない。
+3. Phase9旧ゲート（認証済み同期/地域、EN weather/upload、cleanup故障、旧roles実UI）を閉じてPhase10正式移行。実OAuth/実配布元404/Glass仕上げ/全browser/Extension/最終DoD未達を維持。Goalは未完成。

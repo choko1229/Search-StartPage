@@ -15,6 +15,13 @@ final class UpdateJournal
     ];
     private const ERRORS=['UPDATE_DOWNLOAD_FAILED','UPDATE_BACKUP_FAILED','UPDATE_APPLY_FAILED','UPDATE_MIGRATION_FAILED','UPDATE_HEALTH_FAILED','UPDATE_ROLLBACK_FAILED','UPDATE_INTERRUPTED','UPDATE_TARGET_NOT_WRITABLE'];
     public function __construct(private readonly string $directory,private readonly ?\Closure $clock=null) {}
+    /** Hold the journal revision stable while accepting a command; no job is executed. */
+    public function withStatus(int $revision,\Closure $operation):mixed
+    {
+        return $this->synchronized(function()use($revision,$operation){
+            $state=$this->read();if($state['revision']!==$revision)throw new HttpException(409,'UPDATE_STATE_CHANGED');return $operation($state);
+        });
+    }
     private function synchronized(callable $operation): mixed
     {
         UpdatePackagePaths::directory(dirname($this->directory));

@@ -1,6 +1,6 @@
 # 一括更新・復元エンジン（内部CLIサービス）
 
-UpdateEngineは非公開のCLIサービス。更新workerとDB履歴・監査へ接続済み。管理画面の適用操作と実Web更新は未接続・未確認であり、公開・本番適用の完了判定ではない。
+UpdateEngineは非公開のCLIサービス。更新workerとDB履歴・監査へ接続済み。管理POST/APIの受付と専用loopback HTTP環境からの適用はdocs/update-requests.md参照。ブラウザの実行操作・Apache/FPM更新は未接続・未確認であり、公開・本番適用の完了判定ではない。
 
 ## 呼び出し契約
 

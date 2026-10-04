@@ -1,6 +1,6 @@
 # 更新実行worker
 
-`bin/run-update.php`は一つの受付を処理して終了するCLI入口。HTTPからは実行できない。現時点では管理画面の適用/手動Rollback POSTと定期起動へ接続していないので、通常画面の更新確認は情報確認だけのまま。
+`bin/run-update.php`は一つの受付を処理して終了するCLI入口。HTTPからは実行できない。管理POST/APIは受付まで接続し、別の実行処理によるapply/rollbackを専用HTTP環境で確認した（docs/update-requests.md）。ブラウザの実行ボタンと定期起動はまだ未接続。
 
 ## 動作
 
@@ -28,6 +28,6 @@ MySQL 8/MariaDB 10.11の専用tmpfs DBと使い捨てアプリ配置で `tests/u
 
 ## 残る範囲
 
-実GitHub配布元は404のため本物のreleaseによる一連のWeb適用は未確認。管理POST/CSRF/状態表示への接続、定期起動、書込み可能な隔離Web配置、Apache/FPMのOPcache刷新と実HTTP更新/復帰が残る。内部CLI検証をWeb実更新やPhase10/V1.0完成と扱わない。通常開発アプリでworkerを試す操作は自動承認レビューが実更新の可能性を理由に拒否したため、実CLI試験を専用使い捨て配置へ限定した。通常配置の台帳は読み取りで不存在を確認し、そこでworkerを起動していない。
+実GitHub配布元は404のため本物のreleaseによる一連のWeb適用は未確認。管理POST/CSRF/状態表示は接続済みだが、ブラウザの実行操作・定期起動、Apache/FPMのOPcache刷新と実HTTP更新/復帰が残る。専用loopback PHP HTTP serverの検証を本番Web更新やPhase10/V1.0完成と扱わない。通常開発アプリでworkerを試す操作は自動承認レビューが実更新の可能性を理由に拒否したため、実CLI試験を専用使い捨て配置へ限定した。通常配置に実行可能な要求を作成せず、そこでworkerを起動していない。
 
 手動復元のschema制約と中断回復は[update-database-merge.md](update-database-merge.md)を参照。更新によるschema変更を旧版へ安全に戻せないデータが追加された場合は、変更前に拒否する。全受付の無制限privateアーカイブや常時DBバックアップは実装しない。管理画面接続と実Web更新を含むVersion1.0の検証はまだ残る。

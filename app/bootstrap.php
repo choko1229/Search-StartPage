@@ -64,20 +64,27 @@ if ($config->get('installed')) {
             return $state['available']===true?['tag'=>$state['release']['tag']]:null;
         }catch(Throwable){return null;}
     };
-    $updatesHandler=static function(string $method)use($updateChecks,$view,$resolveAdmin):Closure{
-        return static function(Request $request)use($updateChecks,$view,$resolveAdmin,$method):App\Http\Response{
-            [$auth,,,$audit,$pdo]=$resolveAdmin();
+    $updatesHandler=static function(string $method)use($updateChecks,$view,$resolveAdmin,$root):Closure{
+        return static function(Request $request)use($updateChecks,$view,$resolveAdmin,$method,$root):App\Http\Response{
+            [$auth,$admin,,$audit,$pdo]=$resolveAdmin();
             $record=static function(array $context)use($auth,$audit,$pdo):void{
                 (new App\Repositories\LogRepository($pdo))->recordApplication(['event_id'=>bin2hex(random_bytes(16)),'type'=>'admin_audit','error_code'=>'UPDATE_CHECK_REQUESTED','user_id'=>(int)$auth->requireUser()['id'],'context'=>$context,'created_at'=>gmdate('Y-m-d H:i:s'),'file_written'=>false]);
                 $audit->flush();
             };
-            return (new App\Controllers\AdminUpdatesController($updateChecks($method==='check'?$record:null),$view,new App\Repositories\UpdateHistoryRepository($pdo)))->$method($request);
+            $history=new App\Repositories\UpdateHistoryRepository($pdo);$checks=$updateChecks(in_array($method,['check','submit'],true)?$record:null);
+            $commands=new App\Services\UpdateCommands($root.'/storage/updates/commands',fn($id)=>$admin->isAdministrator($id),fn($job,$event)=>$history->record($job,$event),fn($job)=>$history->matches($job));
+            $requests=new App\Services\UpdateRequests($root,$checks,$commands,new App\Services\UpdateJournal($root.'/storage/updates/journal'));
+            return (new App\Controllers\AdminUpdatesController($checks,$view,$history,$requests,fn()=>(int)$auth->requireUser()['id']))->$method($request);
         };
     };
     foreach(['/admin/update','/api/admin/update'] as $path){
         $router->add('GET',$path,$updatesHandler('read'),[$adminMiddleware]);
-        $router->add('POST',$path,$updatesHandler('check'),[$adminMiddleware,new Csrf()]);
+        $router->add('POST',$path,$updatesHandler($path==='/api/admin/update'?'submit':'check'),[$adminMiddleware,new Csrf()]);
+        $router->add('POST',$path.'/check',$updatesHandler('check'),[$adminMiddleware,new Csrf()]);
+        $router->add('POST',$path.'/apply',$updatesHandler('apply'),[$adminMiddleware,new Csrf()]);
+        $router->add('POST',$path.'/rollback',$updatesHandler('rollback'),[$adminMiddleware,new Csrf()]);
     }
+    $router->add('POST','/api/admin/rollback',$updatesHandler('rollback'),[$adminMiddleware,new Csrf()]);
     $adminHandler = static function (string $method) use ($resolveAdmin, $view,$config,$updateChecks): Closure {
         return static function (Request $request) use ($resolveAdmin, $view, $method,$config,$updateChecks): App\Http\Response {
             [$auth, $repository,$settings,$audit,$pdo] = $resolveAdmin();

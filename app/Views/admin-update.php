@@ -21,6 +21,11 @@
 <button type="submit"><?= $e($t->get('update_check')) ?></button>
 </form>
 <p class="muted"><?= $e($t->get('update_check_help')) ?></p>
+<?php if($data['execution']['request']!==null): $request=$data['execution']['request']; ?>
+<p class="update-execution-status" role="status"><?= $e($t->get('update_operation_'.$request['operation'])) ?>:
+<?= $e($request['from_version']) ?> → <?= $e($request['to_version']) ?> · <?= $e($t->get('update_status_'.$request['status'])) ?></p>
+<?php if($request['error']!==null): ?><p role="alert"><?= $e($t->get($request['error'])) ?></p><?php endif; ?>
+<?php endif; ?>
 </section>
 <section class="panel update-history-panel">
 <h2><?= $e($t->get('update_history_title')) ?></h2>
