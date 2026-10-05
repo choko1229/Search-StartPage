@@ -1,4 +1,10 @@
 # 実装と検証の記録
+## Phase10残件監査・外部アクセス待ち（2026-10-05）
+
+spec.mdの104〜109/Phase10、現在の管理受付/実worker/Engine、配布workflowと両DB HTTP/UI記録を照合。ローカル成功は記録された限定範囲、実GitHub配布物/本番成功の代替にしない。Engine冒頭の古いWeb未接続記載を実証済みのHTTP/実画面範囲に補正。Product/DB/API/UI非変更、追加試験不要。
+
+必須の次手は非公開repoの実release/search-startpage.tar・タグ/size/digest、隔離適用/Migration/履歴/復元。Token未設定・設定完了未受領が現在の外部条件。現在実行中試験なし。ローカル試験終了後の真の外部待ち監査1ターン目、Goalはactive。Phase10進行中、11〜12/V1未完成。設定後に実取得から再開、同条件が3ターン続き他に必要な進行手がなければblockedへ変更する。通常環境/Secret/spec保持、push/公開/再起動なし。
+
 ## Phase10 通常soak全3回成功・清掃確認（2026-10-05）
 
 20197/42770は両exit0で終了。PHP8.2/8.3の通常900秒7項目各3回成功、finally清掃後search-worker-soak専用prefix一覧空。各round3553samples、cyclesは8.2=[176,175,175]/8.3=[175,176,175]、max RSS KiBは8.2=[23852,24152,23732]/8.3=[23628,23444,23588]。全FD window底値6一定、最大FDは8.2=[8,8,12]/8.3=[8,8,8]。8.2 round3の一時peakはfile6/pipe6、他はfile6/pipe2。暖機後RSS増分8MiB内・同一PID/定期子/途中source差替え/正常stopと制御清掃/失敗とprivate子出力なしを確認。

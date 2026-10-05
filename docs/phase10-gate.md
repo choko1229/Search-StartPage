@@ -1,5 +1,9 @@
 # Phase 10 ゲート監査
 
+残件監査（2026-10-05・soak終了後）: spec.mdの104〜109/Phase10、AdminUpdatesController→UpdateRequests→実worker/UpdateRunner/Engine、配布workflowと既存両DB HTTP/UI記録を照合。ローカルの配布準備・更新/復元・故障比較・実manager・限定soakは各記録の範囲で検証済み。Engine文書冒頭の古い「Web未接続」を最新の実証範囲に補正した。既存の限定成功から実認証GitHubや本番成功を推測しない。管理画面の一巡を3回のUI成功とはしないが、Phase単位の3回検証は両DB HTTP等に記録済み。
+
+次の必須確認は非公開repoの実候補とsearch-startpage.tar取得、タグ/size/digest/実配布内容、隔離環境での適用/Migration/履歴/復元。Token未設定が現在の外部依存で、workflowは手動artifact準備のみ・リリース公開を自動実行しない。本番の容量/所有者確認も未実施で、本番配置をこの監査から自動変更しない。現在の成功試験を再反復しても実配布元の未確認は解消しない。Phase10は進行中、Phase11はまだ開始しない。
+
 最新soak結果（2026-10-05）: 20197/42770は各exit0、PHP8.2/8.3の通常900秒7項目各3回成功、finally清掃後専用prefix空。全10秒windowのFD底値6一定・暖機後RSS増分8MiB内、同一PID/処理継続/source差替え/正常stopと制御清掃/失敗とprivate子出力なしを確認。最大FDは8.2=[8,8,12]/8.3=[8,8,8]で一時pipe増加と解放後底値を区別できた。負例各3回では保持増加を検出済み。生成子による独立15分×3回の限定した継続稼働検証は完了。実DB/実Engine/通信/日単位の証拠ではない。旧不合格は履歴に保持する。
 
 実manager63911の21項目各3回・配布4565両PHP各3回も完了済み。現在実行中のsoak handleはない。8099のread-only readiness再確認はconfigured=false/effective_repository_matches=true/explicit_repository_present=false。実認証GitHub候補/asset・実Actions/配信・実配布物適用/復元、運用配置確認は残る。Phase10は進行中、次Phaseに進めない。以下の実行中記録は当時の履歴。

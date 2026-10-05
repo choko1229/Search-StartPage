@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10残件監査/外部アクセス待ち）
+
+前ターンe2adf4cは通常soak全3回exit0/清掃確認の進捗。今回はspec.mdの104〜109/Phase10、現在Controller/Requests/worker/配布workflowと両DB HTTP/UI証拠を照合。実装・ローカル検証から実GitHub配布物成功へ広げず、Engine文書冒頭の古いWeb未接続表示だけを最新証拠へ補正。Product/DB/API/UI非変更。MariaDB UIの一巡を3回成功に拡張しない。Phase単位の3回検証は両DB HTTP等で記録済み。
+
+必須の次手は非公開GitHubから実候補/search-startpage.tarを取得し、タグ/size/digestを確認して隔離DB・環境で適用/Migration/履歴/復元すること。最新readinessはToken未設定・実効repo一致。Token設定完了は未受領で現在実取得できない。実Actions/配信、本番配置の容量/所有者確認も未実施、push/公開/本番変更は自動実行しない。ローカル成功試験の反復は外部条件の代替にならない。
+
+ブロック監査: ローカル試験終了後の外部アクセス条件による真の待ちを今回1ターン目として確認。試験待ちだった以前のverified waitはこの連続数に含めない。現在実行中jobなし。Goalはまだactive、Phase10/V1未完成。次の継続でも同じ条件なら設定の有無だけを再確認し、他の必要かつ実行可能な手がないか確認する。同じ真の阻害条件が3ターン続き、進められなければblockedへ変更する。
+
+次に実行すること:
+1. Token設定の完了回答または秘密なしreadinessの変化を確認。ユーザーが非表示入力するbin/configure-updates.ps1とdocs/release-distribution.mdを準備済み。秘密をチャットに求めず、値を出力せず、設定を勝手に変更しない。
+2. アクセス可能になったら実候補/assetと隔離通し検証へ再開。20197/42770/63911/4565/8486は終了済み・再開不可、理由なく再実行しない。
+3. 通常8099/8100/config/DB/users/worker・Secret/spec保持。Phase11〜12/Glass/V1未完成、公開/push/Windows再起動なし。以下は過去の再開地点。
+
 ## 最新の再開地点（2026-10-05・Phase10 通常soak全3回終了）
 
 前ターンは最終roundの生存を確認したverified wait。今回20197/42770が各exit0で終了、PHP8.2/8.3の通常900秒7項目を各3回成功。終了後のsearch-worker-soak専用prefix一覧は空で、finally清掃完了。現在この試験の実行中handleはない。重複起動・追加反復は不要。
