@@ -1,5 +1,7 @@
 # Phase 10 ゲート監査
 
+配布元の状態変更（2026-10-05）: ユーザーがcommit/push/Public化を許可、main push・remote一致を確認。ChromeでPublic表示、匿名GitHub APIでprivate=false/default mainを確認。Release一覧は[]。非公開Tokenなしによるread阻害は解消したが、実候補/assetは存在せず、実配布物取得・適用/復元は未確認。まず固定開発版のcanonical assetを用意し、Release配布の具体的操作を確認してから実通し検証する。Public repoをVersion1.0完成やRelease公開済みと扱わない。以前のprivate/Token待ち記録は履歴。
+
 残件監査（2026-10-05・soak終了後）: spec.mdの104〜109/Phase10、AdminUpdatesController→UpdateRequests→実worker/UpdateRunner/Engine、配布workflowと既存両DB HTTP/UI記録を照合。ローカルの配布準備・更新/復元・故障比較・実manager・限定soakは各記録の範囲で検証済み。Engine文書冒頭の古い「Web未接続」を最新の実証範囲に補正した。既存の限定成功から実認証GitHubや本番成功を推測しない。管理画面の一巡を3回のUI成功とはしないが、Phase単位の3回検証は両DB HTTP等に記録済み。
 
 次の必須確認は非公開repoの実候補とsearch-startpage.tar取得、タグ/size/digest/実配布内容、隔離環境での適用/Migration/履歴/復元。Token未設定が現在の外部依存で、workflowは手動artifact準備のみ・リリース公開を自動実行しない。本番の容量/所有者確認も未実施で、本番配置をこの監査から自動変更しない。現在の成功試験を再反復しても実配布元の未確認は解消しない。Phase10は進行中、Phase11はまだ開始しない。

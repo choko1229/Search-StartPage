@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・main push成功/配布元Public確認）
+
+最新ユーザー指示「コミットしてプッシュ、パブリックにしてOK」に従い、origin=https://github.com/choko1229/Search-StartPage.git/mainへ通常push成功（9b6b744→d185077）。remote mainとlocal HEADの完全SHA一致を確認。forceなし、spec.mdは唯一の未追跡で追加しない。configの追跡は公開雛形/providersだけ。到達可能な143commit履歴でconfig/config.php/.env/秘密鍵ファイルの追跡なし、既知のGitHub Token/秘密鍵署名に一致なしを確認（任意形式の秘密すべての不存在を保証する検査ではない）。
+
+Chromeの対象設定画面を開き、private表示からpublic表示へ外部状態が変わったことを確認。こちらは公開の最終submitを行っていない。認証なしGitHub APIでもrepository=choko1229/Search-StartPage/private=false/default_branch=main。旧Token未設定による非公開read阻害は解消。Release API応答は実際に[]、公開リリース/配布assetはまだ存在しない。最初のPowerShell集計は配列を包みrelease_count=1/tag nullと誤集計したため、生の[]で訂正確認し候補扱いにしない。
+
+Goalは再開後active、今回push/実公開API確認による進捗。Phase10/V1未完成、11〜12/Glass未完成。現在実行中試験なし。前のblocked監査を新しいRelease未作成条件へ継承しない。
+
+次に実行すること:
+1. この公開確認記録をコミット/pushし、remote main=local HEADを再確認（今回ユーザーから明示許可）。下のpush禁止記録は以前の履歴で、この許可されたrepo/main操作には適用しない。
+2. Phase10の実配布物確認用に、固定ソース/VERSIONと一致する開発用canonical search-startpage.tarを準備する。Version1.0完成・正式releaseとは扱わない。現在のリリース一覧は空なので、リリース/tag/asset公開の必要操作を具体的な成果物で提示し、必要な権限/ユーザー指示を確認する。repo公開の許可だけを任意のRelease公開へ拡大しない。
+3. 公開されたassetを実GitHub APIで取得→タグ/size/digest→隔離DBで適用/Migration/履歴/復元。実config/SecretはGitや試験素材へコピーしない。通常8099/8100/DB/users/worker/spec保持、本番サイト配備/Windows再起動なし。終了済み試験は理由なく反復しない。
+
 ## 最新の再開地点（2026-10-05・Phase10 Token設定待ち/blocked移行）
 
 前ターンは同じ外部条件の再確認で、目的に対する進行はなし。今回も8099 read-only probe exit0、configured=false/effective_repository_matches=true。ローカル試験終了後に同じ真の阻害条件を連続3ターン確認。現在実行中jobなし、必須の実GitHub release/asset取得を設定・外部状態の変化なしで進める手はなく、Goalをこのターン末にblockedへ変更する条件が成立した。Phase10/V1は未完成。

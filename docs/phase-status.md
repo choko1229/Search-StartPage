@@ -1,4 +1,10 @@
 # 実装と検証の記録
+## Phase10 配布元公開・main push確認（2026-10-05）
+
+ユーザーがmainコミット/pushとrepo Public化を明示許可。通常push成功・local/remote d185077完全SHA一致。未追跡specは保持/非追加、実config/.env/鍵ファイルの追跡なし、到達可能な143commitの既知Token/秘密鍵署名一致なし（検査対象の範囲のみ）。Chrome設定でprivate→publicへの外部状態変化、最終公開submitはagent非実行。匿名GitHub APIでprivate=false/default mainを確認。Release一覧の生応答は[]。PowerShellの配列包装による初回count1/nullは誤集計で訂正済み、候補成功としない。
+
+旧Token未設定のprivate read阻害は解消、Goalは再開後active、今回実API/pushの進捗。次は固定開発ソースと一致したcanonical asset準備・Release配布の具体的操作確認・実取得と隔離適用/復元。repo公開許可から任意Release公開や本番配備を推定しない。Phase10/11〜12/V1/Glassは未完成、終了済みローカル試験の再実行不要。通常環境/Secret/spec保持。
+
 ## Phase10同条件3ターン・Token設定待ち（2026-10-05）
 
 ローカル試験完了後、非公開GitHubへのアクセス不足を連続3ターン確認。今回も秘密なしread-only probe exit0でconfigured=false/effective_repository_matches=true。実行中jobなし、実release/asset確認はユーザー設定または外部状態の変化を必要とし、他の必要な進行手はない。Goalをこのターン末にblockedへ変更する条件成立。Phase10/V1は未完成、Phase11〜12未着手。
