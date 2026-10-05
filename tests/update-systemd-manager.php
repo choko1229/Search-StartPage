@@ -48,6 +48,11 @@ try{
   $check(!is_file($storage.'/update-execution-worker.stop')&&filesize($storage.'/update-execution-worker.lock')===0,'booted worker clears singleton identity and stop marker');
   echo "ISOLATED_SYSTEMD_BOOT_PASSED $count\n";flush();$command(['systemctl','poweroff','--no-block']);exit(0);
  }
+ $installedGuard='/usr/local/libexec/search-startpage/stop-update-execution.sh';
+ $check(is_file($installedGuard)&&!is_link($installedGuard)&&fileowner($installedGuard)===0&&filegroup($installedGuard)===0&&(fileperms($installedGuard)&0777)===0644
+     &&fileowner(dirname($installedGuard))===0&&(fileperms(dirname($installedGuard))&0022)===0,'installed stop guard is root owned outside update targets');
+ if(is_file($root.'/bin/systemd/stop-update-execution.sh'))unlink($root.'/bin/systemd/stop-update-execution.sh');
+ $check(!is_file($root.'/bin/systemd/stop-update-execution.sh'),'live guard removal leaves installed stop guard available');
  $runner='<?php $s=__DIR__."/../storage";file_put_contents($s."/started","yes");if(is_file($s."/slow"))usleep(8000000);if(is_file($s."/fault-slow"))usleep(30000000);file_put_contents($s."/completed","yes");echo "generated-private-child-output";';
  file_put_contents($root.'/bin/run-update.php',$runner);chmod($root.'/bin/run-update.php',0644);chown($root.'/bin/run-update.php','www-data');
  file_put_contents($storage.'/slow','yes');chown($storage.'/slow','www-data');

@@ -27,7 +27,7 @@ try{
         $proofStage=$destination.'/proof-stage';(new App\Services\UpdatePackage())->verify($destination.'/search-startpage.tar',$proofStage,$version);
         $wrapper=file_get_contents($proofStage.'/bin/systemd/stop-update-execution.sh');
         $check($wrapper===file_get_contents($source.'/bin/systemd/stop-update-execution.sh')&&!str_contains($wrapper,"\r")
-            &&str_contains(file_get_contents($proofStage.'/bin/systemd/search-update-execution.service'),'ExecStop=/bin/sh /srv/search-startpage/bin/systemd/stop-update-execution.sh'),'release includes unchanged LF stop guard '.$channel);
+            &&str_contains(file_get_contents($proofStage.'/bin/systemd/search-update-execution.service'),'ExecStop=/bin/sh /usr/local/libexec/search-startpage/stop-update-execution.sh'),'release includes unchanged LF stop guard '.$channel);
         $remove($proofStage);
     }
     [$exit,$out,$err]=$run('different-tag',$temporary.'/mismatch');$check($exit===1&&$out===''&&$err==="INVALID_UPDATE_PACKAGE\n"&&!file_exists($temporary.'/mismatch'),'wrong tag produces no output');

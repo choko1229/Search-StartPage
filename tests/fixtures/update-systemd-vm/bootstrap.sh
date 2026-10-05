@@ -5,6 +5,12 @@ cp -a "$seed/isolated-php" /opt/isolated-php
 ln -s /opt/isolated-php/php /usr/bin/php
 mkdir -p /srv/search-startpage/bin/systemd /srv/search-startpage/tests /srv/search-startpage/storage
 cp "$seed/stop-update-execution.sh" /srv/search-startpage/bin/systemd/
+mkdir -p /usr/local/libexec/search-startpage
+chmod 0755 /usr/local/libexec/search-startpage
+chown root:root /usr/local/libexec/search-startpage
+cp "$seed/stop-update-execution.sh" /usr/local/libexec/search-startpage/
+chmod 0644 /usr/local/libexec/search-startpage/stop-update-execution.sh
+chown root:root /usr/local/libexec/search-startpage/stop-update-execution.sh
 cp "$seed/update-execution-worker.php" /srv/search-startpage/bin/
 cp "$seed/update-systemd-manager.php" /srv/search-startpage/tests/
 cp "$seed/diagnostics.sh" /srv/search-startpage/tests/diagnostics.sh

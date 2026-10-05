@@ -35,7 +35,7 @@ try {
         && str_contains($source, "RestartSec=5\n"), 'foreground worker and failure restart configured');
     $check(str_contains($source, "User=www-data\n") && str_contains($source, "Group=www-data\n")
         && str_contains($source, "UMask=0077\n"), 'same web account and private creation mask');
-    $check(str_contains($source, "ExecStop=/bin/sh /srv/search-startpage/bin/systemd/stop-update-execution.sh\n")
+    $check(str_contains($source, "ExecStop=/bin/sh /usr/local/libexec/search-startpage/stop-update-execution.sh\n")
         && is_file(dirname(__DIR__).'/bin/systemd/stop-update-execution.sh')
         && str_contains($source, "TimeoutStopSec=infinity\n"), 'draining stop command has no manager timeout');
     $check(str_contains($source, "NoNewPrivileges=true\n") && str_contains($source, "PrivateTmp=true\n"),

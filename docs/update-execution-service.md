@@ -1,5 +1,9 @@
 # 更新workerの常駐と停止
 
+最新の配置修正（2026-10-05・検証中）: 配布物内の `bin/systemd/stop-update-execution.sh` は更新や手動復元で削除され得るため、インストール済みunitはそこを参照しない。OS管理者が公開guardを `/usr/local/libexec/search-startpage/stop-update-execution.sh` へコピーし、親directory root:root/0755・script root:root/0644で配置する。出荷unitのExecStopもこの更新対象外のpathを参照する。Web/worker実行ユーザーには親directory・scriptへの書込みを与えない。サイトの更新処理はOS管理のunit/guardを自動変更しない。配置先PHP/site pathを変更する場合はguardのPHP呼出しを合わせる。Unix改行を維持し、unitの配置・enable前にguardが存在し読めることを確認する。本作業でホスト/通常アプリへこの配置を行わない。
+
+前のlive内guard方式で34831はfirst14/second5各3round・両marker・exit0/清掃成功。旧直接stopの子中断、新guardでの完了待ち/失敗表示/明示修復復帰を実証した。これは上記の更新対象外pathの動作証拠ではない。新unitの静的9/既存CLI25各3回8486 exit0。新配置のVM試験ではroot所有/非公開書込み・live内guard削除の2項目を追加し、first16/second5各3roundを別に確認する。実配布準備も新参照で再検証中（4565）。
+
 継続稼働の専用試験: `tests/run-update-worker-soak.ps1` はPHP8.2/8.3のnetwork none/no host mount・port/cap-drop ALL/no-new-privilegesコンテナへ、公開workerと生成試験だけをコピーする。既定はwww-dataで15分×3回、`-Php 8.2` / `-Php 8.3` で別コンテナの独立実行を選べる。実DB/config/Tokenなし。各回で同じPIDの生存、warm後RSS増加8MiB以内/FD増加4以内、定期子処理の継続、途中の公開コード差替えが次子へ反映、停止/制御清掃/固定状態・秘密出力抑止を確認する。生成子は100msで完了し、時間はfixtureの総稼働時間。実Engine/DB/通信を15分稼働させる証拠や、日単位の耐久・無期限無故障の保証ではない。
 
 2026-10-05予備確認: 16762 exit0、旧harness(root)の60秒7項目/12cyclesを両PHP各3回成功、専用prefix空。www-dataへの変更とPHP選択を追加し、15分×3回の本試験を独立並行開始（8.2=11696、8.3=61720）。両構文成功、round1実行中で全結果/終了/清掃は未確認。予備の成功を15分実行の証拠へ流用しない。

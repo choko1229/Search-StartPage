@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 停止guardを更新対象外へ配置）
+
+前ターン4383749は配布検証完了・soak追加と本試験開始による進捗。今回34831は終了exit0、変更前配置の停止比較first14/second5全3round・両marker/清掃後prefix空を確認。旧直接stopがchild中断、新guardがchild完了/失敗表示/明示修復復帰という証拠は確定。ただしlive内guardは更新/復元で削除されるため、出荷unitのExecStop参照を更新対象外/usr/local/libexec/search-startpage/stop-update-execution.shへ変更。
+
+配置: 配布bin/systemdの公開guardをOS管理者がroot:root directory0755/script0644へコピーする手順。通常8099/8100/ホストへ配置しない。VM bootstrapだけでroot所有の専用配置を作成。実VM試験にroot所有/非書込みとlive側guard削除の2項目を追加し、新first16/second5を確認する。CLI guard本体/worker PHP・DB/API/UI非変更。
+
+検証中: 新静的unit9/既存CLI25各3回8486 exit0。新配布参照30/基盤40各3回はsession4565、現在8.2 round2完了、全両PHP/exit/清掃未確認。新VMはsession63911、専用search-systemd-vm-1-20261004でround1実行中、PHP/command4各3回成功、新21項目/全3round/終了/清掃未確認。旧34831の成功を新配置の証拠へ流用しない。
+
+soakはPHP8.2 session11696・PHP8.3 session61720を同じhandleで継続。各round900秒/3回/www-data・生成子のみ。両round1の480秒/94cycles進行を確認、全7項目/3round/終了/清掃未確認。rootの60秒予備16762は両各3回成功終了・清掃済み。15分の稼働を日単位/実Engine/DB/通信の証拠へ広げない。
+
+次に実行すること:
+1. session63911/4565と11696/61720を同じhandleで追跡。いずれも生存確認済み、観測timeoutのみで停止と推測せず重複起動しない。34831/8486/19247/16762は終了済みで再開不要。
+2. 新VM first16/second5各3回・両marker・exit/finally清掃とprefix空、新配布30/基盤40両PHP各3回・清掃、soak900秒7項目両PHP各3回・清掃を確認して記録・commit。失敗なら原因から修正し全3回を確認。
+3. Token設定完了後の秘密なしreadiness/非公開実release/asset取得。前回readinessは設定false/repo一致false。Phase10進行中、11〜12未着手、V1/Glass/全DoD未完成。通常config/DB/users/worker/Secret/spec保持、push/公開/Windows再起動なし。
+
 ## 最新の再開地点（2026-10-05・Phase10 配布検証終了/VM比較とsoak予備中）
 
 前ターンd846807は停止guardの実装・静的unit9/CLI25各3回と検証中状態の保存による進捗。今回19247 exit0を確認、PHP8.2/8.3の実配布準備30/基盤40各3回成功、専用prefix空。4channelsの実stageに同一LF guardとunit参照を確認。
