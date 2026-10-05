@@ -1,4 +1,15 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 通常soak再試験round1成功）
+
+前ターンは20197/42770を現に生存確認したverified wait。今回同じhandleで新FD判定の900秒round1を両PHPで成功確認。PHP8.2: 176cycles/3553samples/maxRSS23852KiB、PHP8.3:175cycles/3553samples/maxRSS23628KiB。各7項目成功、FD baseline6/maximum8、全10秒window底値6一定、型別最大file6/pipe2。暖機後RSS増分8MiB内、同一PID、処理継続、source差替え、正常stop/制御状態清掃、失敗/private子出力なしを確認。
+
+両sessionは終了せず、同じharnessでround2へ進行中。全3round・最終exit・containerのfinally清掃は未確認。旧試験のround2不合格記録を維持し、新round1成功だけで長時間試験の全合格とはしない。生成子の15分試験を実DB/実Engine/通信/日単位耐久の証拠へ拡張しない。
+
+次に実行すること:
+1. PHP8.2 session20197 / PHP8.3 session42770を同じhandleで追跡。新規起動せずround2/3の全7項目・FD底値・RSS・最終exit/finally清掃を確認して保存する。
+2. Token設定完了後に秘密なしreadinessと実GitHub release/asset取得を確認。ユーザーは設定予定と回答、設定完了は未受領。最新確認はconfigured=false、実効repoは既定で一致。
+3. Phase10進行中、11〜12未着手、V1/全DoD/Glass未完成。通常8099/8100/config/DB/users/worker・Secret/spec保持、push/公開/再起動なし。
+
 ## 最新の再開地点（2026-10-05・Phase10 実manager完了/FD判定を診断してsoak再試験）
 
 前ターンdb28c2aはreadinessの既定値補正とVM2成功保存による進捗。今回63911 exit0を確認、更新対象外root guardのfirst16/second5全3round・両marker・finally清掃後prefix空。正常停止/子drain/故障比較/明示修復復帰/異常終了後restart/二度目OS bootとlive guard消失後停止を実証。8486静的9/CLI25、4565配布30/基盤40両PHPも各3回成功終了・清掃済み。
