@@ -23,3 +23,5 @@
 2026-10-05実manager追加証拠: network none/host mount・portなしの専用QEMU VM内で出荷unitを配置し、session82489の全3roundでfirst9/second5、両完了marker、exit0と清掃後prefix空を確認。子drain/正常停止/制御清掃/待機中異常終了後restart/正常停止後非restart/子出力非露出/二度目OS boot自動起動・停止を確認。出荷worker/unit非変更。生成子の短時間検証で、長時間運用・ExecStop故障・実GitHub配布物の通し検証は残る。Phase10進行中を維持する。
 
 停止失敗対策の変更後（2026-10-05）: 出荷unitのExecStopを公開shell guardへ変更し、PHP stopが失敗してもMAINPID終了まで待つ。旧unitの82489通常成功は変更後の検証へ流用しない。静的unit9/既存CLI25各3回94340 exit0、新構文検査成功。旧直接stop負例と新guard正例の実VM比較は34831、実配布物へのLF guard含有はPHP8.2/8.3各3回19247で実行中。全終了は未確認。詳細はdocs/update-execution-service.mdとprogress.md。
+
+最新追加: 19247 exit0、準備30/基盤40をPHP8.2/8.3各3回成功、専用prefix空。34831 round1・2は比較を含むfirst14/second5成功・清掃、round3実行中。継続workerの同一PID/RSS/FD/定期子/差替え/停止を確認する専用soakを追加し、16762 exit0で60秒7項目/12cycles両PHP各3回成功・清掃。www-dataの15分×3回本試験を独立並行開始（8.2=11696/8.3=61720）、全結果未確認。readinessはToken未設定・repo一致false、実GitHub/Actions/実配布物通し検証の残件は変わらない。

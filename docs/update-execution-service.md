@@ -1,5 +1,9 @@
 # 更新workerの常駐と停止
 
+継続稼働の専用試験: `tests/run-update-worker-soak.ps1` はPHP8.2/8.3のnetwork none/no host mount・port/cap-drop ALL/no-new-privilegesコンテナへ、公開workerと生成試験だけをコピーする。既定はwww-dataで15分×3回、`-Php 8.2` / `-Php 8.3` で別コンテナの独立実行を選べる。実DB/config/Tokenなし。各回で同じPIDの生存、warm後RSS増加8MiB以内/FD増加4以内、定期子処理の継続、途中の公開コード差替えが次子へ反映、停止/制御清掃/固定状態・秘密出力抑止を確認する。生成子は100msで完了し、時間はfixtureの総稼働時間。実Engine/DB/通信を15分稼働させる証拠や、日単位の耐久・無期限無故障の保証ではない。
+
+2026-10-05予備確認: 16762 exit0、旧harness(root)の60秒7項目/12cyclesを両PHP各3回成功、専用prefix空。www-dataへの変更とPHP選択を追加し、15分×3回の本試験を独立並行開始（8.2=11696、8.3=61720）。両構文成功、round1実行中で全結果/終了/清掃は未確認。予備の成功を15分実行の証拠へ流用しない。
+
 2026-10-05停止失敗対策（検証中）: 出荷例のExecStopを `/bin/sh /srv/search-startpage/bin/systemd/stop-update-execution.sh` へ変更。既存PHPのstopを呼んだ後、systemdが渡すMAINPIDの終了を待ち、stopの終了コードを保持する。stopが失敗しても更新中の子を見守るsupervisorが終了する前にmanagerへ戻らない。通常のKillModeやRestart/TimeoutStopSecは保持。unitと一緒に公開scriptを配置し、配置先/PHPパスを変更する場合はscript側も合わせる。scriptは実行権限不要、Unix改行を必須としGit属性でLFを指定する。
 
 MAINPIDの終了を待つため、stopの書込みが失敗したままsupervisorが稼働し続ける場合は停止要求が待機し続ける。運用者が保存領域/所有者/制御の不具合を修復し、同じworkerへ正常なstopを再発行する。更新中のプロセスをkillして解消しない。shell自体の強制終了やOS/電源喪失を保護する保証ではない。

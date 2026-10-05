@@ -1,5 +1,7 @@
 # GitHub Releasesの配布準備
 
+2026-10-05追加検証: 停止失敗対策の公開shell guardを追加後、19247 exit0。PHP8.2/8.3で準備30項目/基盤40を各3回成功し、専用prefix一覧空を確認。4channelsの実tarを別stageへ展開し、同一LF guardとunitのExecStop参照を確認。既存のtag/hash/private保護/拒否/清掃も成功。GitHub Actions/実asset取得・公開の証拠にはしない。
+
 Updaterの取得契約は、選択したリリースのassetにある **search-startpage.tar** 一つ。GitHubの自動source ZIP/TARやActions artifactのZIPを代わりに添付しない。manifestとVERSIONはリリースタグに一致させる。正式SemVerのv接頭辞差だけ許可する。Stableは正式SemVer、BetaはNightly以外のSemVer、Nightlyはnightly/devの区切り付きタグ、Customは設定タグ完全一致。チャンネル判定と配布物のバージョン検証を区別する。
 
 ## ローカル準備

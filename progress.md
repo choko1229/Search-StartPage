@@ -1,14 +1,29 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 配布検証終了/VM比較とsoak予備中）
+
+前ターンd846807は停止guardの実装・静的unit9/CLI25各3回と検証中状態の保存による進捗。今回19247 exit0を確認、PHP8.2/8.3の実配布準備30/基盤40各3回成功、専用prefix空。4channelsの実stageに同一LF guardとunit参照を確認。
+
+実VM比較34831は生存。round1・2のfirst14/second5・両完了marker・清掃成功、現在専用search-systemd-vm-3-20261004でround3実行中。旧直接stopが生成childを中断する負例、新guardのchild完了・失敗表示・明示修復後復帰を確認。全3round/最終exit/全清掃はまだ未確認。最初88608は失敗ラベル欠落のexit1で原因未特定のまま保持。
+
+tests/update-worker-soak.php / run-update-worker-soak.ps1を追加。network none・DB/config/Secretなし、生成子だけで同じPID/FD/RSS/継続処理/途中source差替え/正常stopを測る。16762はexit0、旧root harnessの60秒7項目/12cyclesを両PHP各3回成功、専用prefix空。ソースをwww-dataと-Php選択へ変更し、本試験15分×3回を独立並行開始: PHP8.2 session11696/search-worker-soak-8.2-20261005、PHP8.3 session61720/search-worker-soak-8.3-20261005。両構文成功、現在round1実行中、全7項目/3round/exit/清掃は未確認。PHP構文とPowerShell parser/diff成功。
+
+8099の値を出さないreadinessを再確認: configured false / repository_matches false。設定完了は未受領、実取得未確認。秘密は記録しない。通常8099/8100/config/DB/users/worker非変更、spec保持、push/公開/Windows再起動なし。
+
+次に実行すること:
+1. session34831を同じhandleで追跡。観測timeoutのみで停止と扱わず重複起動しない。VMの各19項目×3/exit/清掃を確認。16762は成功終了済み、再実行不要。
+2. 本soak PHP8.2の11696、PHP8.3の61720を同じhandleで追跡。各3回900秒/www-data/7項目とexit/清掃を確認し、関連docs/statusを保存。15分試験を日単位/実Engine/DB稼働の証拠へ広げない。
+3. Token設定後の秘密なしreadiness→実非公開GitHub release/asset取得。Phase10進行中、Phase11〜12未着手、V1/Glass/全DoD未完成。spec.mdは変更/stageしない。
+
 ## 最新の再開地点（2026-10-05・Phase10 停止失敗対策の比較検証中）
 
 前ターンfc37a13は出荷旧unitの通常manager動作14項目各3回成功・清掃による進捗。今回はExecStop失敗時に残存プロセスをmanagerが終了させる仕様を公式sourceで確認し、出荷unitのExecStopにbin/systemd/stop-update-execution.shを追加。既存PHP --stop後にsystemd MAINPID終了を待ち、失敗コードを保持。通常KillMode/Restart/TimeoutStopSecは保持。worker PHP/DB/API/UI非変更、通常8099/8100への配置・再起動なし。
 
-検証: unit9/既存CLI25各3回94340 exit0。変更後PowerShell parser/diffと新shell/VM起動script構文各3回成功。配布準備は19247でPHP8.2/8.3各3回実行中、現在PHP8.2 round2の30項目/基盤40まで成功、全終了は未確認。4channelsの実stageに同一LF guardとunit参照が含まれる試験を追加。
+検証: unit9/既存CLI25各3回94340 exit0。変更後PowerShell parser/diffと新shell/VM起動script構文各3回成功。配布準備19247は終了exit0、PHP8.2/8.3で30項目/基盤40各3回成功、専用prefix一覧空を確認。4channelsの実stageに同一LF guardとunit参照が含まれる試験を追加。実GitHub/Actions成功ではない。
 
 最初の旧unit故障試験88608はexit1/finally清掃。末尾ログだけでは失敗ラベルを特定できず原因断定不可。run-vmの失敗時マーカー表示を追加し、34831で全3roundの比較を実行中。専用search-systemd-vm-1-20261004を確認。生成drop-inの旧直接stopで子中断の負例、新出荷guardで子完了と失敗表示、明示修復後の復帰、通常boot/stopも検証する。全first14/second5・全3round・最終exit・清掃は未確認。生存中の試験を再起動しない。
 
 次に実行すること:
-1. session34831と19247を同じhandleで継続確認。VMマーカー/故障前後の項目・全3round・exit/finally清掃を確認。観測timeoutのみで停止と扱わない。
+1. session34831を同じhandleで継続確認。VMマーカー/故障前後の項目・全3round・exit/finally清掃を確認。19247は成功終了済みで再開・再実行不要。観測timeoutのみで停止と扱わない。
 2. 実結果で関連docs/statusを更新・コミット。spec.mdは変更/stageしない。長時間運用はまだ未確認で、短時間試験を代用しない。
 3. Token設定完了後の秘密なしreadiness/非公開実GitHub release・asset取得。Phase10進行中、Phase11〜12未着手、V1/Glass/全DoD未完成。通常config/DB/users/worker・Secret/spec保持、push/公開/Windows再起動なし。
 

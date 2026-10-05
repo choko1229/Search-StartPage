@@ -1,9 +1,17 @@
 # 実装と検証の記録
+## Phase10 配布検証終了・VM比較/soak予備中（2026-10-05）
+
+19247 exit0、PHP8.2/8.3で準備30/基盤40各3回成功、専用prefix空。4channelsの実stageで同一LF guard/unit参照を確認。34831はround1・2のfirst14/second5/両marker・清掃成功、専用VM3でround3実行中。旧直接stopの生成child中断、新guardの完了/失敗表示/明示修復復帰の比較を実証。全3round/最終exit/全清掃は未確認。
+
+追加Files: tests/update-worker-soak.php / run-update-worker-soak.ps1。同じPID/FD/RSS/定期子/途中source差替え/正常stop・固定状態と子出力非露出を測る。16762 exit0、旧rootの60秒7項目/12cyclesを両PHP各3回成功、専用prefix空。ソースをwww-dataと-Php選択へ変更し15分×3回の本試験を独立並行開始、8.2=11696、8.3=61720。両PHP構文成功/round1実行中で全結果/exit/清掃未確認。構文/parser/diff成功。実Engine/DB/通信や日単位耐久の証拠ではない。
+
+最新readinessはToken未設定・repo一致false（値は出さずbooleanのみ）。実GitHub/Actions未確認、通常8099/8100/config/DB/users/worker/Secret/spec非変更、push/公開/Windows再起動なし。34831/11696/61720の同じhandleを追跡、16762は終了済み。Phase10進行中、11〜12未着手、V1未完成。
+
 ## Phase10 停止コマンド失敗への対策・比較検証中（2026-10-05）
 
 Files: bin/systemd/stop-update-execution.shと出荷unitのExecStop、.gitattributesのguard LF指定。既存PHP --stop後、systemd MAINPIDの終了まで待ち、失敗コードを維持する。managerによる停止終了後の強制終了へ更新中のsupervisorを渡さない。worker PHP/DB/API/UI非変更。停止書込み故障でworkerが終了しなければ、管理者の制御/保存領域修復と正常stop再発行まで待機する。shell自体の強制終了/OS喪失は保証外。
 
-Tests: 94340 exit0、静的unit9/既存CLI25各3回。PowerShell parser/diffと新shell/VM起動script構文各3回成功。release-preparation.phpへ4channelsの実stage/同一LF guard検査を追加し19247でPHP8.2/8.3各3回実行中、現在8.2 round2の30/基盤40まで成功、全終了未確認。
+Tests: 94340 exit0、静的unit9/既存CLI25各3回。PowerShell parser/diffと新shell/VM起動script構文各3回成功。release-preparation.phpへ4channelsの実stage/同一LF guard検査を追加、19247 exit0でPHP8.2/8.3の30/基盤40各3回成功、専用prefix一覧空を確認。実GitHub/Actions成功ではない。
 
 VM: 最初88608はexit1/finally清掃、末尾ログに失敗ラベルなく原因未特定。run-vm失敗時マーカー表示を追加。34831で生成drop-inの旧直接stop負例→出荷guard正例→明示修復・通常bootを全3round実行中。専用VM1を確認、first14/second5/全終了・清掃未確認。既存82489の旧unit通常成功を変更後へ流用しない。
 
