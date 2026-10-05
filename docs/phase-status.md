@@ -1,9 +1,9 @@
 # 実装と検証の記録
-## Phase10 通常soak再試験round1成功（2026-10-05）
+## Phase10 通常soak再試験round1/2成功（2026-10-05）
 
-20197/42770を同じhandleで追跡し、新FD判定の通常900秒round1を両PHPで成功確認。PHP8.2=176cycles/3553samples/maxRSS23852KiB、PHP8.3=175cycles/3553samples/maxRSS23628KiB。各7項目成功、baseline6/maximum8、全10秒window底値6一定、型別file6/pipe2。RSS増分8MiB内・同一PID・処理継続・source差替え・正常stop/制御清掃・失敗/子private出力なしを確認。両harnessはround2継続中、全3回/最終exit/container清掃未確認。旧round2失敗は維持し、今回round1だけで全合格扱いにしない。
+20197/42770を同じhandleで追跡し、新FD判定の通常900秒round1を両PHPで成功確認。PHP8.2=176cycles/3553samples/maxRSS23852KiB、PHP8.3=175cycles/3553samples/maxRSS23628KiB。各7項目成功、baseline6/maximum8、全10秒window底値6一定、型別file6/pipe2。RSS増分8MiB内・同一PID・処理継続・source差替え・正常stop/制御清掃・失敗/子private出力なしを確認。追加確認: 同じ20197/42770で900秒round2も各7項目成功。PHP8.2=175cycles/3553samples/maxRSS24152KiB、PHP8.3=176cycles/3553samples/maxRSS23444KiB。両方FD baseline6/maximum8・全10秒window底値6一定・型別file6/pipe2、暖機後RSS増分8MiB内、同一PID/処理継続/source差替え/正常stopと制御清掃/失敗とprivate子出力なし。旧不合格を新結果で消さない。 両harnessはround3継続中、全3回/最終exit/container清掃未確認。旧round2失敗は維持し、今回round1/2だけで全合格扱いにしない。
 
-Product/DB/API/UI変更なし、検証結果保存による進捗。生成子の15分証拠を実Engine/DB/通信/日単位へ広げない。次は同じ20197/42770でround2/3を確認。Token設定完了は未受領、実GitHub/Actions/実配布物通し検証は残件。Phase10進行中、11〜12/V1未完成。通常環境/Secret/spec保持、push/公開/再起動なし。
+Product/DB/API/UI変更なし、検証結果保存による進捗。生成子の15分証拠を実Engine/DB/通信/日単位へ広げない。次は同じ20197/42770でround3を確認。Token設定完了は未受領、実GitHub/Actions/実配布物通し検証は残件。Phase10進行中、11〜12/V1未完成。通常環境/Secret/spec保持、push/公開/再起動なし。
 
 ## Phase10 FD観測の診断・通常soak再試験（2026-10-05）
 

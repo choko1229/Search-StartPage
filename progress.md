@@ -1,12 +1,14 @@
 # 再開ポイント
-## 最新の再開地点（2026-10-05・Phase10 通常soak再試験round1成功）
+## 最新の再開地点（2026-10-05・Phase10 通常soak再試験round1/2成功）
 
 前ターンは20197/42770を現に生存確認したverified wait。今回同じhandleで新FD判定の900秒round1を両PHPで成功確認。PHP8.2: 176cycles/3553samples/maxRSS23852KiB、PHP8.3:175cycles/3553samples/maxRSS23628KiB。各7項目成功、FD baseline6/maximum8、全10秒window底値6一定、型別最大file6/pipe2。暖機後RSS増分8MiB内、同一PID、処理継続、source差替え、正常stop/制御状態清掃、失敗/private子出力なしを確認。
 
-両sessionは終了せず、同じharnessでround2へ進行中。全3round・最終exit・containerのfinally清掃は未確認。旧試験のround2不合格記録を維持し、新round1成功だけで長時間試験の全合格とはしない。生成子の15分試験を実DB/実Engine/通信/日単位耐久の証拠へ拡張しない。
+追加確認: 同じ20197/42770で900秒round2も各7項目成功。PHP8.2=175cycles/3553samples/maxRSS24152KiB、PHP8.3=176cycles/3553samples/maxRSS23444KiB。両方FD baseline6/maximum8・全10秒window底値6一定・型別file6/pipe2、暖機後RSS増分8MiB内、同一PID/処理継続/source差替え/正常stopと制御清掃/失敗とprivate子出力なし。旧不合格を新結果で消さない。
+
+両sessionは終了せず、同じharnessでround3へ進行中。全3round・最終exit・containerのfinally清掃は未確認。旧試験のround2不合格記録を維持し、新round1/2成功だけで長時間試験の全合格とはしない。生成子の15分試験を実DB/実Engine/通信/日単位耐久の証拠へ拡張しない。
 
 次に実行すること:
-1. PHP8.2 session20197 / PHP8.3 session42770を同じhandleで追跡。新規起動せずround2/3の全7項目・FD底値・RSS・最終exit/finally清掃を確認して保存する。
+1. PHP8.2 session20197 / PHP8.3 session42770を同じhandleで追跡。新規起動せずround3の全7項目・FD底値・RSS・最終exit/finally清掃を確認して保存する。
 2. Token設定完了後に秘密なしreadinessと実GitHub release/asset取得を確認。ユーザーは設定予定と回答、設定完了は未受領。最新確認はconfigured=false、実効repoは既定で一致。
 3. Phase10進行中、11〜12未着手、V1/全DoD/Glass未完成。通常8099/8100/config/DB/users/worker・Secret/spec保持、push/公開/再起動なし。
 
