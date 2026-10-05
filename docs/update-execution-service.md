@@ -1,5 +1,13 @@
 # 更新workerの常駐と停止
 
+最新soak再試験（2026-10-05）: 旧11696/61720はround2のFD peak条件で不合格exit1/finally清掃。初回の瞬間値との差4以内という条件は、子を作るproc_openの一時pipe数をリークと区別できない。95326の高頻度60秒診断はwindow底値6一定/peak12（file6 pipe6）/初回baseline8を観測。元失敗の数値は未保存なので、その原因を同じ瞬間差だと断定しない。
+
+新判定は10秒window（生成子の完了・待機を複数回含む）のFD底値が全windowで一定であることを要求する。peak値と型別数値も保存し、path/引数/秘密は出さない。上限を単に増やす変更ではない。コピーしたworkerへ毎cycle閉じないfileを注入する負例を34160/96749で両PHP各3回検証し、底値[9,10,12,14]の増加を検出して各exit0/清掃。未closeを製品へ入れていない。
+
+通常900秒×3は20197/42770で再試験開始、www-data・生成子のみ、全結果未確認。旧合格/負例合格を新通常合格の証拠へ流用しない。RSS/定期子/途中source差替え/正常stop・制御清掃/固定状態・子出力抑止は維持する。
+
+更新対象外guardの最終VM結果（2026-10-05）: 63911 exit0。全3roundでfirst16/second5・両marker成功、finally清掃後に専用prefix空を確認。root所有/非書込み・live側guard削除後の正常停止、旧直接stopの生成child中断負例と新guardのchild完了/失敗表示/明示修復復帰、異常終了後restart、正常停止後非restart、子出力非露出、二度目OS boot自動起動/停止を確認。各round前のcommand4項目各3回も成功。出荷unit/guardのこの配置を実managerで確認した証拠であり、任意のOS故障や実GitHub配布物更新の証拠へ拡張しない。以下の実行中という記録は当時の履歴。
+
 2026-10-05新配置の途中結果: 63911 round1でfirst16/second5・両marker/清掃成功、round2実行中。root所有のguardが更新対象外に残り、live内guard削除後も通常停止・故障比較/明示修復復帰・二度目OS bootが成功。全3round/最終exit/全清掃は未確認。新参照の実配布4565は準備30/基盤40を両PHP各3回成功・exit0/専用prefix空。
 
 soak本試験11696/61720は両PHP round1の900秒7項目/176cycles/3555samplesを成功。最大RSS KiB 8.2=23780/8.3=24012、最大FD各8、warm基準の上限内。source差替え・正常stop/制御清掃・失敗とprivate出力なしを確認。両round2実行中で全3回/終了/全清掃は未確認。生成子の独立15分試験であり、同じworkerを45分連続稼働した証拠や実DB/通信・日単位の耐久ではない。

@@ -1,16 +1,31 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 実manager完了/FD判定を診断してsoak再試験）
+
+前ターンdb28c2aはreadinessの既定値補正とVM2成功保存による進捗。今回63911 exit0を確認、更新対象外root guardのfirst16/second5全3round・両marker・finally清掃後prefix空。正常停止/子drain/故障比較/明示修復復帰/異常終了後restart/二度目OS bootとlive guard消失後停止を実証。8486静的9/CLI25、4565配布30/基盤40両PHPも各3回成功終了・清掃済み。
+
+soak旧11696/61720は両round1成功後、round2のFDピーク判定でexit1。finally清掃後prefix空を確認、成功扱いにしない。元失敗にbaseline/maxの数値がなく原因断定はしない。診断追加95326 exit0（PHP8.2高頻度60秒）、FD10秒window底値は6で一定・peak12/file6 pipe6/最初のbaseline8。最初の瞬間を基準にpeakとの差4以内とする旧条件はproc_open中の一時的pipe増加に左右される。
+
+Files: tests/update-worker-soak.phpで10秒windowの解放後底値が一定かを判定し、peak/型別数値も保存。制限を広げて合格にせず、使い捨てworkerコピーだけへ毎cycle閉じないfopenを注入する--leak-probeを追加。増加を必ず拒否することをPHP8.2 session34160/8.3 session96749で60秒7項目各3回成功、底値[9,10,12,14]、各exit0/清掃prefix空。製品workerは非変更。FastObservation/LeakProbeはmarker限定試験だけ、秘密/FD pathや引数を出さない。構文/parser/diff成功。
+
+通常900秒×3再試験を独立開始: PHP8.2 session20197、PHP8.3 session42770。専用search-worker-soak-8.2-20261005 / -8.3-20261005、www-data/network none/no ports・mounts/cap-drop ALL/no-new-privileges/生成子のみ。両PHP構文成功、現在round1実行中、新FD判定の通常全7項目/3round/exit/清掃未確認。旧成功・負例成功を新通常900秒の証拠へ流用しない。
+
+次に実行すること:
+1. session20197/42770を同じhandleで追跡。観測timeoutのみで停止と推測せず重複起動しない。63911/4565/8486/34831/16762/95326/34160/96749は終了済み、旧11696/61720は失敗終了済みで再開不可。
+2. 各900秒/7項目×3・FD底値/メモリ/処理継続/source差替え/stop/固定状態と子出力抑止・exit/finally清掃を確認して記録。失敗なら数値から診断し、合格条件を縮小せず修正・全3回を確認。15分の生成子試験を実DB/通信/実Engine/日単位耐久の証拠へ広げない。
+3. Token設定完了後にアプリ同じ既定値のreadiness→非公開実GitHub release/asset取得。最新configured=false/effective_repository_matches=true/explicit_repository_present=false。Phase10進行中、11〜12未着手、V1/Glass/全DoD未完成。通常8099/8100/config/DB/users/worker/Secret/spec保持、push/公開/Windows再起動なし。
+
 ## 最新の再開地点（2026-10-05・Phase10 停止guardを更新対象外へ配置）
 
 前ターン4383749は配布検証完了・soak追加と本試験開始による進捗。今回34831は終了exit0、変更前配置の停止比較first14/second5全3round・両marker/清掃後prefix空を確認。旧直接stopがchild中断、新guardがchild完了/失敗表示/明示修復復帰という証拠は確定。ただしlive内guardは更新/復元で削除されるため、出荷unitのExecStop参照を更新対象外/usr/local/libexec/search-startpage/stop-update-execution.shへ変更。
 
 配置: 配布bin/systemdの公開guardをOS管理者がroot:root directory0755/script0644へコピーする手順。通常8099/8100/ホストへ配置しない。VM bootstrapだけでroot所有の専用配置を作成。実VM試験にroot所有/非書込みとlive側guard削除の2項目を追加し、新first16/second5を確認する。CLI guard本体/worker PHP・DB/API/UI非変更。
 
-検証: 新静的unit9/既存CLI25各3回8486 exit0。新配布4565は終了exit0、PHP8.2/8.3の30/基盤40各3回成功、専用prefix空を確認。新VM63911はround1・2 first16/second5・両marker・清掃成功、現在round3専用search-systemd-vm-3-20261004実行中。root所有/非書込み、live側guard削除後の正常停止・故障比較・復帰と二度目OS bootを確認。新21項目/全3round/終了/全清掃は未確認。旧34831の成功を新配置へ流用しない。
+検証: 新静的unit9/既存CLI25各3回8486 exit0。新配布4565は終了exit0、PHP8.2/8.3の30/基盤40各3回成功、専用prefix空を確認。新VM63911は終了exit0、全3round first16/second5・両marker成功/finally清掃後prefix空。root所有/非書込み、live側guard削除後の正常停止・故障比較・明示修復復帰/異常終了後restart/子出力非露出と二度目OS bootを確認。各round前のcommand4項目各3回も成功。旧34831の合格を流用せず、新配置を実managerで確認。
 
 soakはPHP8.2 session11696・PHP8.3 session61720を同じhandleで継続。各round900秒/3回/www-data・生成子のみ。両round1の全7項目/900秒/176cycles/3555samples成功。最大RSS KiBは8.2=23780/8.3=24012、最大FD各8、warm基準の上限内・source差替え/正常stop/制御清掃/失敗とprivate出力なしを確認。現在両round2実行中、全3round/終了/全清掃未確認。rootの60秒予備16762は両各3回成功終了・清掃済み。15分の稼働を日単位/実Engine/DB/通信の証拠へ広げない。
 
 次に実行すること:
-1. session63911と11696/61720を同じhandleで追跡。いずれも生存確認済み、観測timeoutのみで停止と推測せず重複起動しない。4565/34831/8486/19247/16762は終了済みで再開不要。
+1. soak11696/61720を同じhandleで追跡。生存確認済み、観測timeoutのみで停止と推測せず重複起動しない。63911/4565/34831/8486/19247/16762は成功終了済みで再開不要。
 2. 新VM first16/second5各3回・両marker・exit/finally清掃とprefix空、新配布30/基盤40両PHP各3回・清掃、soak900秒7項目両PHP各3回・清掃を確認して記録・commit。失敗なら原因から修正し全3回を確認。
 3. Token設定完了後の秘密なしreadiness/非公開実release/asset取得。最新確認はconfigured=false/effective_repository_matches=true/explicit_repository_present=false。前のrepo一致falseは配列に明示キーがないことだけを見た値で、UpdateChecksの既定repoを考慮していなかった。アプリ同様App\Config::getの既定値で確認し、誤った配布元という判定には使わない。設定helperのrepository/token項目とアプリの読取は一致。Phase10進行中、11〜12未着手、V1/Glass/全DoD未完成。通常config/DB/users/worker/Secret/spec保持、push/公開/Windows再起動なし。
 

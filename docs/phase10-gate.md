@@ -1,5 +1,9 @@
 # Phase 10 ゲート監査
 
+soak更新（2026-10-05）: 旧11696/61720はround2のFD peak判定で不合格exit1・清掃。高頻度診断では底値6一定/peak12・一時pipe6を観測。判定を10秒windowの解放後底値一定へ変更し、実未closeを注入した負例は両PHP各3回検出・exit0/清掃成功（34160/96749）。通常900秒×3は20197/42770で再試験中、全結果未確認。旧不合格を消さず、通常実行の各3回合格を確認してからこの項目を閉じる。実manager63911の21項目各3回は合格済み、実GitHub等の残件も維持。
+
+最新実manager結果（2026-10-05）: 更新対象外のroot所有guardで63911 exit0。全3round first16/second5・両marker/清掃後prefix空を確認。live側guard消失後の正常停止、旧直接stop失敗の中断負例と新guardで完了待ち/失敗表示/明示修復復帰、異常終了後restart/二度目OS boot自動起動・停止を実証。静的9/CLI25・配布30/基盤40の各3回も成功。soak11696/61720はまだ全終了未確認、実GitHub/Actions/実配布物通し検証も残り、Phase10進行中。
+
 readiness補正（2026-10-05）: raw配列のrepo一致falseは設定キーが省略された観測で、アプリが使う既定repoを評価していなかった。App\Config::getの同じ既定値で再確認しconfigured=false/effective_repository_matches=true/explicit_repository_present=false。配布元は正しい既定値、未設定なのはToken。設定helperの項目は実読取と一致。実GitHub取得はまだ未確認で、設定は変更していない。
 
 最新サービス検証（2026-10-05）: live内guard配置の34831はfirst14/second5各3round・exit0と清掃成功。配置消失のリスクを解消するため、出荷unitのguard参照をOS管理の更新対象外pathへ変更し、root所有/非書込み・live側guard削除を追加。新VM63911 round1はfirst16/second5/両marker・清掃成功、round2実行中で全3回未確認。静的unit9/CLI25各3回8486 exit0、新配布4565も30/基盤40を両PHP各3回成功・exit0/清掃。soak11696/61720は両PHP round1の900秒7項目/176cycles成功・round2実行中、全3回/終了未確認。旧合格を変更後へ流用しない。実GitHub/Actions/実配布物通し検証は未達、Phase10進行中。

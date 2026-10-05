@@ -1,4 +1,18 @@
 # 実装と検証の記録
+## Phase10 FD観測の診断・通常soak再試験（2026-10-05）
+
+63911はfirst16/second5全3round・exit0/清掃完了、更新対象外guardの実manager運用証拠を保存。旧soak11696/61720は両round2でFD peak条件が不合格となりexit1/finally清掃、成功扱いにしない。元失敗に数値がなく原因を確定しない。高頻度診断95326 exit0でwindow底値6一定/peak12/file6 pipe6/初回baseline8を確認し、瞬間のbaselineとpeak差による旧判定のタイミング依存を特定。
+
+Tests変更のみ: update-worker-soak.phpの10秒windowのFD解放後底値一定判定、数値/型別診断、使い捨てworkerコピーへcycleごとの未close fopenを注入する負例。run-update-worker-soak.ps1にFastObservation/LeakProbe選択。制限値を広げる修正ではなく、実際に保持が増える負例を検出する。34160/96749でPHP8.2/8.3の60秒7項目各3回成功・exit0/専用prefix空、各底値[9,10,12,14]の増加を検出。製品worker/DB/API/UI非変更、Secret/FD path/args非出力。
+
+新通常900秒×3を8.2=20197/8.3=42770で独立開始、両PHP構文成功・round1実行中、全結果/exit/清掃未確認。旧/負例成功を新通常成功へ流用しない。次はこの2handleを追跡し各3回/清掃と数値を保存。実GitHub Token未設定/配布元は既定で一致、Phase10進行中、11〜12/V1未完成。通常環境/Secret/spec保持、push/公開/Windows再起動なし。
+
+## Phase10 更新対象外guardの実manager全3回合格（2026-10-05）
+
+63911 exit0、全3roundでfirst16/second5・両完了marker成功、finally清掃後prefix空。root所有/非書込み・live側guard削除後の正常停止、旧直接stopのchild中断負例/new guardの完了待ち・失敗表示・明示修復復帰、異常終了後restart/正常停止後非restart/子出力非露出/二度目OS boot自動起動・停止を確認。各round前のcommand4項目各3回も成功。新配置の証拠で、旧合格の流用ではない。
+
+今回product/schema/API/UI変更なし、実managerの検証完了と記録保存による進捗。新静的9/CLI25各3回8486と配布30/基盤40両PHP各3回4565も成功終了/清掃済み。soak11696/61720は両round2の840秒164cycles進行、全3回/終了/清掃未確認。Token未設定・実GitHub/Actions未確認、Phase10進行中、11〜12未着手、V1未完成。通常環境/Secret/spec保持、push/公開/Windows再起動なし。
+
 ## Phase10 GitHub readinessの既定値補正（2026-10-05）
 
 前のraw配列でrepo一致falseという観測は明示キーの不存在だけを示し、アプリの実効repo不一致ではなかった。UpdateChecksが使うApp\Config::getの既定値と同じ方法で読取り直し、configured=false/effective_repository_matches=true/explicit_repository_present=falseを確認。配布元は既定で正しく、実認証取得にはTokenが未設定。設定helperのupdates.repository/tokenは実読取と一致、設定やSecret値を出力・変更しない。VM63911はround1・2 first16/second5・両markerと清掃成功、VM3実行中で全3回未確認。soak11696/61720は両round2の360秒71cycles進行/全結果未確認。同じhandleを追跡する。Phase10進行中、11〜12未着手、V1未完成。
