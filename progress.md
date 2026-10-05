@@ -1,4 +1,12 @@
 # 再開ポイント
+
+## 再開監査3（2026-10-06・Actions後の添付待ちblocked）
+
+前ターンno progress。今回exact v0.1.2-dev公開APIはdraft=false/prerelease=true/assets=[]。直前blocked後のActions進行ターン1/前回2/今回3で同じ3asset不足が継続。独立実Actionsゲートは37329882104両PHP成功で完了、実行中jobなし。必須実GitHub取得は固定3files添付が必要、設定反映完了の通知なし。upload同条件再試行/成功試験反復/download block迂回なし。Goal blocked、Version1.0/Phase10/11〜12未完。再開条件は拡張file URLs有効化完了通知または既存公開Releaseへの手動3files添付。既存release編集URLと固定88554ee配布物を使い、再公開許可/新tag作成不要。進捗保存後停止。
+
+
+2026-10-06再開監査2（Actions後）: 前ターンは実Actions両PHP成功のprogress。今回exact公開release APIでassets=[]を確認し、設定反映完了の通知なし。既存run37329882104はterminal successで待機handleではない。実GitHub取得の必須3asset不足が継続、既存成功試験反復/同条件upload再試行/ブラウザdownload block迂回なし。今回はno progress、goal active。直前blocked後の再開監査はActionsターン1・今回2。次手は既存公開releaseへの固定3files添付で変わらず、Phase10/11〜12/V1未完成。
+
 ## 最新の再開地点（2026-10-06・実GitHub Actions両PHP成功）
 
 前ターンは配布asset不足のno progress/blocked。今回再開後exact公開APIでassets=[]は継続するが、公開済みtagを使用する独立した実Actionsゲートが実行可能と判断し進行。既存release-package.ymlはcontents:read/手動trigger/既存tag checkout/生成artifactのみでRelease添付・サイト適用を行わない。Chrome2からmain=5f3a643のworkflowをrelease_tag=v0.1.2-devで初回実行。
