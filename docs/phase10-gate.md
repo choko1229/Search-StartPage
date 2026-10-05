@@ -1,6 +1,6 @@
 # Phase 10 ゲート監査
 
-最新サービス検証（2026-10-05）: live内guard配置の34831はfirst14/second5各3round・exit0と清掃成功。配置消失のリスクを解消するため、出荷unitのguard参照をOS管理の更新対象外pathへ変更し、root所有/非書込み・live側guard削除を追加した新VM63911でfirst16/second5各3roundを検証中。静的unit9/CLI25各3回8486 exit0、新配布4565とsoak11696/61720も実行中で全終了未確認。旧合格を変更後へ流用しない。実GitHub/Actions/実配布物通し検証は未達、Phase10進行中。
+最新サービス検証（2026-10-05）: live内guard配置の34831はfirst14/second5各3round・exit0と清掃成功。配置消失のリスクを解消するため、出荷unitのguard参照をOS管理の更新対象外pathへ変更し、root所有/非書込み・live側guard削除を追加。新VM63911 round1はfirst16/second5/両marker・清掃成功、round2実行中で全3回未確認。静的unit9/CLI25各3回8486 exit0、新配布4565も30/基盤40を両PHP各3回成功・exit0/清掃。soak11696/61720は両PHP round1の900秒7項目/176cycles成功・round2実行中、全3回/終了未確認。旧合格を変更後へ流用しない。実GitHub/Actions/実配布物通し検証は未達、Phase10進行中。
 
 2026-10-04、Phase9の明記完了条件を照合後に正式開始。判定: **進行中**。先行実装を作り直さず、既存証拠と残件を照合する。Version1.0未完成。
 

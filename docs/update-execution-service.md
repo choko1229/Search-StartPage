@@ -1,5 +1,9 @@
 # 更新workerの常駐と停止
 
+2026-10-05新配置の途中結果: 63911 round1でfirst16/second5・両marker/清掃成功、round2実行中。root所有のguardが更新対象外に残り、live内guard削除後も通常停止・故障比較/明示修復復帰・二度目OS bootが成功。全3round/最終exit/全清掃は未確認。新参照の実配布4565は準備30/基盤40を両PHP各3回成功・exit0/専用prefix空。
+
+soak本試験11696/61720は両PHP round1の900秒7項目/176cycles/3555samplesを成功。最大RSS KiB 8.2=23780/8.3=24012、最大FD各8、warm基準の上限内。source差替え・正常stop/制御清掃・失敗とprivate出力なしを確認。両round2実行中で全3回/終了/全清掃は未確認。生成子の独立15分試験であり、同じworkerを45分連続稼働した証拠や実DB/通信・日単位の耐久ではない。
+
 最新の配置修正（2026-10-05・検証中）: 配布物内の `bin/systemd/stop-update-execution.sh` は更新や手動復元で削除され得るため、インストール済みunitはそこを参照しない。OS管理者が公開guardを `/usr/local/libexec/search-startpage/stop-update-execution.sh` へコピーし、親directory root:root/0755・script root:root/0644で配置する。出荷unitのExecStopもこの更新対象外のpathを参照する。Web/worker実行ユーザーには親directory・scriptへの書込みを与えない。サイトの更新処理はOS管理のunit/guardを自動変更しない。配置先PHP/site pathを変更する場合はguardのPHP呼出しを合わせる。Unix改行を維持し、unitの配置・enable前にguardが存在し読めることを確認する。本作業でホスト/通常アプリへこの配置を行わない。
 
 前のlive内guard方式で34831はfirst14/second5各3round・両marker・exit0/清掃成功。旧直接stopの子中断、新guardでの完了待ち/失敗表示/明示修復復帰を実証した。これは上記の更新対象外pathの動作証拠ではない。新unitの静的9/既存CLI25各3回8486 exit0。新配置のVM試験ではroot所有/非公開書込み・live内guard削除の2項目を追加し、first16/second5各3roundを別に確認する。実配布準備も新参照で再検証中（4565）。

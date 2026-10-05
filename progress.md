@@ -5,12 +5,12 @@
 
 配置: 配布bin/systemdの公開guardをOS管理者がroot:root directory0755/script0644へコピーする手順。通常8099/8100/ホストへ配置しない。VM bootstrapだけでroot所有の専用配置を作成。実VM試験にroot所有/非書込みとlive側guard削除の2項目を追加し、新first16/second5を確認する。CLI guard本体/worker PHP・DB/API/UI非変更。
 
-検証中: 新静的unit9/既存CLI25各3回8486 exit0。新配布参照30/基盤40各3回はsession4565、現在8.2 round2完了、全両PHP/exit/清掃未確認。新VMはsession63911、専用search-systemd-vm-1-20261004でround1実行中、PHP/command4各3回成功、新21項目/全3round/終了/清掃未確認。旧34831の成功を新配置の証拠へ流用しない。
+検証: 新静的unit9/既存CLI25各3回8486 exit0。新配布4565は終了exit0、PHP8.2/8.3の30/基盤40各3回成功、専用prefix空を確認。新VM63911はround1 first16/second5・両marker・清掃成功、現在round2専用search-systemd-vm-2-20261004実行中。root所有/非書込み、live側guard削除後の正常停止・故障比較・復帰と二度目OS bootを確認。新21項目/全3round/終了/全清掃は未確認。旧34831の成功を新配置へ流用しない。
 
-soakはPHP8.2 session11696・PHP8.3 session61720を同じhandleで継続。各round900秒/3回/www-data・生成子のみ。両round1の480秒/94cycles進行を確認、全7項目/3round/終了/清掃未確認。rootの60秒予備16762は両各3回成功終了・清掃済み。15分の稼働を日単位/実Engine/DB/通信の証拠へ広げない。
+soakはPHP8.2 session11696・PHP8.3 session61720を同じhandleで継続。各round900秒/3回/www-data・生成子のみ。両round1の全7項目/900秒/176cycles/3555samples成功。最大RSS KiBは8.2=23780/8.3=24012、最大FD各8、warm基準の上限内・source差替え/正常stop/制御清掃/失敗とprivate出力なしを確認。現在両round2実行中、全3round/終了/全清掃未確認。rootの60秒予備16762は両各3回成功終了・清掃済み。15分の稼働を日単位/実Engine/DB/通信の証拠へ広げない。
 
 次に実行すること:
-1. session63911/4565と11696/61720を同じhandleで追跡。いずれも生存確認済み、観測timeoutのみで停止と推測せず重複起動しない。34831/8486/19247/16762は終了済みで再開不要。
+1. session63911と11696/61720を同じhandleで追跡。いずれも生存確認済み、観測timeoutのみで停止と推測せず重複起動しない。4565/34831/8486/19247/16762は終了済みで再開不要。
 2. 新VM first16/second5各3回・両marker・exit/finally清掃とprefix空、新配布30/基盤40両PHP各3回・清掃、soak900秒7項目両PHP各3回・清掃を確認して記録・commit。失敗なら原因から修正し全3回を確認。
 3. Token設定完了後の秘密なしreadiness/非公開実release/asset取得。前回readinessは設定false/repo一致false。Phase10進行中、11〜12未着手、V1/Glass/全DoD未完成。通常config/DB/users/worker/Secret/spec保持、push/公開/Windows再起動なし。
 

@@ -3,9 +3,9 @@
 
 34831 exit0で変更前配置のfirst14/second5・各3round/両markerと清掃後prefix空を確認。旧直接stopのchild中断、新guardのchild完了/失敗表示/明示修復復帰を確定。live内guardは更新/復元で削除され得るため、出荷unitを更新対象外/usr/local/libexec/search-startpageのroot所有script参照へ変更。配布guardのOS管理者による設置手順をdocs/update-execution-service.mdへ記録、OS unit/guardはUpdaterから自動変更しない。通常環境・ホストには配置しない。
 
-Files: 出荷unit/tests/update-systemd-unit.php/release-preparation.phpの参照更新、VM bootstrapの専用root:root 0755/0644配置、manager試験にroot所有・非書込み/live側guard削除の2項目追加。worker PHP/DB/API/UI非変更。新静的unit9/既存CLI25各3回8486 exit0、新配布4565は8.2 round2の30/基盤40成功で全結果未確認。新VM63911はround1実行中、first16/second5各3回/exit/清掃未確認。旧34831の合格を新配置へ流用しない。
+Files: 出荷unit/tests/update-systemd-unit.php/release-preparation.phpの参照更新、VM bootstrapの専用root:root 0755/0644配置、manager試験にroot所有・非書込み/live側guard削除の2項目追加。worker PHP/DB/API/UI非変更。新静的unit9/既存CLI25各3回8486 exit0、新配布4565 exit0でPHP8.2/8.3の30/基盤40各3回成功・清掃後prefix空。新VM63911はround1 first16/second5・両marker/清掃成功、VM2でround2実行中、全3回/exit/全清掃未確認。旧34831の合格を新配置へ流用しない。
 
-soak11696/61720は両round1の480秒94cycles進行を確認、900秒7項目各3回/終了/清掃未確認。生成子・設定/DB/Secretなし、実Engine/DB通信/日単位稼働の証拠ではない。次は63911/4565/11696/61720を同じhandleで追跡し結果保存。Token未設定/実GitHub・Actions未確認、Phase10進行中、11〜12未着手、V1未完成。通常8099/8100/config/DB/users/worker/Secret/spec保持、push/公開/Windows再起動なし。
+soak11696/61720は両round1の900秒7項目/176cycles/3555samples成功。最大RSS KiB 8.2=23780/8.3=24012、最大FD各8でwarm上限内。source差替え/正常stop/制御清掃・失敗/private出力なしを確認しround2実行中、各3回/終了/全清掃未確認。生成子・設定/DB/Secretなし、実Engine/DB通信/日単位稼働の証拠ではない。次は63911/11696/61720を同じhandleで追跡し結果保存。4565は終了済み。Token未設定/実GitHub・Actions未確認、Phase10進行中、11〜12未着手、V1未完成。通常8099/8100/config/DB/users/worker/Secret/spec保持、push/公開/Windows再起動なし。
 
 ## Phase10 配布検証終了・VM比較/soak予備中（2026-10-05）
 
