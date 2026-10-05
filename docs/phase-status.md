@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 v付きタグ照合修正（2026-10-05・両DB各3回成功）
+
+Packageが許可するvタグ差をUpdateRunnerのapply job/request比較が拒否していた。修正前の実中断job復旧失敗を59811でMySQL/MariaDB各1回再現・exit0/清掃。最初21278/94825の負例harnessは期待codeが違ってexit1、実assertを確認して訂正。Productはapply targetだけUpdateManifest::matchesに統一、id/source/rollback照合維持。DB/Migration/API/UI変更なし。
+
+Tests: update-runner.phpへvタグ実完了/履歴/手動復元/中断復旧、空schema確認後の清掃guard。run-update-runner.ps1は専用internal network/tmpfs DB/www-data app/cap-drop ALL、実Secret・通常環境に触れない。正例67426 exit0、PHP8.3でMySQL8.0/MariaDB10.11各3回Runner25・基盤40・Package64成功。PHP構文/parser/diff成功、finally後専用app/DB prefixと専用network一覧空。実GitHub取得・HTTP UI・PHP8.2の実DB試験の証拠ではない。既存権限/25件超履歴・audit再投影/後発お気に入り・同期保持のRegressionも成功。
+
+旧a7dfb3c配布候補/8d34b4e baselineは不具合を含むため配布対象から除外。旧候補への公開確認が後から届いても公開せず、修正済みbaselineと新0.1.2-devを固定commitから再準備する。Phase10/実Actions/11〜12/V1/Glass未完成。検証終了記録後に許可済みmain commit/push、実配布物試験の準備を継続。
+
 ## Phase10 固定開発版配布準備（2026-10-05）
 
 固定8d34b4e/0.1.0-devをgit archiveから準備、最初chown拒否exit1/清掃。capを増やさずwww-data展開へ補正後57193 exit0、PHP8.2/8.3各3回成功/専用prefix空。同じ版の更新判定を避けるためVERSIONだけ0.1.1-devへ進めa7dfb3c commit/push。固定新commitから57307 exit0、配布準備と基盤40各3回を両PHPで成功・finally清掃/prefix空。

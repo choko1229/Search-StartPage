@@ -11,7 +11,7 @@ final class UpdateRunner
     private static function matches(array $job,array $request):bool
     {
         return $request['operation']==='apply'
-            ? $job['request_id']===$request['id']&&$job['rollback_request_id']===null&&$job['from_version']===$request['from_version']&&$job['to_version']===$request['to_version']
+            ? $job['request_id']===$request['id']&&$job['rollback_request_id']===null&&$job['from_version']===$request['from_version']&&UpdateManifest::matches($job['to_version'],$request['to_version'])
             : $job['rollback_request_id']===$request['id']&&$job['from_version']===$request['to_version']&&$job['to_version']===$request['from_version'];
     }
     private function remove(string $path):void

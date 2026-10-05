@@ -1,5 +1,7 @@
 # GitHub Releasesの配布準備
 
+2026-10-05更新: 以下のa7dfb3c候補は配布対象から除外。構文/manifest準備検証は成功したが、Runnerがvタグとmanifest versionの差を拒否する不具合を実Engine中断復旧で確認した。照合をPackageと同じ単一v差の許可へ修正し、67426 exit0、PHP8.3でMySQL8.0/MariaDB10.11各3回Runner25/基盤40/Package64成功・清掃確認。旧候補/旧baselineを再使用せず、修正済みbaselineと新候補を固定commitから再準備して公開対象を確定する。実GitHub取得成功とは扱わない。
+
 2026-10-05具体的な開発用成果物: 固定a7dfb3c（VERSION=0.1.1-dev、main push済み）から、PHP8.2/8.3のwww-data・network none環境でprepare-release/全PHP構文・manifest/hash/互換性と基盤40を各3回成功。57307 exit0/清掃、全6tarの236files/3516928bytes/SHA-256 b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04が一致。公開候補は.test-output/public-release-a7dfb3c/php-8.3-round-3/のcanonical tar/sidecar/release.json、説明文は同root/release-notes.md。tag v0.1.1-dev/target a7dfb3c/prereleaseでの公開をユーザー確認中。Version1.0ではなく、まだ実GitHub asset未作成・実Actions未確認。
 
 固定旧版8d34b4e/0.1.0-devも各3回準備・清掃済み（57193）。最初のchown失敗はcap-drop ALLを維持し、www-dataのmkdir/tar --no-same-ownerで解消、失敗を成功扱いにしない。ソースはgit archiveで固定し、ホストの実config/specは混入しない。repo Public/main pushの許可だけからRelease公開を推定しない。

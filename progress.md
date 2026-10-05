@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 vタグ照合修正/両DB各3回成功）
+
+前ターンはmain=15cc86b/Publicの再確認だけでGoalの機能進行なし。今回、Packageは許可するvタグ差をRunnerのapply job/request比較が拒否する不具合を発見。修正前の実Engine中断・別worker復旧失敗を59811でMySQL/MariaDB各1回再現、exit0/専用環境清掃。最初21278/94825は負例harnessがUPDATE_STATE_CHANGEDを期待してexit1、実際の失敗assertを確認して訂正、各finally清掃済み。
+
+UpdateRunner apply targetだけ既存UpdateManifest::matchesへ統一。単一v差だけ許可、id/source/rollbackの厳密照合維持。tests/update-runner.phpにvタグ正常完了/DB履歴/手動Rollbackと中断復旧、空schema確認後だけの清掃owned guard/接続待ち。新tests/run-update-runner.ps1は専用internal network/no host ports・mounts/DB tmpfs512m/www-data app/cap-drop ALL/no-new-privileges、公開sourceと生成設定だけ使用。負例用の一時switchは再現後に除去。
+
+正例session67426 exit0、PHP8.3/専用MySQL8.0・MariaDB10.11で各3回Runner25・基盤40・Package64成功。vタグ正常完了/実DB履歴/中断復旧/手動Rollback、既存権限/25件超の履歴再投影/後発お気に入り・同期保持を確認。PHP構文/PowerShell parser/diff成功。finally後専用app/DB prefixと専用networkの一覧は空。実行中handleなし。実GitHub取得・HTTP UI・PHP8.2での実DB試験の証拠には拡張しない。旧a7dfb3c/0.1.1-dev候補と8d34b4e baselineには未修正Runnerが含まれる。旧候補を配布対象から除外し、未回答の旧Release確認へ後から許可が届いても旧候補は公開しない。生成成功の証拠として旧tarは保持。通常8099/8100/Secret/spec保持、Phase10/11〜12/V1/Glass未完成。
+
+次に実行すること:
+1. 結果記録と修正を許可済みmainへcommit/pushしremote一致を確認。67426は終了・清掃済み、再実行不要。
+2. 修正済み0.1.1-devを固定baselineとして保管し、candidate VERSIONを0.1.2-devへ進め固定sourceからPHP8.2/8.3各3回の配布準備。旧未修正entryによるvタグ実取得は成功扱いにしない。
+3. 新候補のcommit/3asset/hashを揃えて公開確認を更新、許可後だけ実GitHub/CDN→両DB実apply/Migration/履歴/rollback。実Actions未確認、Phase10 gate後に11へ進む。
+
 ## 最新の再開地点（2026-10-05・開発版0.1.1-dev配布物準備/Release公開確認待ち）
 
 前ターン8d34b4eはmain pushとPublic/匿名API確認の進捗。今回は固定commit8d34b4eの0.1.0-devをgit archive（未追跡spec/実config非混入）から準備。最初はcap-drop ALLでchownが拒否されexit1・finally清掃。権限を追加せず、www-dataのmkdir/tar --no-same-ownerで修正し57193 exit0、PHP8.2/8.3各3回・全同一tar成功/専用prefix空。旧版成果物は.test-output/public-release-8d34b4e/に保持。
