@@ -19,3 +19,5 @@
 非公開repoの設定支援（2026-10-04）: 8099のconfigはDocker内、秘密値を出さないreadinessでToken未設定。bin/configure-updates.ps1 / phpを準備し、stdin非表示入力・他設定保持・private atomic保存を専用PHP8.2/8.3で15項目/基盤40各3回確認（5948 exit0）。実Token設定/実取得はユーザー設定後に確認し、今回の生成秘密試験を代用しない。docs/release-distribution.md参照。
 
 次の具体的手順: 対象GitHub配布元のアクセス条件と実リリース配布経路を確認し、404や取得不能を成功・更新なしと扱わない。実asset検査・適用・復元の不足を監査する。秘密はGit/進捗へ記録せず、本番公開/pushは実行しない。systemd静的診断とCLIプロセス試験は実managerのboot/restartの証明ではない。今回の停止中失敗試験の詳細はdocs/update-fpm-http.mdに記録。
+
+2026-10-05実manager追加証拠: network none/host mount・portなしの専用QEMU VM内で出荷unitを配置し、session82489の全3roundでfirst9/second5、両完了marker、exit0と清掃後prefix空を確認。子drain/正常停止/制御清掃/待機中異常終了後restart/正常停止後非restart/子出力非露出/二度目OS boot自動起動・停止を確認。出荷worker/unit非変更。生成子の短時間検証で、長時間運用・ExecStop故障・実GitHub配布物の通し検証は残る。Phase10進行中を維持する。

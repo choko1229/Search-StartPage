@@ -1,5 +1,9 @@
 # 更新workerの常駐と停止
 
+最新のVM記録（2026-10-05）: 検証用proof unitをjournal+console出力へ変更し、独立したVM限定のprocess/unit観測を追加した。session82489は全3roundでfirst boot9項目/second boot5項目と両完了marker成功、終了exit0。各専用コンテナをfinallyで清掃し、専用prefix一覧空を確認。各round前のcommand4項目を各3回成功。実managerの通常起動・子drain・停止・待機中異常終了後restart・二度目OS bootの自動起動/停止を確認した。過去の部分成功・途中停止を全合格として扱わず、旧停止原因も未確定。
+
+観測はPID/PPID/PGID/SID/STAT/wchan/commとunit状態に限定し、引数・環境変数・configは読まない。出荷unit/workerは変更しない。診断fixtureはVM markerがある専用guest内のみ動く。長時間運用/ExecStop故障/実配布物更新をこの短いmanager試験で証明しない。下記の「未確認」や実行handleは当時の履歴であり、最新状態はこの冒頭とprogress.mdを参照する。
+
 `bin/systemd/search-update-execution.service` は配布物にも含むLinux/systemd用の設定例。配置先 `/srv/search-startpage`、PHP CLI `/usr/bin/php`、Webと同じ実行ユーザー `www-data` を実環境に合わせて変更する。Webとworkerが同じliveコード/config/storageを参照し、同じユーザーで更新可能な配置で使用する。通常のreadonly開発環境では起動しない。
 
 設定をサービス管理ディレクトリへコピーし、daemon-reload後にenable/startする。これはこの作業から本番へ自動配置しない。サービスは起動時に定期workerを開始し、異常終了のみ再起動する。stopは同じlive配置の `php bin/update-execution-worker.php --stop` を実行し、現在の子処理が終了してworkerが停止するまで待つ。TimeoutStopSec=infinityは更新中の強制終了を避けるため。停止中は完了までサービスを待ち、更新プロセスを手動でkillしない。

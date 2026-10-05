@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 実systemd VM全3回成功）
+
+session66698はfirst9/second3の部分成功後に生成VMだけ意図的停止、exit1/finally清掃。成功扱いにしない。検証用proof unitの出力先をttyからjournal+consoleへ変更し、VM内だけのprocess状態観測を追加。出荷worker/unitは非変更。旧停止原因は未確定で、端末競合を証明したとは扱わない。
+
+session82489は終了exit0。各3roundでfirst9/second5と両完了marker、実managerの子drain/正常停止/制御清掃/待機中異常終了後restart/正常停止後非restart/子出力非露出/二度目OS boot自動起動・停止を成功。finally清掃後search-systemd-vm prefix一覧空を確認。各round前のcommand4項目各3回、PHP構文、3shell構文とPowerShell parser/diff検査成功。生成子の短時間証拠であり、実Engine処理中stopは別の両DB HTTP証拠を参照。
+
+ユーザーは非公開GitHub・Tokenを設定する旨を回答。設定完了の回答はなく、実取得未確認。秘密はチャット/進捗/Gitへ記録しない。通常8099/8100/config/DB/users/workerは非変更。試験はnetwork none/no mounts/no ports/cap-drop ALL/no-new-privileges、VM NICなし・生成fixtureのみ。
+
+次に実行すること:
+1. 今回のfixture/docs変更をローカルコミット。spec.mdは変更/stageしない。session82489は終了しており再開/重複起動は不要。
+2. Phase10残件のExecStop故障と長時間運用を、専用VM/生成fixtureに限定して検証する。正常動作の今回14項目を故障耐性の証明へ拡張しない。
+3. Token設定完了後に秘密なしreadinessと非公開実release/asset取得。実配布物通し検証も別の残件。Phase10進行中、Phase11〜12未着手、Version1.0/Glass/全DoD未完成。
+
 ## 最新の再開地点（2026-10-05・Phase10 VMコマンド出力の待機対策）
 
 前ターン67648beの66830を再開し、first boot9/second boot3項目成功、検証用unit Type=simple/SubState=running/Job空を確認。停止検証のコマンド回収が完了せず、起動待ちが原因とは断定できない。生成VMのみ意図的停止し66830 exit1/finally清掃。実サービス停止の合格は未確認。

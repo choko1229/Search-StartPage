@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 VM出力経路の変更・実manager全3回成功（2026-10-05）
+
+66698はfirst9/second3の部分成功後に生成VMだけ意図的停止、exit1/finally清掃。停止原因は未確定。検証用proof unitの出力先をttyからjournal+consoleへ変更、VM限定diagnostics.shでPID/PPID/PGID/SID/STAT/wchan/commとunit状態だけを観測。args/env/config/秘密値は出さない。bootstrap/run-vm/PowerShell seed一覧に接続、出荷worker/unit・DB/API/UI非変更。
+
+新session82489は全3roundでfirst9/second5・両marker成功、exit0。各生成環境のfinally清掃後prefix一覧空を確認。command4項目各round3回/PHP/3shell構文とPowerShell parser/diff成功。実managerで子drain/正常停止/制御清掃/待機中異常終了後restart/正常停止後非restart/journalへの子出力非露出/二度目OS boot自動起動と停止を確認。出力経路変更後の限定成功であり旧停止の因果確定や長時間運用/ExecStop故障を証明しない。実Engine処理中stopの証拠は既存両DB HTTP試験。
+
+非公開GitHubのToken設定予定をユーザーが回答、設定完了/実取得は未確認。通常環境/Secret/spec非変更、push/公開/Windows再起動なし。次は専用fixtureでExecStop故障・長時間運用、Token設定後の実取得。Phase10進行中、11〜12未着手、Version1.0未完成。
+
 ## 最新の再開地点（2026-10-05・Phase10 VMコマンド出力の待機対策）
 
 前ターン67648beの66830を再開し、first boot9/second boot3項目成功、検証用unit Type=simple/SubState=running/Job空を確認。停止検証のコマンド回収が完了せず、起動待ちが原因とは断定できない。生成VMのみ意図的停止し66830 exit1/finally清掃。実サービス停止の合格は未確認。

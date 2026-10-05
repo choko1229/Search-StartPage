@@ -20,4 +20,4 @@ if ! grep -q 'ISOLATED_SYSTEMD_FIRST_PASSED' /tmp/search-systemd-vm-console.log 
  tail -n 65 /tmp/search-systemd-vm-console.log
  exit 1
 fi
-grep '^PASS:\|^ISOLATED_SYSTEMD_' /tmp/search-systemd-vm-console.log
+grep 'PASS:\|ISOLATED_SYSTEMD_' /tmp/search-systemd-vm-console.log
