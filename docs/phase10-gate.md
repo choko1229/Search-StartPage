@@ -1,5 +1,7 @@
 # Phase 10 ゲート監査
 
+開発用実配布準備（2026-10-05）: VERSIONを0.1.1-devへ進めた固定a7dfb3cからcanonical assetをPHP8.2/8.3各3回生成・基盤40と合わせ成功（57307 exit0/清掃）。6tar同一3516928bytes/236files/hash b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04。固定8d34b4eの旧0.1.0-dev成果物も準備済み。tag v0.1.1-dev/3assetを開発用prereleaseとして公開する許可は確認中で、実GitHub配布/取得/適用/復元は未確認。実Actionsも別の未確認範囲。ローカル成功だけでPhase10/V1を完了としない。
+
 配布元の状態変更（2026-10-05）: ユーザーがcommit/push/Public化を許可、main push・remote一致を確認。ChromeでPublic表示、匿名GitHub APIでprivate=false/default mainを確認。Release一覧は[]。非公開Tokenなしによるread阻害は解消したが、実候補/assetは存在せず、実配布物取得・適用/復元は未確認。まず固定開発版のcanonical assetを用意し、Release配布の具体的操作を確認してから実通し検証する。Public repoをVersion1.0完成やRelease公開済みと扱わない。以前のprivate/Token待ち記録は履歴。
 
 残件監査（2026-10-05・soak終了後）: spec.mdの104〜109/Phase10、AdminUpdatesController→UpdateRequests→実worker/UpdateRunner/Engine、配布workflowと既存両DB HTTP/UI記録を照合。ローカルの配布準備・更新/復元・故障比較・実manager・限定soakは各記録の範囲で検証済み。Engine文書冒頭の古い「Web未接続」を最新の実証範囲に補正した。既存の限定成功から実認証GitHubや本番成功を推測しない。管理画面の一巡を3回のUI成功とはしないが、Phase単位の3回検証は両DB HTTP等に記録済み。

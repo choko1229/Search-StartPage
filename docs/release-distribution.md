@@ -1,5 +1,9 @@
 # GitHub Releasesの配布準備
 
+2026-10-05具体的な開発用成果物: 固定a7dfb3c（VERSION=0.1.1-dev、main push済み）から、PHP8.2/8.3のwww-data・network none環境でprepare-release/全PHP構文・manifest/hash/互換性と基盤40を各3回成功。57307 exit0/清掃、全6tarの236files/3516928bytes/SHA-256 b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04が一致。公開候補は.test-output/public-release-a7dfb3c/php-8.3-round-3/のcanonical tar/sidecar/release.json、説明文は同root/release-notes.md。tag v0.1.1-dev/target a7dfb3c/prereleaseでの公開をユーザー確認中。Version1.0ではなく、まだ実GitHub asset未作成・実Actions未確認。
+
+固定旧版8d34b4e/0.1.0-devも各3回準備・清掃済み（57193）。最初のchown失敗はcap-drop ALLを維持し、www-dataのmkdir/tar --no-same-ownerで解消、失敗を成功扱いにしない。ソースはgit archiveで固定し、ホストの実config/specは混入しない。repo Public/main pushの許可だけからRelease公開を推定しない。
+
 2026-10-05公開確認: ユーザーがrepo Public化とmain pushを許可し、push後の一致と匿名GitHub APIのprivate=falseを確認。Release一覧は[]で配布assetはまだ未作成。Public repoの読取りにToken設定は必須ではなく、以下の非公開配布元の設定手順はPrivate運用向け。repoの公開とUpdater用のcanonical Release asset公開は別の操作。現時点でVersion1.0や実配布物通し検証は未完成。
 
 2026-10-05配置変更後: unitのguard参照をOS管理の更新対象外/usr/local/libexec/search-startpageへ変更後、4565 exit0。PHP8.2/8.3で準備30/基盤40各3回成功、専用prefix空を確認。配布guardの同一LF内容・新unit参照、全4channelsの既存契約を実stageで確認。OS側への実設置は専用VM試験で別に確認する。実GitHub/Actions/配信の成功ではない。

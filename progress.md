@@ -1,4 +1,19 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・開発版0.1.1-dev配布物準備/Release公開確認待ち）
+
+前ターン8d34b4eはmain pushとPublic/匿名API確認の進捗。今回は固定commit8d34b4eの0.1.0-devをgit archive（未追跡spec/実config非混入）から準備。最初はcap-drop ALLでchownが拒否されexit1・finally清掃。権限を追加せず、www-dataのmkdir/tar --no-same-ownerで修正し57193 exit0、PHP8.2/8.3各3回・全同一tar成功/専用prefix空。旧版成果物は.test-output/public-release-8d34b4e/に保持。
+
+同じ版ではUpdateChecksが更新ありとしないため、VERSIONだけ0.1.1-devへ進めa7dfb3cをcommit/push（許可済みmain）。Version1.0扱いにしない。固定a7dfb3cb78704e1293fb74e7e9d75637ba7579fbのgit archiveから、新候補57307 exit0。www-data/network none/no ports・mounts/cap-drop ALL/no-new-privileges/DB・実configなし、PHP8.2/8.3各3回のprepare-release実生成・全PHP構文・manifest/hash/互換性と基盤40を成功。finally後search-public-release専用prefix一覧空、現在実行中handleなし。
+
+全6候補tarは236files/3516928bytes/同一SHA-256=b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04。コピー後size/hashも各確認。旧版tar hash=6e9d21769b97f5e4d68a75fc775e222f9b6449df7226185a83d1f5a8e0b0e2f7。出荷候補は .test-output/public-release-a7dfb3c/php-8.3-round-3/ のsearch-startpage.tar / search-startpage.tar.sha256 / release.json。説明文は同rootのrelease-notes.md。補助PSはGit除外.test-output内、再生成の必要なし。
+
+ユーザーへ、choko1229/Search-StartPageにtag v0.1.1-dev・target a7dfb3c・3assetを開発用prereleaseとして公開する許可を非同期で確認中。repo Public化とmain pushの許可を任意Release公開へ広げない。確認回答はまだ未受領、tag/Release/asset公開は未実行。手元の成功を実GitHub配布物取得成功と扱わない。Goal active/Phase10進行中、11〜12/Glass/V1未完成。
+
+次に実行すること:
+1. Release公開の確認回答を確認。許可があれば固定a7dfb3cを対象にv0.1.1-devを作成し、上記3asset/説明文を添付、prerelease=true・Latest正式版にはしない。秘密・source.tar・tests/進捗素材は添付しない。ブラウザの公開確定前の必要な確認を回答の範囲で満たす。
+2. GitHub Release APIのid/tag/prerelease/asset size/state/digestとローカルhashを照合、実CDN取得/検証→隔離8d34b4e旧版からapply/Migration/履歴/rollbackを両DBで各3回。実Actionsによる準備は別の未確認項目で、ローカル生成を実Actions成功とはしない。
+3. 今回記録を許可済みmainへcommit/push。通常8099/8100/config/DB/users/worker・Secret/spec保持、本番配備/Windows再起動なし。Version変更は通常containerへ反映していない。終了済み準備/soak/VMの反復不要。
+
 ## 最新の再開地点（2026-10-05・main push成功/配布元Public確認）
 
 最新ユーザー指示「コミットしてプッシュ、パブリックにしてOK」に従い、origin=https://github.com/choko1229/Search-StartPage.git/mainへ通常push成功（9b6b744→d185077）。remote mainとlocal HEADの完全SHA一致を確認。forceなし、spec.mdは唯一の未追跡で追加しない。configの追跡は公開雛形/providersだけ。到達可能な143commit履歴でconfig/config.php/.env/秘密鍵ファイルの追跡なし、既知のGitHub Token/秘密鍵署名に一致なしを確認（任意形式の秘密すべての不存在を保証する検査ではない）。

@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 固定開発版配布準備（2026-10-05）
+
+固定8d34b4e/0.1.0-devをgit archiveから準備、最初chown拒否exit1/清掃。capを増やさずwww-data展開へ補正後57193 exit0、PHP8.2/8.3各3回成功/専用prefix空。同じ版の更新判定を避けるためVERSIONだけ0.1.1-devへ進めa7dfb3c commit/push。固定新commitから57307 exit0、配布準備と基盤40各3回を両PHPで成功・finally清掃/prefix空。
+
+全6新候補は236files/3516928bytes/同一hash b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04、コピー後size/hash照合。実config/DB/Secretなし・network none/no ports/mounts/cap-drop ALL。出荷用3filesは.test-output/public-release-a7dfb3c/php-8.3-round-3/、説明文は同root/release-notes.md。旧版も固定sourceから保持。
+
+v0.1.1-dev/target a7dfb3c/3assetの開発用prerelease公開をユーザーへ確認中、未受領・公開未実行。実GitHub取得/適用/復元、実Actions未確認。Phase10/11〜12/V1/Glass未完成、Goal active。通常環境/Secret/spec保持、main push以外の本番配備/再起動なし。
+
 ## Phase10 配布元公開・main push確認（2026-10-05）
 
 ユーザーがmainコミット/pushとrepo Public化を明示許可。通常push成功・local/remote d185077完全SHA一致。未追跡specは保持/非追加、実config/.env/鍵ファイルの追跡なし、到達可能な143commitの既知Token/秘密鍵署名一致なし（検査対象の範囲のみ）。Chrome設定でprivate→publicへの外部状態変化、最終公開submitはagent非実行。匿名GitHub APIでprivate=false/default mainを確認。Release一覧の生応答は[]。PowerShellの配列包装による初回count1/nullは誤集計で訂正済み、候補成功としない。
