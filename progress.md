@@ -1,4 +1,15 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 Token設定待ち/blocked移行）
+
+前ターンは同じ外部条件の再確認で、目的に対する進行はなし。今回も8099 read-only probe exit0、configured=false/effective_repository_matches=true。ローカル試験終了後に同じ真の阻害条件を連続3ターン確認。現在実行中jobなし、必須の実GitHub release/asset取得を設定・外部状態の変化なしで進める手はなく、Goalをこのターン末にblockedへ変更する条件が成立した。Phase10/V1は未完成。
+
+再開に必要: ユーザーがbin/configure-updates.ps1の非表示対話で開発コンテナのupdates.tokenを設定し、このチャットで設定完了を知らせて再開する。docs/release-distribution.mdに手順。Tokenはチャット/進捗/Gitへ貼らない。こちらから秘密を推測・取得・ハードコードしない。
+
+再開後の手順:
+1. 本記録とdocs/phase-status.md、git statusを確認し、値を出さないreadinessで設定反映を確認。blockedからユーザーが再開した場合の阻害監査は新たに数える。
+2. 認証付き実release候補/search-startpage.tar・タグ/size/digestを確認し、隔離DB・環境で適用/Migration/履歴/復元を検証する。実GitHub未確認をローカルfixture成功で置き換えない。
+3. 20197/42770/63911/4565/8486は成功終了・清掃済み、理由なく再実行しない。Phase10ゲートを満たしてから11へ進む。11〜12/Glass/全DoD未完成。通常8099/8100/config/DB/users/worker・Secret/spec保持、push/公開/本番変更/Windows再起動なし。
+
 ## 最新の再開地点（2026-10-05・Phase10残件監査/外部アクセス待ち）
 
 前ターンe2adf4cは通常soak全3回exit0/清掃確認の進捗。今回はspec.mdの104〜109/Phase10、現在Controller/Requests/worker/配布workflowと両DB HTTP/UI証拠を照合。実装・ローカル検証から実GitHub配布物成功へ広げず、Engine文書冒頭の古いWeb未接続表示だけを最新証拠へ補正。Product/DB/API/UI非変更。MariaDB UIの一巡を3回成功に拡張しない。Phase単位の3回検証は両DB HTTP等で記録済み。

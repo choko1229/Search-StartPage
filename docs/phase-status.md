@@ -1,4 +1,10 @@
 # 実装と検証の記録
+## Phase10同条件3ターン・Token設定待ち（2026-10-05）
+
+ローカル試験完了後、非公開GitHubへのアクセス不足を連続3ターン確認。今回も秘密なしread-only probe exit0でconfigured=false/effective_repository_matches=true。実行中jobなし、実release/asset確認はユーザー設定または外部状態の変化を必要とし、他の必要な進行手はない。Goalをこのターン末にblockedへ変更する条件成立。Phase10/V1は未完成、Phase11〜12未着手。
+
+ユーザーがbin/configure-updates.ps1/docs/release-distribution.mdの手順で非表示入力後、このチャットで再開する。再開時はreadiness→実候補/asset→隔離適用/Migration/履歴/復元へ進む。Tokenや実configを試験素材・チャット・Gitへ記録しない。完了済み試験の反復は不要。通常環境/Secret/spec保持、push/公開/本番変更/再起動なし。
+
 ## Phase10残件監査・外部アクセス待ち（2026-10-05）
 
 spec.mdの104〜109/Phase10、現在の管理受付/実worker/Engine、配布workflowと両DB HTTP/UI記録を照合。ローカル成功は記録された限定範囲、実GitHub配布物/本番成功の代替にしない。Engine冒頭の古いWeb未接続記載を実証済みのHTTP/実画面範囲に補正。Product/DB/API/UI非変更、追加試験不要。
