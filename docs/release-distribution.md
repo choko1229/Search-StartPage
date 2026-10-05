@@ -1,5 +1,11 @@
 # GitHub Releasesの配布準備
 
+2026-10-05最新候補: 修正済み固定88554ee/0.1.2-dev。PHP8.2/8.3各3回の実準備・基盤40成功87551 exit0、全6tarは236files/3516928bytes/hash a5f630228ae70c82fce5ed1738b8848a2f0d0e688fc4981e3437f9c590479120。公開3filesは.test-output/public-release-88554ee/php-8.3-round-3/、説明文は同root/release-notes.md。固定修正済みbaseline5981e20/0.1.1-devも同じ両PHP各3回59623 exit0、hash053dcbee9ac93dabb25a83e7fa5195a024923b93968e530abb6edc1a45d0e03e。全ホストコピーのsize/hash照合・専用コンテナ清掃済み。
+
+この新候補のv0.1.2-dev/tag・target88554ee・3asset・prerelease公開はユーザーから明示許可受領。Chromeの作成画面に設定したが、ファイル添付はChatGPT拡張機能のAllow access to file URLs無効により失敗、公開未実行/匿名exact tag404。ユーザー設定または手動添付の回答待ち。許可を再質問せず、3filesが揃ってから公開する。Version1.0完成版/通常サイト更新ではない。
+
+実取得検証は tests/run-real-release-integration.ps1（既定両DB/PHP8.2・8.3各3回）。-PreflightOnlyで公開tagが固定commitを指し、3assetのsize/digestがローカル固定成果物と一致することを確認してから専用DBを作成する。実metadata/unchanged production CLIによるapply→Migration/履歴→Rollback/config/uploads/後発data保護を検証し、取得transportをfixtureにしない。未公開preflightはexit1で本試験Docker未作成、guard拒否92913両PHP各3回4項目は成功。専用イメージは41046/75694各exit0で独立準備し、通信なしprobeでPDO/curl/HTTPS機能を確認。本試験/実GitHub取得/実Actionsは未実行。
+
 2026-10-05更新: 以下のa7dfb3c候補は配布対象から除外。構文/manifest準備検証は成功したが、Runnerがvタグとmanifest versionの差を拒否する不具合を実Engine中断復旧で確認した。照合をPackageと同じ単一v差の許可へ修正し、67426 exit0、PHP8.3でMySQL8.0/MariaDB10.11各3回Runner25/基盤40/Package64成功・清掃確認。旧候補/旧baselineを再使用せず、修正済みbaselineと新候補を固定commitから再準備して公開対象を確定する。実GitHub取得成功とは扱わない。
 
 2026-10-05具体的な開発用成果物: 固定a7dfb3c（VERSION=0.1.1-dev、main push済み）から、PHP8.2/8.3のwww-data・network none環境でprepare-release/全PHP構文・manifest/hash/互換性と基盤40を各3回成功。57307 exit0/清掃、全6tarの236files/3516928bytes/SHA-256 b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04が一致。公開候補は.test-output/public-release-a7dfb3c/php-8.3-round-3/のcanonical tar/sidecar/release.json、説明文は同root/release-notes.md。tag v0.1.1-dev/target a7dfb3c/prereleaseでの公開をユーザー確認中。Version1.0ではなく、まだ実GitHub asset未作成・実Actions未確認。

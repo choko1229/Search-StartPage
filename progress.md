@@ -1,4 +1,23 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・修正済み配布物準備完了/公開許可受領/Chrome添付制約）
+
+前ターンは5981e20修正・両DB各3回成功・191d0e1記録pushによる進捗。今回固定5981e203f9fb4958d119e75142f3f3aec4d2bec7/0.1.1-devを修正済みbaselineとしてgit archiveし、59623 exit0、PHP8.2/8.3各3回prepare-release/全PHP構文/manifest/hash/compatibility/基盤40成功・清掃。VERSIONのみ0.1.2-devへ進め88554eea76dbf5599b86dc14f41fcec5d544900cをmain commit/push。固定88554eeも87551 exit0で同じ両PHP各3回成功・清掃。www-data/network none/no host ports・mounts/cap-drop ALL/no-new-privileges/DB・実configなし。最後のsearch-public-release prefix空。
+
+baseline .test-output/public-release-5981e20/、candidate .test-output/public-release-88554ee/。全6baseline tar hash=053dcbee9ac93dabb25a83e7fa5195a024923b93968e530abb6edc1a45d0e03e、全6candidate hash=a5f630228ae70c82fce5ed1738b8848a2f0d0e688fc4981e3437f9c590479120、各236files/3516928bytes、ホストコピー後全size/hash照合。使用する各tarはphp-8.3-round-3/。candidate同dirのsearch-startpage.tar / search-startpage.tar.sha256 / release.jsonが公開用3files、説明文はcandidate root/release-notes.md。旧a7dfb3c/8d34b4eは不具合を含む過去の生成証拠で公開対象にしない。
+
+ユーザーが「この新候補のタグ作成・3ファイル添付・開発用プレリリース公開を許可する」と明示回答。v0.1.2-dev/target88554ee/3asset/prereleaseの公開は許可済みで再確認不要。Chrome2のfixedReleaseTabにnew-release画面でtag/target/title/説明/radio Pre-releaseを設定。filechooser.setFilesだけがChatGPT拡張機能のAllow access to file URLs無効で失敗（呼出し1267秒後にエラー、無応答時間を待機完了と扱わない）。公開ボタンは押していない。fresh DOMで添付list空/新tagは公開時作成予定と確認、匿名API exact tagも404。Release/tag/asset公開は未実行。画面をmarkHandoff、.test-output/release-upload-pending.pngへスクリーンショット保存。
+
+添付制約について非同期で「ユーザーがChrome設定のファイルURL許可を有効にする」または「開いているGitHubへ3filesを手動添付する」を質問中、回答未受領。公開許可ではなく拡張機能の操作制約。自動承認レビュー拒否ではない。ブラウザ以外の技術でアップロードを迂回せず、credentialsを抽出しない。通常8099/8100/config/DB/users/worker/specは保持。
+
+Tests準備: tests/real-release-integration.php / run-real-release-integration.ps1 / fixtures/real-release/Dockerfile。実GitHub metadataとunchanged production bin/run-update.phpを使用しfixture transportなし、固定baseline→candidate→Rollbackを専用DBとtmpfs環境で検証する設計。ローカルcandidateは全適用file hashの独立oracleだけ、ダウンロードを代用しない。公開tagのcommit/3asset size/digest preflight成功前は本試験Docker環境を作成しない。両DB/PHP8.2・8.3各3回が既定。full real integrationはまだ未実行。独立してimageを準備し41046/75694各exit0、search-real-release-php-8.2/8.3:20261005を保存。通信なしの--rm probeでPHP/pdo_mysql/curl/https機能ありを確認、実GitHub通信の成功ではない。
+
+92913 exit0、network noneのPHP8.2/8.3でsource root/test mode/DB host/前提不足の4拒否guardを各3回成功、DB/API未接続、PHP構文/PS parser/diff成功、finally後search-real-release prefix/network一覧空。host -PreflightOnlyは未公開を理由にexit1、exact tag匿名API404で確認。成功の実配布物証拠ではない。現在実行中handleなし。Goal active、Phase10/実Actions/11〜12/V1/Glass未完成。
+
+次に実行すること:
+1. この記録と新Testsを許可済みmainへcommit/push、remote一致を確認。準備59623/87551/92913は終了・清掃済みで再実行不要。
+2. Chromeの添付制約回答を確認。コンテキスト復元後はcua.rewriteDocumentation、Chrome2 bindingを再利用、file-upload docsを読みfresh DOMで手動添付/設定変化を確認。公開許可の再質問は不要。3filesの添付完了とtarget88554ee/Pre-releaseを確認してPublish、実画面/APIでid/tag/source/size/digestを検証しスクリーンショット保存。native UI無効、障壁の迂回なし。
+3. ./tests/run-real-release-integration.ps1 -PreflightOnly →本試験（DB専用/実configなし）を開始。actual Apply/Rollback完了、全file hash/履歴/Migration/config/uploads/後発locale保持と清掃を確認。未実行の通信/DB適用をguardやimage成功から推測しない。実Actions別ゲート、Phase10終了後に11へ進む。
+
 ## 最新の再開地点（2026-10-05・Phase10 vタグ照合修正/両DB各3回成功）
 
 前ターンはmain=15cc86b/Publicの再確認だけでGoalの機能進行なし。今回、Packageは許可するvタグ差をRunnerのapply job/request比較が拒否する不具合を発見。修正前の実Engine中断・別worker復旧失敗を59811でMySQL/MariaDB各1回再現、exit0/専用環境清掃。最初21278/94825は負例harnessがUPDATE_STATE_CHANGEDを期待してexit1、実際の失敗assertを確認して訂正、各finally清掃済み。

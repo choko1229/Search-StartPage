@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 修正済み配布物・実取得検証準備（2026-10-05）
+
+固定5981e20/0.1.1-devのbaseline準備59623 exit0、VERSIONのみ0.1.2-devへ進め88554ee commit/main push。固定candidate87551 exit0。両sourceともPHP8.2/8.3各3回prepare-release/全PHP構文/manifest/hash/compatibility/基盤40成功・清掃prefix空。各tar236files/3516928bytes、baseline hash053dcbee9ac93dabb25a83e7fa5195a024923b93968e530abb6edc1a45d0e03e、candidate a5f630228ae70c82fce5ed1738b8848a2f0d0e688fc4981e3437f9c590479120、全ホストコピー照合。候補3filesは.test-output/public-release-88554ee/php-8.3-round-3、旧候補は失効。
+
+ユーザーのv0.1.2-dev/88554ee/3asset/prerelease公開許可を受領。Chrome画面は指定済み、添付だけ拡張機能のfile URLs許可無効で失敗。公開未実行、新tag/asset未作成・匿名exact tag404。markHandoff/.test-output/release-upload-pending.png保存。ユーザー設定または手動添付を質問中、公開許可を再質問しない。自動承認レビュー拒否ではない。
+
+新Tests real-release-integration.php/run-real-release-integration.ps1/fixtures/real-release/Dockerfile: actual GitHub metadata/asset/production CLI、固定baseline→candidate→Rollback、両DB・PHP両版各3回の設計。local candidateはfile oracleのみでtransport差替えなし。host metadata preflight前に本試験Docker環境を作らない。92913 exit0で両PHP各3回4 isolation guard拒否・構文/parser/diff成功/清掃prefixとnetwork空。独立image build41046/75694は各exit0、PHP8.2/8.3のpdo_mysql/curl/httpsをnetwork none/--rm probeで確認。本試験/実配布取得は未実行、preflightは未公開でexit1。DB Migration追加なし/API/UI変更なし、通常環境/Secret/spec保持。Phase10/実Actions/11〜12/V1/Glass未完成。
+
 ## Phase10 v付きタグ照合修正（2026-10-05・両DB各3回成功）
 
 Packageが許可するvタグ差をUpdateRunnerのapply job/request比較が拒否していた。修正前の実中断job復旧失敗を59811でMySQL/MariaDB各1回再現・exit0/清掃。最初21278/94825の負例harnessは期待codeが違ってexit1、実assertを確認して訂正。Productはapply targetだけUpdateManifest::matchesに統一、id/source/rollback照合維持。DB/Migration/API/UI変更なし。
