@@ -1,4 +1,26 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 通常soak全3回終了）
+
+前ターンは最終roundの生存を確認したverified wait。今回20197/42770が各exit0で終了、PHP8.2/8.3の通常900秒7項目を各3回成功。終了後のsearch-worker-soak専用prefix一覧は空で、finally清掃完了。現在この試験の実行中handleはない。重複起動・追加反復は不要。
+
+| PHP | round | cycles | samples | max RSS KiB | max FD |
+|---|---|---:|---:|---:|---:|
+| 8.2 | 1 | 176 | 3553 | 23852 | 8 |
+| 8.2 | 2 | 175 | 3553 | 24152 | 8 |
+| 8.2 | 3 | 175 | 3553 | 23732 | 12 |
+| 8.3 | 1 | 175 | 3553 | 23628 | 8 |
+| 8.3 | 2 | 176 | 3553 | 23444 | 8 |
+| 8.3 | 3 | 175 | 3553 | 23588 | 8 |
+
+全roundでFD baseline6/全10秒window底値6一定。8.2 round3は一時peak12/file6 pipe6、他はpeak8/file6 pipe2。暖機後RSS増分8MiB内、同一PID/定期子/途中source差替え/正常stop・制御清掃/失敗とprivate子出力なし。旧11696/61720の失敗記録は保持。負例34160/96749各3回の保持増加検出とは別の通常実行証拠。独立15分試験3回であり、同一worker45分連続・実Engine/DB/通信/日単位耐久の証明ではない。
+
+同じアプリ既定値による8099 read-only readinessを再確認: configured=false/effective_repository_matches=true/explicit_repository_present=false。設定や秘密値を出力・変更していない。ユーザーはTokenを設定する予定、完了回答は未受領。実GitHub/Actions/実配布物取得・適用・復元は未確認。
+
+次に実行すること:
+1. Phase10ゲートの残件を仕様と現在の実装・証拠で監査する。20197/42770は成功終了済みで再開不可、soak/VM/配布準備の成功試験を理由なく再実行しない。
+2. Token設定完了後に秘密なしreadiness→認証付きrelease/asset取得を確認。実configを生成配布検証へコピーせず、取得後の適用/復元は隔離DB・環境で確認する。公開/push/Actions実行等は未実施、必要な操作の権限・実配布元状態を確認する。
+3. Phase10進行中、11〜12未着手、V1/全DoD/Glass未完成。通常8099/8100/config/DB/users/worker・Secret/spec保持、push/公開/Windows再起動なし。下の実行中記録は当時の履歴。
+
 ## 最新の再開地点（2026-10-05・Phase10 通常soak再試験round1/2成功）
 
 前ターンは20197/42770を現に生存確認したverified wait。今回同じhandleで新FD判定の900秒round1を両PHPで成功確認。PHP8.2: 176cycles/3553samples/maxRSS23852KiB、PHP8.3:175cycles/3553samples/maxRSS23628KiB。各7項目成功、FD baseline6/maximum8、全10秒window底値6一定、型別最大file6/pipe2。暖機後RSS増分8MiB内、同一PID、処理継続、source差替え、正常stop/制御状態清掃、失敗/private子出力なしを確認。

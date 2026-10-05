@@ -1,5 +1,7 @@
 # 更新workerの常駐と停止
 
+通常soakの確定結果（2026-10-05）: 20197/42770は各exit0、www-dataのPHP8.2/8.3で900秒7項目各3回成功、終了後の専用prefix空を確認。全round3553samples、cycles 8.2=[176,175,175]/8.3=[175,176,175]、最大RSS KiB 8.2=[23852,24152,23732]/8.3=[23628,23444,23588]、暖機後増分8MiB以内。全10秒window FD底値6一定、最大FD 8.2=[8,8,12]/8.3=[8,8,8]。8.2 round3は一時pipe6、他はpipe2/file6。処理後に保持が増えないこと、同一PID/定期子/source差替え/正常stopと制御清掃/失敗とprivate子出力なしを確認。旧失敗と実保持増加の負例記録を保持する。生成子の独立15分×3回で、同じworker45分連続や実Engine/DB/通信/日単位耐久の証明ではない。以下の実行中記録は履歴。
+
 最新soak再試験（2026-10-05）: 旧11696/61720はround2のFD peak条件で不合格exit1/finally清掃。初回の瞬間値との差4以内という条件は、子を作るproc_openの一時pipe数をリークと区別できない。95326の高頻度60秒診断はwindow底値6一定/peak12（file6 pipe6）/初回baseline8を観測。元失敗の数値は未保存なので、その原因を同じ瞬間差だと断定しない。
 
 新判定は10秒window（生成子の完了・待機を複数回含む）のFD底値が全windowで一定であることを要求する。peak値と型別数値も保存し、path/引数/秘密は出さない。上限を単に増やす変更ではない。コピーしたworkerへ毎cycle閉じないfileを注入する負例を34160/96749で両PHP各3回検証し、底値[9,10,12,14]の増加を検出して各exit0/清掃。未closeを製品へ入れていない。
@@ -16,7 +18,7 @@ soak本試験11696/61720は両PHP round1の900秒7項目/176cycles/3555samples�
 
 前のlive内guard方式で34831はfirst14/second5各3round・両marker・exit0/清掃成功。旧直接stopの子中断、新guardでの完了待ち/失敗表示/明示修復復帰を実証した。これは上記の更新対象外pathの動作証拠ではない。新unitの静的9/既存CLI25各3回8486 exit0。新配置のVM試験ではroot所有/非公開書込み・live内guard削除の2項目を追加し、first16/second5各3roundを別に確認する。実配布準備も新参照で再検証中（4565）。
 
-継続稼働の専用試験: `tests/run-update-worker-soak.ps1` はPHP8.2/8.3のnetwork none/no host mount・port/cap-drop ALL/no-new-privilegesコンテナへ、公開workerと生成試験だけをコピーする。既定はwww-dataで15分×3回、`-Php 8.2` / `-Php 8.3` で別コンテナの独立実行を選べる。実DB/config/Tokenなし。各回で同じPIDの生存、warm後RSS増加8MiB以内/FD増加4以内、定期子処理の継続、途中の公開コード差替えが次子へ反映、停止/制御清掃/固定状態・秘密出力抑止を確認する。生成子は100msで完了し、時間はfixtureの総稼働時間。実Engine/DB/通信を15分稼働させる証拠や、日単位の耐久・無期限無故障の保証ではない。
+継続稼働の専用試験: `tests/run-update-worker-soak.ps1` はPHP8.2/8.3のnetwork none/no host mount・port/cap-drop ALL/no-new-privilegesコンテナへ、公開workerと生成試験だけをコピーする。既定はwww-dataで15分×3回、`-Php 8.2` / `-Php 8.3` で別コンテナの独立実行を選べる。実DB/config/Tokenなし。各回で同じPIDの生存、warm後RSS増加8MiB以内/全10秒windowの解放後FD底値一定、定期子処理の継続、途中の公開コード差替えが次子へ反映、停止/制御清掃/固定状態・秘密出力抑止を確認する。生成子は100msで完了し、時間はfixtureの総稼働時間。実Engine/DB/通信を15分稼働させる証拠や、日単位の耐久・無期限無故障の保証ではない。
 
 2026-10-05予備確認: 16762 exit0、旧harness(root)の60秒7項目/12cyclesを両PHP各3回成功、専用prefix空。www-dataへの変更とPHP選択を追加し、15分×3回の本試験を独立並行開始（8.2=11696、8.3=61720）。両構文成功、round1実行中で全結果/終了/清掃は未確認。予備の成功を15分実行の証拠へ流用しない。
 

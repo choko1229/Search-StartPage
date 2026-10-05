@@ -1,5 +1,9 @@
 # Phase 10 ゲート監査
 
+最新soak結果（2026-10-05）: 20197/42770は各exit0、PHP8.2/8.3の通常900秒7項目各3回成功、finally清掃後専用prefix空。全10秒windowのFD底値6一定・暖機後RSS増分8MiB内、同一PID/処理継続/source差替え/正常stopと制御清掃/失敗とprivate子出力なしを確認。最大FDは8.2=[8,8,12]/8.3=[8,8,8]で一時pipe増加と解放後底値を区別できた。負例各3回では保持増加を検出済み。生成子による独立15分×3回の限定した継続稼働検証は完了。実DB/実Engine/通信/日単位の証拠ではない。旧不合格は履歴に保持する。
+
+実manager63911の21項目各3回・配布4565両PHP各3回も完了済み。現在実行中のsoak handleはない。8099のread-only readiness再確認はconfigured=false/effective_repository_matches=true/explicit_repository_present=false。実認証GitHub候補/asset・実Actions/配信・実配布物適用/復元、運用配置確認は残る。Phase10は進行中、次Phaseに進めない。以下の実行中記録は当時の履歴。
+
 soak更新（2026-10-05）: 旧11696/61720はround2のFD peak判定で不合格exit1・清掃。高頻度診断では底値6一定/peak12・一時pipe6を観測。判定を10秒windowの解放後底値一定へ変更し、実未closeを注入した負例は両PHP各3回検出・exit0/清掃成功（34160/96749）。通常900秒×3は20197/42770で再試験中、全結果未確認。旧不合格を消さず、通常実行の各3回合格を確認してからこの項目を閉じる。実manager63911の21項目各3回は合格済み、実GitHub等の残件も維持。
 
 最新実manager結果（2026-10-05）: 更新対象外のroot所有guardで63911 exit0。全3round first16/second5・両marker/清掃後prefix空を確認。live側guard消失後の正常停止、旧直接stop失敗の中断負例と新guardで完了待ち/失敗表示/明示修復復帰、異常終了後restart/二度目OS boot自動起動・停止を実証。静的9/CLI25・配布30/基盤40の各3回も成功。soak11696/61720はまだ全終了未確認、実GitHub/Actions/実配布物通し検証も残り、Phase10進行中。

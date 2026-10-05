@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase10 通常soak全3回成功・清掃確認（2026-10-05）
+
+20197/42770は両exit0で終了。PHP8.2/8.3の通常900秒7項目各3回成功、finally清掃後search-worker-soak専用prefix一覧空。各round3553samples、cyclesは8.2=[176,175,175]/8.3=[175,176,175]、max RSS KiBは8.2=[23852,24152,23732]/8.3=[23628,23444,23588]。全FD window底値6一定、最大FDは8.2=[8,8,12]/8.3=[8,8,8]。8.2 round3の一時peakはfile6/pipe6、他はfile6/pipe2。暖機後RSS増分8MiB内・同一PID/定期子/途中source差替え/正常stopと制御清掃/失敗とprivate子出力なしを確認。
+
+旧FD peak判定のround2失敗は保持。負例の保持増加検出と通常成功を別々に確認。製品/DB/API/UI変更なし、独立15分×3回の生成子試験であり実Engine/DB/通信/日単位の証拠へ広げない。実manager63911・静的8486・配布4565は既に成功清掃済み。これらの実行中記録は過去の履歴で、再実行不要。
+
+8099の秘密なしreadiness再確認はToken未設定/実効repository一致/明示キー省略。設定非変更。実GitHub/Actions/実配布物通し検証は残る。Phase10進行中、11〜12/V1/Glass未完成、通常環境/Secret/spec保持、push/公開/再起動なし。次はPhase10残件監査とToken設定後の実取得確認。
+
 ## Phase10 通常soak再試験round1/2成功（2026-10-05）
 
 20197/42770を同じhandleで追跡し、新FD判定の通常900秒round1を両PHPで成功確認。PHP8.2=176cycles/3553samples/maxRSS23852KiB、PHP8.3=175cycles/3553samples/maxRSS23628KiB。各7項目成功、baseline6/maximum8、全10秒window底値6一定、型別file6/pipe2。RSS増分8MiB内・同一PID・処理継続・source差替え・正常stop/制御清掃・失敗/子private出力なしを確認。追加確認: 同じ20197/42770で900秒round2も各7項目成功。PHP8.2=175cycles/3553samples/maxRSS24152KiB、PHP8.3=176cycles/3553samples/maxRSS23444KiB。両方FD baseline6/maximum8・全10秒window底値6一定・型別file6/pipe2、暖機後RSS増分8MiB内、同一PID/処理継続/source差替え/正常stopと制御清掃/失敗とprivate子出力なし。旧不合格を新結果で消さない。 両harnessはround3継続中、全3回/最終exit/container清掃未確認。旧round2失敗は維持し、今回round1/2だけで全合格扱いにしない。
