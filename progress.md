@@ -1,4 +1,14 @@
 # 再開ポイント
+
+2026-10-05追加: ユーザーがfile URLs有効化を選択。既存公開release編集画面で新しいfilechooserを取得し、固定3filesをtimeoutMs10000付きで1回再試行したが即時にAllow access to file URLs無効の同一エラー。添付成功ではない。設定の反映後の通知または手動添付が必要。公開許可再確認なし、再試行loop/設定画面迂回なし。
+
+## 最新の再開地点（2026-10-05・開発版公開を確認/配布asset未添付）
+
+再開後に旧draft編集URLが404、releases一覧でv0.1.2-dev公開済み/Pre-release/固定commit88554eeを確認。公開操作は今回agentが行ったものではない。Assets 2はGitHub自動生成Source code zip/tar.gzのみ、編集画面の添付list空。run-real-release-integration.ps1 -PreflightOnly exit1（Expected exactly three published assets）、本試験環境は未作成。公開自体と3配布asset添付を区別し、実取得成功とは扱わない。
+
+既存編集URLは https://github.com/choko1229/Search-StartPage/releases/edit/v0.1.2-dev に変更。Chrome2の新しいfixedReleaseTabを開きmarkHandoff。旧draft/新Release作成/タグ再作成/公開再確認は不要。添付は公開許可内だが、file URLs有効化の回答なしで前回の失敗を再試行しない。ユーザーへ現編集画面に3files手動添付または拡張設定有効化を質問。旧chrome://拒否を迂回しない。
+
+次に実行すること: ユーザーの添付/設定変更を確認→既存公開releaseへ固定88554eeのphp-8.3-round-3内3filesだけ添付→実metadata preflight→両DB/両PHP各3回の実取得/Apply/Migration/履歴/Rollback検証。現在の条件は配布asset不足、Phase10/11〜12/V1未完成。Product/DB/Tests変更なし、spec/Secret/通常環境保持。
 ## 最新の再開地点（2026-10-05・添付条件3ターン継続/ユーザー操作待ちblocked）
 
 前ターンはGitHub未公開draftの永続保存による進捗。今回fresh DOMで保存済みdraft/tag v0.1.2-dev/target88554ee/Pre-release/添付list空を確認。公開許可は有効、添付設定/手動添付の回答は未受領。初回filechooser失敗→下書き保存ターン→今回の3連続goal turnで同じ添付不足条件が継続。準備/guard/image/下書き永続保存は終了しており、残る必須実GitHub取得は公開assetを必要とする。新しい成功試験を反復して条件の代替にしない。

@@ -1,4 +1,10 @@
 # 実装と検証の記録
+
+2026-10-05追加: ユーザーがfile URLs有効化を選択。既存公開release編集画面で新しいfilechooserを取得し、固定3filesをtimeoutMs10000付きで1回再試行したが即時にAllow access to file URLs無効の同一エラー。添付成功ではない。設定の反映後の通知または手動添付が必要。公開許可再確認なし、再試行loop/設定画面迂回なし。
+
+## Phase10 公開済み開発版を確認・配布asset未添付（2026-10-05）
+
+旧draftURLが404となり、公開releases一覧でv0.1.2-dev/Pre-release/source88554eeを確認。今回agentは公開操作していない。Assets 2は自動Source codeのみ、公開版編集list空。実preflight exit1（exactly three published assets不足）、本試験未実行/環境未作成。既存編集URL releases/edit/v0.1.2-devへhandoff、3files手動添付またはfile URLs有効化を質問。旧draft再作成/同じ失敗の再試行/設定安全制約の迂回なし。Phase10/11〜12/V1未完成、通常環境/Secret/spec保持。
 ## Phase10 添付条件の3ターン継続（2026-10-05）
 
 fresh DOMで保存済みdraftは3asset未添付。公開許可受領済み、添付設定/手動添付の回答未受領。同じ条件が初回失敗/下書き保存/今回の3連続goal turnで継続。準備/guards/images/draft保存が完了後は公開assetなしに必須実取得へ進む手がなく、blocked移行の条件成立。read-only chrome://extensions表示もBrowser URL policyが拒否、設定変更/迂回なし。これはsandbox auto-review拒否ではない。Product/DB/Tests変更なし・終了済み試験の反復なし。
