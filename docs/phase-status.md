@@ -1,5 +1,8 @@
 # 実装と検証の記録
 
+2026-10-06再開監査3（08673b8後・blocked）: get_goal activeとして再開、前turnはno progress/blocked。exact公開release API assets=[]を確認、設定反映通知なし。同じ添付不足継続、実Actionsは完了済みで新規待機jobなし。今回はno progress、再開後3ターン連続で同じ添付不足を確認。独立実Actionsを含む準備が終了し、必須実取得に進むにはユーザーの設定反映通知または手動添付が必要。Goalをblockedに変更し停止する。既存upload失敗やdownload blockを反復/迂回せず、固定3files添付後だけ実preflight/本試験へ進む。Phase10/11〜12/V1未完成。
+
+
 ## 再開監査3（2026-10-06・Actions後の添付待ちblocked）
 
 前ターンno progress。今回exact v0.1.2-dev公開APIはdraft=false/prerelease=true/assets=[]。直前blocked後のActions進行ターン1/前回2/今回3で同じ3asset不足が継続。独立実Actionsゲートは37329882104両PHP成功で完了、実行中jobなし。必須実GitHub取得は固定3files添付が必要、設定反映完了の通知なし。upload同条件再試行/成功試験反復/download block迂回なし。Goal blocked、Version1.0/Phase10/11〜12未完。再開条件は拡張file URLs有効化完了通知または既存公開Releaseへの手動3files添付。既存release編集URLと固定88554ee配布物を使い、再公開許可/新tag作成不要。進捗保存後停止。
