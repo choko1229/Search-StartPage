@@ -1,4 +1,16 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・添付条件3ターン継続/ユーザー操作待ちblocked）
+
+前ターンはGitHub未公開draftの永続保存による進捗。今回fresh DOMで保存済みdraft/tag v0.1.2-dev/target88554ee/Pre-release/添付list空を確認。公開許可は有効、添付設定/手動添付の回答は未受領。初回filechooser失敗→下書き保存ターン→今回の3連続goal turnで同じ添付不足条件が継続。準備/guard/image/下書き永続保存は終了しており、残る必須実GitHub取得は公開assetを必要とする。新しい成功試験を反復して条件の代替にしない。
+
+安全なread-only確認としてChrome2のchrome://extensionsへ移動しようとしたが、Browser Use URL policyがhttp/https以外を拒否。設定の変更も実行していない。これはブラウザ安全制約であり、sandboxのauto-review拒否ではない。同じ設定画面へ別のsurface/CDP/command等で迂回してはならない。filechooserを21分再試行しておらず、Secret/credentials抽出/新しいRelease作成/添付なしPublishも行わない。固定draft編集画面をmarkHandoff。
+
+Goalはこのターン末にblockedへ変更する条件成立。Version1.0/Phase10未完成、Phase11〜12/Glass未完成。現在実行中handleなし、通常環境/Secret/spec保持。
+
+再開に必要: ユーザーがChromeのChatGPT拡張機能の「ファイルURLへのアクセスを許可する」を有効にして知らせる、または既存draftへ.test-output/public-release-88554ee/php-8.3-round-3/のsearch-startpage.tar / search-startpage.tar.sha256 / release.jsonを手動添付して知らせる。公開許可の再確認は不要。
+
+再開後: mandatory progress/status/git確認→既存draft https://github.com/choko1229/Search-StartPage/releases/edit/untagged-72001441869e998610f0 の3asset/tag/target/Pre-release確認→許可済み公開→実metadata preflight→両DB/両PHP各3回実取得・Apply/Migration/履歴/Rollback検証。旧a7dfb3cを公開せず、準備済み88554eeを使う。再開時のblocked監査は新たに数える。
+
 ## 最新の再開地点（2026-10-05・GitHub未公開下書き保存/添付制約継続）
 
 前ターンは固定修正済みbaseline/candidateの準備、guard検証、専用image準備と3aade72 main pushによる進捗。今回fresh DOMで添付list空・公開未実行を確認。新しいfile URL設定/手動添付の回答は未受領、setFilesを同じ条件で再試行していない。再起動で準備内容を失わないよう、許可済みv0.1.2-dev/target88554eeの内容をGitHub Save draftで保存。releases一覧でDraft表示、編集画面で「This is a draft and won’t be seen by the public unless it is published」、保存済みtag/target/説明/Pre-releaseと添付list空を確認。公開ボタンは押していない。今回の進行は下書きの永続保存であり、実配布物取得成功ではない。

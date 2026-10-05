@@ -1,4 +1,10 @@
 # 実装と検証の記録
+## Phase10 添付条件の3ターン継続（2026-10-05）
+
+fresh DOMで保存済みdraftは3asset未添付。公開許可受領済み、添付設定/手動添付の回答未受領。同じ条件が初回失敗/下書き保存/今回の3連続goal turnで継続。準備/guards/images/draft保存が完了後は公開assetなしに必須実取得へ進む手がなく、blocked移行の条件成立。read-only chrome://extensions表示もBrowser URL policyが拒否、設定変更/迂回なし。これはsandbox auto-review拒否ではない。Product/DB/Tests変更なし・終了済み試験の反復なし。
+
+ユーザーのfile URLs設定変更または既存draftへの手動3files添付が必要。再開後は同じ88554ee candidate/draftから許可済み公開・実取得検証へ進む。公開許可を再質問しない。Phase10/11〜12/V1/Glass未完成、通常環境/Secret/spec保持。
+
 ## Phase10 未公開下書きの永続保存（2026-10-05）
 
 添付制約の回答未受領、fresh DOMで3files未添付を確認。許可済み内容をSave draftし、一覧のDraftと既存編集画面で未公開・tag v0.1.2-dev/target88554ee/Pre-releaseを確認。編集URL releases/edit/untagged-72001441869e998610f0、markHandoff/証拠.test-output/release-draft-saved.png。以後新しいdraftを作らずこの1件を継続する。保存自体は進捗、公開tag/asset/実取得成功ではない。公開許可は有効、file URLs設定または手動添付を待つ。Product/DB/Tests変更なし、終了済み試験の再実行不要。Phase10/11〜12/V1/Glass未完成。
