@@ -1,5 +1,7 @@
 # Phase 10 ゲート監査
 
+readiness補正（2026-10-05）: raw配列のrepo一致falseは設定キーが省略された観測で、アプリが使う既定repoを評価していなかった。App\Config::getの同じ既定値で再確認しconfigured=false/effective_repository_matches=true/explicit_repository_present=false。配布元は正しい既定値、未設定なのはToken。設定helperの項目は実読取と一致。実GitHub取得はまだ未確認で、設定は変更していない。
+
 最新サービス検証（2026-10-05）: live内guard配置の34831はfirst14/second5各3round・exit0と清掃成功。配置消失のリスクを解消するため、出荷unitのguard参照をOS管理の更新対象外pathへ変更し、root所有/非書込み・live側guard削除を追加。新VM63911 round1はfirst16/second5/両marker・清掃成功、round2実行中で全3回未確認。静的unit9/CLI25各3回8486 exit0、新配布4565も30/基盤40を両PHP各3回成功・exit0/清掃。soak11696/61720は両PHP round1の900秒7項目/176cycles成功・round2実行中、全3回/終了未確認。旧合格を変更後へ流用しない。実GitHub/Actions/実配布物通し検証は未達、Phase10進行中。
 
 2026-10-04、Phase9の明記完了条件を照合後に正式開始。判定: **進行中**。先行実装を作り直さず、既存証拠と残件を照合する。Version1.0未完成。

@@ -28,6 +28,8 @@ Actionsからダウンロードしたartifact ZIPを展開し、検証したtar�
 
 ## 非公開配布元
 
+2026-10-05補足: App\Config::getのアプリと同じ既定値で確認し、Token未設定、実効repositoryは対象に一致、repository明示キーは省略されている。raw配列でのrepo一致falseは既定値を評価しない観測だったため、配布元不一致として扱わない。設定helperはアプリが読むupdates.repository/tokenを正しく保存する。値を出さないreadinessは認証取得の成功を証明しない。
+
 現在の8099開発サイトはDocker内の `/var/www/app/config/config.php` を使い、ホスト側config/config.phpとは別。2026-10-04の値を出さない読取り確認ではupdates.token未設定。リポジトリのPowerShellで次を実行すると、非表示の対話入力でそのコンテナだけへ保存できる。
 
 ```powershell

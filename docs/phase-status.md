@@ -1,4 +1,8 @@
 # 実装と検証の記録
+## Phase10 GitHub readinessの既定値補正（2026-10-05）
+
+前のraw配列でrepo一致falseという観測は明示キーの不存在だけを示し、アプリの実効repo不一致ではなかった。UpdateChecksが使うApp\Config::getの既定値と同じ方法で読取り直し、configured=false/effective_repository_matches=true/explicit_repository_present=falseを確認。配布元は既定で正しく、実認証取得にはTokenが未設定。設定helperのupdates.repository/tokenは実読取と一致、設定やSecret値を出力・変更しない。VM63911はround1・2 first16/second5・両markerと清掃成功、VM3実行中で全3回未確認。soak11696/61720は両round2の360秒71cycles進行/全結果未確認。同じhandleを追跡する。Phase10進行中、11〜12未着手、V1未完成。
+
 ## Phase10 停止guardの更新対象外配置（2026-10-05）
 
 34831 exit0で変更前配置のfirst14/second5・各3round/両markerと清掃後prefix空を確認。旧直接stopのchild中断、新guardのchild完了/失敗表示/明示修復復帰を確定。live内guardは更新/復元で削除され得るため、出荷unitを更新対象外/usr/local/libexec/search-startpageのroot所有script参照へ変更。配布guardのOS管理者による設置手順をdocs/update-execution-service.mdへ記録、OS unit/guardはUpdaterから自動変更しない。通常環境・ホストには配置しない。
