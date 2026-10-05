@@ -35,14 +35,15 @@ try {
         && str_contains($source, "RestartSec=5\n"), 'foreground worker and failure restart configured');
     $check(str_contains($source, "User=www-data\n") && str_contains($source, "Group=www-data\n")
         && str_contains($source, "UMask=0077\n"), 'same web account and private creation mask');
-    $check(str_contains($source, "ExecStop=/usr/bin/php /srv/search-startpage/bin/update-execution-worker.php --stop\n")
+    $check(str_contains($source, "ExecStop=/bin/sh /srv/search-startpage/bin/systemd/stop-update-execution.sh\n")
+        && is_file(dirname(__DIR__).'/bin/systemd/stop-update-execution.sh')
         && str_contains($source, "TimeoutStopSec=infinity\n"), 'draining stop command has no manager timeout');
     $check(str_contains($source, "NoNewPrivileges=true\n") && str_contains($source, "PrivateTmp=true\n"),
         'privilege escalation and temporary directory isolation configured');
     $check(str_contains($source, "WantedBy=multi-user.target\n"), 'boot target install declaration exists');
 
     $bad = $root.'/missing-executable.service';
-    file_put_contents($bad, str_replace('ExecStop=/usr/bin/php ', 'ExecStop=/no-such-test-php ', $source));
+    file_put_contents($bad, str_replace('ExecStop=/bin/sh ', 'ExecStop=/no-such-test-php ', $source));
     [$code, , $error] = $verify($bad);
     $check($code !== 0 && str_contains($error, '/no-such-test-php'), 'validator rejects missing stop executable');
     $bad = $root.'/invalid-type.service';

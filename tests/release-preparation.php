@@ -24,6 +24,11 @@ try{
         $check($metadata['sha256']===hash_file('sha256',$destination.'/search-startpage.tar')&&$metadata['bytes']===filesize($destination.'/search-startpage.tar')&&file_get_contents($destination.'/release.json')===$out&&file_get_contents($destination.'/search-startpage.tar.sha256')===$metadata['sha256']."  search-startpage.tar\n",'published sidecar matches actual archive '.$channel);
         $check(!is_dir($destination.'/stage')&&(fileperms($destination)&0777)===0700&&(fileperms($destination.'/search-startpage.tar')&0777)===0600,'private output and stage cleanup '.$channel);
         $archive=file_get_contents($destination.'/search-startpage.tar');$check(!str_contains($archive,'generated_secret_marker')&&!str_contains($archive,'generated_private_data'),'private source excluded '.$channel);
+        $proofStage=$destination.'/proof-stage';(new App\Services\UpdatePackage())->verify($destination.'/search-startpage.tar',$proofStage,$version);
+        $wrapper=file_get_contents($proofStage.'/bin/systemd/stop-update-execution.sh');
+        $check($wrapper===file_get_contents($source.'/bin/systemd/stop-update-execution.sh')&&!str_contains($wrapper,"\r")
+            &&str_contains(file_get_contents($proofStage.'/bin/systemd/search-update-execution.service'),'ExecStop=/bin/sh /srv/search-startpage/bin/systemd/stop-update-execution.sh'),'release includes unchanged LF stop guard '.$channel);
+        $remove($proofStage);
     }
     [$exit,$out,$err]=$run('different-tag',$temporary.'/mismatch');$check($exit===1&&$out===''&&$err==="INVALID_UPDATE_PACKAGE\n"&&!file_exists($temporary.'/mismatch'),'wrong tag produces no output');
     [$exit,$out,$err]=$run('custom/test',$temporary.'/custom');$check($exit===1&&$out===''&&$err==="UPDATE_PACKAGE_EXISTS\n",'existing release is never overwritten');

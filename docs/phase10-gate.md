@@ -21,3 +21,5 @@
 次の具体的手順: 対象GitHub配布元のアクセス条件と実リリース配布経路を確認し、404や取得不能を成功・更新なしと扱わない。実asset検査・適用・復元の不足を監査する。秘密はGit/進捗へ記録せず、本番公開/pushは実行しない。systemd静的診断とCLIプロセス試験は実managerのboot/restartの証明ではない。今回の停止中失敗試験の詳細はdocs/update-fpm-http.mdに記録。
 
 2026-10-05実manager追加証拠: network none/host mount・portなしの専用QEMU VM内で出荷unitを配置し、session82489の全3roundでfirst9/second5、両完了marker、exit0と清掃後prefix空を確認。子drain/正常停止/制御清掃/待機中異常終了後restart/正常停止後非restart/子出力非露出/二度目OS boot自動起動・停止を確認。出荷worker/unit非変更。生成子の短時間検証で、長時間運用・ExecStop故障・実GitHub配布物の通し検証は残る。Phase10進行中を維持する。
+
+停止失敗対策の変更後（2026-10-05）: 出荷unitのExecStopを公開shell guardへ変更し、PHP stopが失敗してもMAINPID終了まで待つ。旧unitの82489通常成功は変更後の検証へ流用しない。静的unit9/既存CLI25各3回94340 exit0、新構文検査成功。旧直接stop負例と新guard正例の実VM比較は34831、実配布物へのLF guard含有はPHP8.2/8.3各3回19247で実行中。全終了は未確認。詳細はdocs/update-execution-service.mdとprogress.md。

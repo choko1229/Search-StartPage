@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase10 停止コマンド失敗への対策・比較検証中（2026-10-05）
+
+Files: bin/systemd/stop-update-execution.shと出荷unitのExecStop、.gitattributesのguard LF指定。既存PHP --stop後、systemd MAINPIDの終了まで待ち、失敗コードを維持する。managerによる停止終了後の強制終了へ更新中のsupervisorを渡さない。worker PHP/DB/API/UI非変更。停止書込み故障でworkerが終了しなければ、管理者の制御/保存領域修復と正常stop再発行まで待機する。shell自体の強制終了/OS喪失は保証外。
+
+Tests: 94340 exit0、静的unit9/既存CLI25各3回。PowerShell parser/diffと新shell/VM起動script構文各3回成功。release-preparation.phpへ4channelsの実stage/同一LF guard検査を追加し19247でPHP8.2/8.3各3回実行中、現在8.2 round2の30/基盤40まで成功、全終了未確認。
+
+VM: 最初88608はexit1/finally清掃、末尾ログに失敗ラベルなく原因未特定。run-vm失敗時マーカー表示を追加。34831で生成drop-inの旧直接stop負例→出荷guard正例→明示修復・通常bootを全3round実行中。専用VM1を確認、first14/second5/全終了・清掃未確認。既存82489の旧unit通常成功を変更後へ流用しない。
+
+Security/Next: network none/no mount/port/cap-drop ALL/no-new-privileges/VM NICなし・生成fixtureのみ。通常8099/8100/config/DB/users/worker非変更、Secret/spec非保存、push/公開/Windows再起動なし。同じ34831/19247を追跡し結果保存。長時間運用/Token設定後の実取得は残件。Phase10進行中、11〜12未着手、V1未完成。
+
 ## Phase10 VM出力経路の変更・実manager全3回成功（2026-10-05）
 
 66698はfirst9/second3の部分成功後に生成VMだけ意図的停止、exit1/finally清掃。停止原因は未確定。検証用proof unitの出力先をttyからjournal+consoleへ変更、VM限定diagnostics.shでPID/PPID/PGID/SID/STAT/wchan/commとunit状態だけを観測。args/env/config/秘密値は出さない。bootstrap/run-vm/PowerShell seed一覧に接続、出荷worker/unit・DB/API/UI非変更。

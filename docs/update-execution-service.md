@@ -1,5 +1,11 @@
 # 更新workerの常駐と停止
 
+2026-10-05停止失敗対策（検証中）: 出荷例のExecStopを `/bin/sh /srv/search-startpage/bin/systemd/stop-update-execution.sh` へ変更。既存PHPのstopを呼んだ後、systemdが渡すMAINPIDの終了を待ち、stopの終了コードを保持する。stopが失敗しても更新中の子を見守るsupervisorが終了する前にmanagerへ戻らない。通常のKillModeやRestart/TimeoutStopSecは保持。unitと一緒に公開scriptを配置し、配置先/PHPパスを変更する場合はscript側も合わせる。scriptは実行権限不要、Unix改行を必須としGit属性でLFを指定する。
+
+MAINPIDの終了を待つため、stopの書込みが失敗したままsupervisorが稼働し続ける場合は停止要求が待機し続ける。運用者が保存領域/所有者/制御の不具合を修復し、同じworkerへ正常なstopを再発行する。更新中のプロセスをkillして解消しない。shell自体の強制終了やOS/電源喪失を保護する保証ではない。
+
+静的unit9/既存CLI25各3回は94340 exit0。最初の故障試験88608はexit1/finally清掃で、末尾ログだけでは失敗項目を特定できず原因を断定しない。失敗マーカーを先に保存する表示を追加し、生成drop-inで旧直接stopと新guardを同じVMで比較する試験へ拡張。34831で全3round実行中、first14/second5の全成功・終了・清掃はまだ未確認。旧unitで成功した82489の証拠を変更後の証拠へ流用しない。
+
 最新のVM記録（2026-10-05）: 検証用proof unitをjournal+console出力へ変更し、独立したVM限定のprocess/unit観測を追加した。session82489は全3roundでfirst boot9項目/second boot5項目と両完了marker成功、終了exit0。各専用コンテナをfinallyで清掃し、専用prefix一覧空を確認。各round前のcommand4項目を各3回成功。実managerの通常起動・子drain・停止・待機中異常終了後restart・二度目OS bootの自動起動/停止を確認した。過去の部分成功・途中停止を全合格として扱わず、旧停止原因も未確定。
 
 観測はPID/PPID/PGID/SID/STAT/wchan/commとunit状態に限定し、引数・環境変数・configは読まない。出荷unit/workerは変更しない。診断fixtureはVM markerがある専用guest内のみ動く。長時間運用/ExecStop故障/実配布物更新をこの短いmanager試験で証明しない。下記の「未確認」や実行handleは当時の履歴であり、最新状態はこの冒頭とprogress.mdを参照する。

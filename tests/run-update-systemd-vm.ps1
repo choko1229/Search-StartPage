@@ -11,8 +11,8 @@ foreach($roundVmProof in 1..$Rounds){
   Invoke-VmProofDocker @('run','-d','--name',$containerVmProof,'--network','none','--cap-drop','ALL','--security-opt','no-new-privileges','-e','SEARCH_TEST_MODE=1','search-systemd-vm:20261004','sleep','infinity') | Out-Null;$createdVmProof=$true
   Invoke-VmProofDocker @('exec',$containerVmProof,'mkdir','-p','/seed')
   foreach($partVmProof in @('user-data','meta-data','network-config','bootstrap.sh','run-vm.sh','diagnostics.sh')){Invoke-VmProofDocker @('cp',"$workspaceVmProof/tests/fixtures/update-systemd-vm/$partVmProof","${containerVmProof}:/seed/$partVmProof")}
-  foreach($partVmProof in @('bin/update-execution-worker.php','bin/systemd/search-update-execution.service','tests/update-systemd-manager.php')){$leafVmProof=Split-Path $partVmProof -Leaf;Invoke-VmProofDocker @('cp',"$workspaceVmProof/$partVmProof","${containerVmProof}:/seed/$leafVmProof")}
-  Invoke-VmProofDocker @('exec',$containerVmProof,'sed','-i','s/\r$//','/seed/bootstrap.sh','/seed/run-vm.sh','/seed/diagnostics.sh')
+  foreach($partVmProof in @('bin/update-execution-worker.php','bin/systemd/search-update-execution.service','bin/systemd/stop-update-execution.sh','tests/update-systemd-manager.php')){$leafVmProof=Split-Path $partVmProof -Leaf;Invoke-VmProofDocker @('cp',"$workspaceVmProof/$partVmProof","${containerVmProof}:/seed/$leafVmProof")}
+  Invoke-VmProofDocker @('exec',$containerVmProof,'sed','-i','s/\r$//','/seed/bootstrap.sh','/seed/run-vm.sh','/seed/diagnostics.sh','/seed/stop-update-execution.sh')
   Invoke-VmProofDocker @('exec',$containerVmProof,'touch','/tmp/search-systemd-vm-test-only')
   Invoke-VmProofDocker @('exec',$containerVmProof,'php','-l','/seed/update-systemd-manager.php')
   foreach($commandRoundVmProof in 1..3){Invoke-VmProofDocker @('exec',$containerVmProof,'php','/seed/update-systemd-manager.php','--test-command')}

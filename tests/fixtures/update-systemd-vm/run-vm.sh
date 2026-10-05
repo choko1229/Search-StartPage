@@ -11,12 +11,14 @@ boot_vm() {
 }
 boot_vm
 if ! grep -q 'ISOLATED_SYSTEMD_FIRST_PASSED' /tmp/search-systemd-vm-console.log || grep -q 'ISOLATED_SYSTEMD_FAILED' /tmp/search-systemd-vm-console.log; then
+ grep 'PASS:\|ISOLATED_SYSTEMD_\|VM_FAILURE_STATE' /tmp/search-systemd-vm-console.log || true
  tail -n 65 /tmp/search-systemd-vm-console.log
  exit 1
 fi
 # Cold boot the same persisted guest disk after its requested reboot, without a TCG warm reset.
 boot_vm
 if ! grep -q 'ISOLATED_SYSTEMD_FIRST_PASSED' /tmp/search-systemd-vm-console.log || ! grep -q 'ISOLATED_SYSTEMD_BOOT_PASSED' /tmp/search-systemd-vm-console.log || grep -q 'ISOLATED_SYSTEMD_FAILED' /tmp/search-systemd-vm-console.log; then
+ grep 'PASS:\|ISOLATED_SYSTEMD_\|VM_FAILURE_STATE' /tmp/search-systemd-vm-console.log || true
  tail -n 65 /tmp/search-systemd-vm-console.log
  exit 1
 fi

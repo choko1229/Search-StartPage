@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・Phase10 停止失敗対策の比較検証中）
+
+前ターンfc37a13は出荷旧unitの通常manager動作14項目各3回成功・清掃による進捗。今回はExecStop失敗時に残存プロセスをmanagerが終了させる仕様を公式sourceで確認し、出荷unitのExecStopにbin/systemd/stop-update-execution.shを追加。既存PHP --stop後にsystemd MAINPID終了を待ち、失敗コードを保持。通常KillMode/Restart/TimeoutStopSecは保持。worker PHP/DB/API/UI非変更、通常8099/8100への配置・再起動なし。
+
+検証: unit9/既存CLI25各3回94340 exit0。変更後PowerShell parser/diffと新shell/VM起動script構文各3回成功。配布準備は19247でPHP8.2/8.3各3回実行中、現在PHP8.2 round2の30項目/基盤40まで成功、全終了は未確認。4channelsの実stageに同一LF guardとunit参照が含まれる試験を追加。
+
+最初の旧unit故障試験88608はexit1/finally清掃。末尾ログだけでは失敗ラベルを特定できず原因断定不可。run-vmの失敗時マーカー表示を追加し、34831で全3roundの比較を実行中。専用search-systemd-vm-1-20261004を確認。生成drop-inの旧直接stopで子中断の負例、新出荷guardで子完了と失敗表示、明示修復後の復帰、通常boot/stopも検証する。全first14/second5・全3round・最終exit・清掃は未確認。生存中の試験を再起動しない。
+
+次に実行すること:
+1. session34831と19247を同じhandleで継続確認。VMマーカー/故障前後の項目・全3round・exit/finally清掃を確認。観測timeoutのみで停止と扱わない。
+2. 実結果で関連docs/statusを更新・コミット。spec.mdは変更/stageしない。長時間運用はまだ未確認で、短時間試験を代用しない。
+3. Token設定完了後の秘密なしreadiness/非公開実GitHub release・asset取得。Phase10進行中、Phase11〜12未着手、V1/Glass/全DoD未完成。通常config/DB/users/worker・Secret/spec保持、push/公開/Windows再起動なし。
+
 ## 最新の再開地点（2026-10-05・Phase10 実systemd VM全3回成功）
 
 session66698はfirst9/second3の部分成功後に生成VMだけ意図的停止、exit1/finally清掃。成功扱いにしない。検証用proof unitの出力先をttyからjournal+consoleへ変更し、VM内だけのprocess状態観測を追加。出荷worker/unitは非変更。旧停止原因は未確定で、端末競合を証明したとは扱わない。

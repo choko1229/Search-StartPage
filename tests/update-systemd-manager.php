@@ -48,7 +48,7 @@ try{
   $check(!is_file($storage.'/update-execution-worker.stop')&&filesize($storage.'/update-execution-worker.lock')===0,'booted worker clears singleton identity and stop marker');
   echo "ISOLATED_SYSTEMD_BOOT_PASSED $count\n";flush();$command(['systemctl','poweroff','--no-block']);exit(0);
  }
- $runner='<?php $s=__DIR__."/../storage";file_put_contents($s."/started","yes");if(is_file($s."/slow"))usleep(8000000);file_put_contents($s."/completed","yes");echo "generated-private-child-output";';
+ $runner='<?php $s=__DIR__."/../storage";file_put_contents($s."/started","yes");if(is_file($s."/slow"))usleep(8000000);if(is_file($s."/fault-slow"))usleep(30000000);file_put_contents($s."/completed","yes");echo "generated-private-child-output";';
  file_put_contents($root.'/bin/run-update.php',$runner);chmod($root.'/bin/run-update.php',0644);chown($root.'/bin/run-update.php','www-data');
  file_put_contents($storage.'/slow','yes');chown($storage.'/slow','www-data');
  $command(['systemctl','enable',$unit]);$command(['systemctl','start',$unit]);
@@ -71,6 +71,25 @@ try{
  $check($property('ActiveState')==='inactive'&&(int)$property('NRestarts')===$restarts,'normal manager stop does not restart worker');
  $journal=$command(['journalctl','-u',$unit,'--no-pager','-o','cat'])[1];
  $check(!str_contains($journal,'generated-private-child-output'),'service journal excludes child private output');
+ // Compare the old direct stop with the shipped guard on the same generated child.
+ foreach([true,false] as $legacyStop){
+ $dropin='/etc/systemd/system/'.$unit.'.d';
+ if($legacyStop){mkdir($dropin,0755);file_put_contents($dropin.'/generated-baseline.conf',"[Service]\nExecStop=\nExecStop=/usr/bin/php /srv/search-startpage/bin/update-execution-worker.php --stop\n");}
+ else{unlink($dropin.'/generated-baseline.conf');rmdir($dropin);}
+ $command(['systemctl','daemon-reload']);$command(['systemctl','reset-failed',$unit]);
+ if(is_file($storage.'/started'))unlink($storage.'/started');if(is_file($storage.'/completed'))unlink($storage.'/completed');
+ file_put_contents($storage.'/fault-slow','yes');chown($storage.'/fault-slow','www-data');
+ $command(['systemctl','start',$unit]);$wait(fn()=>is_file($storage.'/started'));
+ file_put_contents($storage.'/update-execution-worker.stop','generated-corrupt-control');chmod($storage.'/update-execution-worker.stop',0600);chown($storage.'/update-execution-worker.stop','www-data');
+ $command(['systemctl','stop',$unit],false);
+ $check($legacyStop?!is_file($storage.'/completed'):is_file($storage.'/completed'),$legacyStop?'baseline direct failed stop aborts generated child':'failed stop CLI does not abort active child');
+ $check($property('ActiveState')==='failed'&&$property('Result')==='exit-code','failed stop remains visible to manager');
+ unlink($storage.'/fault-slow');unlink($storage.'/update-execution-worker.stop');
+ }
+ unlink($storage.'/started');unlink($storage.'/completed');
+ $command(['systemctl','reset-failed',$unit]);$command(['systemctl','start',$unit]);$wait(fn()=>is_file($storage.'/completed'));
+ $command(['systemctl','stop',$unit]);
+ $check($property('ActiveState')==='inactive'&&$property('Result')==='success','service recovers after explicit control repair');
  unlink($storage.'/completed');file_put_contents($storage.'/verify-second-boot','yes');
  echo "ISOLATED_SYSTEMD_FIRST_PASSED $count\n";flush();$command(['systemctl','reboot']);
 }catch(Throwable $e){echo "ISOLATED_SYSTEMD_FAILED ".$e->getMessage()."\n";echo "VM_FAILURE_STATE ".$command(['systemctl','show',$unit,'--property=ActiveState','--property=SubState','--property=Job','--property=ControlPID'],false)[1]."\n";flush();$command(['systemctl','poweroff','--no-block'],false);exit(1);}
