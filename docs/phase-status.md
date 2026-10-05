@@ -1,4 +1,8 @@
 # 実装と検証の記録
+## Phase10 未公開下書きの永続保存（2026-10-05）
+
+添付制約の回答未受領、fresh DOMで3files未添付を確認。許可済み内容をSave draftし、一覧のDraftと既存編集画面で未公開・tag v0.1.2-dev/target88554ee/Pre-releaseを確認。編集URL releases/edit/untagged-72001441869e998610f0、markHandoff/証拠.test-output/release-draft-saved.png。以後新しいdraftを作らずこの1件を継続する。保存自体は進捗、公開tag/asset/実取得成功ではない。公開許可は有効、file URLs設定または手動添付を待つ。Product/DB/Tests変更なし、終了済み試験の再実行不要。Phase10/11〜12/V1/Glass未完成。
+
 ## Phase10 修正済み配布物・実取得検証準備（2026-10-05）
 
 固定5981e20/0.1.1-devのbaseline準備59623 exit0、VERSIONのみ0.1.2-devへ進め88554ee commit/main push。固定candidate87551 exit0。両sourceともPHP8.2/8.3各3回prepare-release/全PHP構文/manifest/hash/compatibility/基盤40成功・清掃prefix空。各tar236files/3516928bytes、baseline hash053dcbee9ac93dabb25a83e7fa5195a024923b93968e530abb6edc1a45d0e03e、candidate a5f630228ae70c82fce5ed1738b8848a2f0d0e688fc4981e3437f9c590479120、全ホストコピー照合。候補3filesは.test-output/public-release-88554ee/php-8.3-round-3、旧候補は失効。

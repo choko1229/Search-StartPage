@@ -1,4 +1,17 @@
 # 再開ポイント
+## 最新の再開地点（2026-10-05・GitHub未公開下書き保存/添付制約継続）
+
+前ターンは固定修正済みbaseline/candidateの準備、guard検証、専用image準備と3aade72 main pushによる進捗。今回fresh DOMで添付list空・公開未実行を確認。新しいfile URL設定/手動添付の回答は未受領、setFilesを同じ条件で再試行していない。再起動で準備内容を失わないよう、許可済みv0.1.2-dev/target88554eeの内容をGitHub Save draftで保存。releases一覧でDraft表示、編集画面で「This is a draft and won’t be seen by the public unless it is published」、保存済みtag/target/説明/Pre-releaseと添付list空を確認。公開ボタンは押していない。今回の進行は下書きの永続保存であり、実配布物取得成功ではない。
+
+保存済み編集URL: https://github.com/choko1229/Search-StartPage/releases/edit/untagged-72001441869e998610f0 。Chrome2/fixedReleaseTabをこの画面に戻しmarkHandoff。新しいrelease/newを作らず、この既存draftを継続する。証拠は.test-output/release-draft-saved.png。下の「Release未作成」は今回以前の記録で、今は未公開draftが1件存在、公開tag/assetは未作成。
+
+公開許可は引き続き有効、追加質問不要。残る条件は拡張機能のfile URLs許可またはユーザーの手動3files添付。通常環境/Secret/specは保持、現在実行中handleなし。準備・終了済み試験の反復は不要、Phase10 gate前に11へ進まない。Goal active/Version1.0未完成。
+
+次に実行すること:
+1. この下書き保存と再開URLを記録してmainへcommit/pushする。
+2. 添付制約の回答/手動添付をfresh DOMで確認し、既存draftへ検証済み3filesを添付。tag v0.1.2-dev/target88554ee/Pre-release/3assetsを確認して許可済みPublishを実行し、実画面とAPIを検証する。回答なしでfile URL権限を変更しない。同じ失敗を21分再試行しない。
+3. 公開後にrun-real-release-integration.ps1 -PreflightOnly→両DB/両PHP各3回の本試験。実Actions別ゲート。下の固定source/hash/Tests/image/guard情報を使用する。
+
 ## 最新の再開地点（2026-10-05・修正済み配布物準備完了/公開許可受領/Chrome添付制約）
 
 前ターンは5981e20修正・両DB各3回成功・191d0e1記録pushによる進捗。今回固定5981e203f9fb4958d119e75142f3f3aec4d2bec7/0.1.1-devを修正済みbaselineとしてgit archiveし、59623 exit0、PHP8.2/8.3各3回prepare-release/全PHP構文/manifest/hash/compatibility/基盤40成功・清掃。VERSIONのみ0.1.2-devへ進め88554eea76dbf5599b86dc14f41fcec5d544900cをmain commit/push。固定88554eeも87551 exit0で同じ両PHP各3回成功・清掃。www-data/network none/no host ports・mounts/cap-drop ALL/no-new-privileges/DB・実configなし。最後のsearch-public-release prefix空。
