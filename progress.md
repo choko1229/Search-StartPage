@@ -5,7 +5,7 @@
 
 必須の次手は非公開GitHubから実候補/search-startpage.tarを取得し、タグ/size/digestを確認して隔離DB・環境で適用/Migration/履歴/復元すること。最新readinessはToken未設定・実効repo一致。Token設定完了は未受領で現在実取得できない。実Actions/配信、本番配置の容量/所有者確認も未実施、push/公開/本番変更は自動実行しない。ローカル成功試験の反復は外部条件の代替にならない。
 
-ブロック監査: ローカル試験終了後の外部アクセス条件による真の待ちを今回1ターン目として確認。試験待ちだった以前のverified waitはこの連続数に含めない。現在実行中jobなし。Goalはまだactive、Phase10/V1未完成。次の継続でも同じ条件なら設定の有無だけを再確認し、他の必要かつ実行可能な手がないか確認する。同じ真の阻害条件が3ターン続き、進められなければblockedへ変更する。
+ブロック監査: ローカル試験終了後の外部アクセス条件による真の待ちを連続2ターン目として再確認（configured=false/effective_repository_matches=true、秘密なしread-only probe exit0）。試験待ちだった以前のverified waitはこの連続数に含めない。現在実行中jobなし。Goalはまだactive、Phase10/V1未完成。次の継続で同じ条件なら3ターン目となる。設定の有無だけを再確認し、他の必要かつ実行可能な手がないか確認する。同じ真の阻害条件が3ターン続き、進められなければblockedへ変更する。
 
 次に実行すること:
 1. Token設定の完了回答または秘密なしreadinessの変化を確認。ユーザーが非表示入力するbin/configure-updates.ps1とdocs/release-distribution.mdを準備済み。秘密をチャットに求めず、値を出力せず、設定を勝手に変更しない。
