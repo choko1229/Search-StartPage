@@ -1,4 +1,13 @@
 # 実装と検証の記録
+## 最新の再開地点（2026-10-06・実GitHub Actions両PHP成功）
+
+前ターンは配布asset不足のno progress/blocked。今回再開後exact公開APIでassets=[]は継続するが、公開済みtagを使用する独立した実Actionsゲートが実行可能と判断し進行。既存release-package.ymlはcontents:read/手動trigger/既存tag checkout/生成artifactのみでRelease添付・サイト適用を行わない。Chrome2からmain=5f3a643のworkflowをrelease_tag=v0.1.2-devで初回実行。
+
+run37329882104 completed/success、job111830042467 PHP8.2と111830042042 PHP8.3はcheckout/Prepare and verify canonical package/upload-artifact/cleanupすべてsuccess。UIと公開run/jobs APIで確認、成果物2件（IDs11353573267/11353991378、各2.51MB）が保存されている。実Actionsは1回のみであり、各3回のローカルprepare記録とは区別。証拠.test-output/actions-release-package-success.png、run URL https://github.com/choko1229/Search-StartPage/actions/runs/37329882104 。workflow開始commitは5f3a643、package checkout対象は指定した既存v0.1.2-dev（88554ee）。
+
+成果物zip取得はブラウザdownloadMediaがtimeout、fresh DOMでAzure配布先ERR_BLOCKED_BY_CLIENTを確認。取得/ローカルhash照合は未成功、別surface/URL/credentials等で迂回しない。Actions保存成功をRelease添付成功や実Updater成功とは扱わない。Node20→24強制移行の警告とubuntu-latest将来移行noticeあり、jobは成功だが記録する。公開repoのReleaseにはまだ3assetなし。
+
+Goal active/今回は実Actionsの新しい成功証拠によるprogress。Phase10 gate未完、Phase11〜12/V1未完成。次: 拡張file URLs反映または手動3asset添付→固定candidateの実preflight→両DB/両PHP各3回の実GitHub取得/Apply/Migration/履歴/Rollback。公開許可再確認・new release/タグ作成不要。生成物は旧.test-output/public-release-88554ee/php-8.3-round-3/の3filesを使い、未確認Actions zipで置き換えない。通常環境/Secret/spec保持。
 
 ## 最新の再開監査3（2026-10-06・配布asset不足継続/blocked）
 
