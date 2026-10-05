@@ -5,7 +5,7 @@ Packageが許可するvタグ差をUpdateRunnerのapply job/request比較が拒�
 
 Tests: update-runner.phpへvタグ実完了/履歴/手動復元/中断復旧、空schema確認後の清掃guard。run-update-runner.ps1は専用internal network/tmpfs DB/www-data app/cap-drop ALL、実Secret・通常環境に触れない。正例67426 exit0、PHP8.3でMySQL8.0/MariaDB10.11各3回Runner25・基盤40・Package64成功。PHP構文/parser/diff成功、finally後専用app/DB prefixと専用network一覧空。実GitHub取得・HTTP UI・PHP8.2の実DB試験の証拠ではない。既存権限/25件超履歴・audit再投影/後発お気に入り・同期保持のRegressionも成功。
 
-旧a7dfb3c配布候補/8d34b4e baselineは不具合を含むため配布対象から除外。旧候補への公開確認が後から届いても公開せず、修正済みbaselineと新0.1.2-devを固定commitから再準備する。Phase10/実Actions/11〜12/V1/Glass未完成。検証終了記録後に許可済みmain commit/push、実配布物試験の準備を継続。
+旧a7dfb3c配布候補/8d34b4e baselineは不具合を含むため配布対象から除外。旧候補への公開確認が後から届いても公開せず、修正済みbaselineと新0.1.2-devを固定commitから再準備する。修正は5981e20として許可済みmainへcommit/push、remote SHA一致確認・未追跡specだけを保持。Phase10/実Actions/11〜12/V1/Glass未完成、実配布物試験の準備を継続。
 
 ## Phase10 固定開発版配布準備（2026-10-05）
 
