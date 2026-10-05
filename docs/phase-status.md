@@ -1,5 +1,14 @@
 # 実装と検証の記録
 
+## 最新の再開監査3（2026-10-06・配布asset不足継続/blocked）
+
+前ターンはno progress。今回exact release公開APIでv0.1.2-dev/draft=false/prerelease=true/assets=[]を再確認。再開後3ターン連続で配布3asset不足が継続。準備/guards/images/固定source/公開版が既に揃っており、Phase10の必須実取得はこの3assetなしに進めない。設定反映完了の通知または手動添付が必要、同条件upload再試行・既存成功試験反復・設定画面迂回なし。Goal blockedへ変更、完成扱いにしない。
+
+再開: progress/status/git→既存 https://github.com/choko1229/Search-StartPage/releases/edit/v0.1.2-dev に固定.test-output/public-release-88554ee/php-8.3-round-3/のsearch-startpage.tar/search-startpage.tar.sha256/release.jsonを添付（既受領の公開許可内）→preflight→両DB/両PHP各3回実取得/Apply/Migration/履歴/Rollback。新release/タグ再作成不要。Phase10/11〜12/V1未完成、spec/Secret/通常環境保持。
+
+
+2026-10-06再開監査2: 前ターンは公開状態を初めて確認し再開URLを変更した進捗。今回GitHub公開API exact v0.1.2-devを確認しdraft=false/prerelease=true/assets=[]。同じ配布asset不足が継続、設定反映完了の通知なし、upload再試行/既存試験反復なし。進行可能な必須実取得はasset添付待ち。今回はno progressでgoal active、前回blockedからの再開監査は前ターン1・今回2（旧3回を流用しない）。公開済み編集画面をmarkHandoff。本試験未実行、Phase10/11〜12/V1未完成。
+
 2026-10-05追加: ユーザーがfile URLs有効化を選択。既存公開release編集画面で新しいfilechooserを取得し、固定3filesをtimeoutMs10000付きで1回再試行したが即時にAllow access to file URLs無効の同一エラー。添付成功ではない。設定の反映後の通知または手動添付が必要。公開許可再確認なし、再試行loop/設定画面迂回なし。
 
 ## Phase10 公開済み開発版を確認・配布asset未添付（2026-10-05）
