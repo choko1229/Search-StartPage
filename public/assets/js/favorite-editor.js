@@ -1,6 +1,7 @@
 import {t, node} from './i18n.js';
 import {favorites, folders, saveFavorite} from './favorites-store.js';
 import {rejectDisabled} from './site-policy.js';
+import {apiFetch} from './api-transport.js';
 const dialog = document.getElementById('favorite-editor');
 const form = document.getElementById('favorite-form');
 let request;
@@ -32,7 +33,7 @@ async function metadata() {
     const active=request;
     const status = document.getElementById('metadata-status'); status.textContent = t('loading_metadata');
     try {
-        const response = await fetch(`/api/favorites/metadata?url=${encodeURIComponent(url)}`,{signal:request.signal});
+        const response = await apiFetch(`/api/favorites/metadata?url=${encodeURIComponent(url)}`,{signal:request.signal});
         const result = await response.json();
         if (active!==request || form.elements.url.value !== url) return;
         rejectDisabled(result);

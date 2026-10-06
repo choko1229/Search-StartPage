@@ -6,6 +6,7 @@ import {t} from './i18n.js';
 import {favorites, folders} from './favorites-store.js';
 import {rankFavorites} from './favorites-core.js';
 import {rejectDisabled} from './site-policy.js';
+import {apiFetch,isOnline} from './api-transport.js';
 let controller;
 let sequence = 0;
 export function cancelSuggestions() { sequence++; controller?.abort(); }
@@ -36,10 +37,10 @@ export async function suggestions(query, mode, current, render, report=()=>{}) {
     }
     results.push({label: `${current?.name ?? t(mode + '_mode')} · ${text}`, category: t('search'), query: text, mode, providerId: current?.id});
     render(results);
-    if (!setting('externalSuggest', true) || text.length > 200) return;
+    if (!isOnline() || !setting('externalSuggest', true) || text.length > 200) return;
     controller = new AbortController();
     try {
-        const response = await fetch(`/api/search/suggest?q=${encodeURIComponent(text)}`, {signal: controller.signal});
+        const response = await apiFetch(`/api/search/suggest?q=${encodeURIComponent(text)}`, {signal: controller.signal});
         const payload = await response.json();
         if(generation !== sequence)return;
         rejectDisabled(payload);

@@ -2,6 +2,7 @@ import {get, set, setting, setSetting} from './store.js';
 import {presets} from './i18n.js';
 import {validProvider} from './search-core.js';
 import {orderProviders} from './search-preferences.js';
+import './installation-presets.js';
 export function providers(mode, enabledOnly = true) {
     const saved = get(`providers-${mode}`, null);
     const items = (Array.isArray(saved) ? saved : presets[mode]).filter(validProvider);

@@ -1,3 +1,4 @@
+import {apiFetch} from './api-transport.js';
 const endpoint='/api/backgrounds';
 const limits={image:25*1024*1024,video:500*1024*1024};
 function itemPath(id) {
@@ -5,7 +6,7 @@ function itemPath(id) {
     return endpoint+'/'+id;
 }
 async function json(url,options={}) {
-    const response=await fetch(url,{credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(15000),...options});
+    const response=await apiFetch(url,options);
     let payload;try{payload=await response.json();}catch{throw new Error('BACKGROUND_RESPONSE_INVALID');}
     if(!payload||typeof payload!=='object'||typeof payload.success!=='boolean')throw new Error('BACKGROUND_RESPONSE_INVALID');
     if(payload.error?.code==='FEATURE_DISABLED')throw new Error('FEATURE_DISABLED');
@@ -49,7 +50,7 @@ export async function downloadBackground(item,userId) {
     if(item.fileRevision!==undefined&&!/^[a-f0-9]{64}$/.test(item.fileRevision))throw new Error('INVALID_BACKGROUND');
     // Always derive the private endpoint; never fetch a URL supplied in metadata.
     const headers={...userId===undefined?{}:{'X-Background-Owner':identity(userId)},...item.fileRevision?{'If-Match':'"'+item.fileRevision+'"'}:{}};
-    const response=await fetch(path+'/file',{credentials:'same-origin',cache:'no-store',redirect:'error',headers,signal:AbortSignal.timeout(660000)});
+    const response=await apiFetch(path+'/file',{headers,signal:AbortSignal.timeout(660000)});
     async function reject(code){await response.body?.cancel().catch(()=>{});throw new Error(code);}
     if(response.status!==200)return reject('BACKGROUND_FILE_UNAVAILABLE');
     if(item.fileRevision&&response.headers.get('ETag')!=='"'+item.fileRevision+'"')return reject('BACKGROUND_FILE_REVISION_INVALID');

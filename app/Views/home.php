@@ -64,5 +64,5 @@
     <button type="button" id="open-ai-button"><?= $e($t->get('open_ai')) ?></button>
     <button type="button" data-close><?= $e($t->get('close')) ?></button>
 </dialog>
-<script type="application/json" id="search-bootstrap"><?= json_encode(['providers' => $data['providers'] ?? ['web' => [], 'ai' => []], 'messages' => $t->messages()], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?></script>
+<script type="application/json" id="search-bootstrap"><?= json_encode(['providers' => $data['providers'] ?? ['web' => [], 'ai' => []], 'messages' => $t->messages(), 'platform'=>$data['platform']??['kind'=>'web']], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?></script>
 <script type="module" src="/assets/js/search.js"></script>

@@ -17,10 +17,17 @@
         <a class="brand" data-header-item="brand" href="<?= $e($page) ?>"><?= $e($t->get('app_name')) ?></a>
         <a data-header-item="settings" href="#settings"><?= $e($t->get('settings_title')) ?></a>
         <a data-header-item="history" href="#history"><?= $e($t->get('history')) ?></a>
-        <a data-header-item="account" href="https://search.choko1229.net/account" target="_blank" rel="noopener"><?= $e($t->get('account')) ?></a>
-        <label for="extension-locale"><?= $e($t->get('language')) ?></label>
-        <select id="extension-locale"><option value="ja">日本語</option><option value="en">English</option></select>
+        <a data-header-item="account" href="<?= $e($serverOrigin) ?>/account" target="_blank" rel="noopener"><?= $e($t->get('account')) ?></a>
+        <div data-header-item="language">
+            <label for="extension-locale"><?= $e($t->get('language')) ?></label>
+            <select id="extension-locale"><option value="ja">日本語</option><option value="en">English</option></select>
+        </div>
     </header>
     <main id="main" tabindex="-1"><?= $content ?></main>
+    <footer><details>
+        <summary><?= $e($t->get('extension_startup_title')) ?></summary>
+        <p><?= $e($t->get('extension_startup_help')) ?> <a href="<?= $e($serverOrigin) ?>/" target="_blank" rel="noopener"><?= $e($serverOrigin) ?>/</a></p>
+        <p><?= $e($t->get('extension_account_help')) ?></p>
+    </details></footer>
 </body>
 </html>

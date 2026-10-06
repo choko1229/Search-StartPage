@@ -1,5 +1,6 @@
+import {apiFetch} from './api-transport.js';
 export async function request(url, options={}) {
-    const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000),...options});
+    const response=await apiFetch(url,options);
     const payload=await response.json();
     if(payload.error?.code==='FEATURE_DISABLED')throw new Error('FEATURE_DISABLED');
     return {status:response.status,data:payload.data};

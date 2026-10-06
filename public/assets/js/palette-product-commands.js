@@ -1,4 +1,5 @@
 import {get,setting,saveSettings} from './store.js';
+import {accountUrl} from './api-transport.js';
 import * as store from './store.js';
 import {createPaletteStorage} from './palette-storage.js';
 import {t} from './i18n.js';
@@ -19,10 +20,10 @@ export function registerProductCommands(registry,actions) {
     register('history:open',t('palette_open_history'),'commands','navigate',()=>actions.openHistory);
     register('favorite:add',t('add_favorite'),'commands','navigate',()=>()=>editFavorite());
     register('history:clear',t('clear_history'),'commands','state',storage.clearHistory);
-    register('account:login',t('discord_login'),'commands','navigate',()=>()=>location.assign('/account'));
+    register('account:login',t('discord_login'),'commands','navigate',()=>()=>location.assign(accountUrl()));
     register('account:logout',t('logout'),'commands','state',async()=>{
         await logoutPaletteAccount();
-        return ()=>location.assign('/account');
+        return ()=>location.assign(accountUrl());
     });
     for(const theme of ['solar','light','dark','os','forest','rose'])register('theme:'+theme,t('palette_theme')+': '+t('theme_'+theme),'commands','state',()=>saveSettings({theme},'appearance'),[],'theme-change');
     register('background:random',t('palette_random_background'),'commands','state',()=>{

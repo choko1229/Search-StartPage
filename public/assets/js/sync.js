@@ -7,6 +7,8 @@ import {request,syncUser as user,writeSync} from './sync-api.js';
 import {mergeSync,equal} from './sync-core.js';
 import {requireFeatures} from './site-policy.js';
 import {recordStatistic} from './statistics.js';
+import {isOnline} from './api-transport.js';
+import {refreshInstallationPresets} from './installation-presets.js';
 
 const panel=node('section',undefined,{'aria-label':t('sync_title'),class:'sync-panel'});
 const status=node('span',t('sync_ready'),{role:'status','aria-live':'polite'});
@@ -62,8 +64,9 @@ async function run() {
     if(session.busy) {rerun=true;return;}
     if(session.paused) {status.textContent=t('sync_later');return;}
     if(!setting('syncEnabled',true)) {status.textContent=t('sync_disabled');return;}
+    if(!isOnline()) {status.textContent=t('sync_offline');return;}
     button.disabled=true;status.textContent=t('sync_working');
-    try {await requireFeatures(['cloud_sync']);await flush();if(await session.run())void recordStatistic('feature',{feature:'sync'});}
+    try {await requireFeatures(['cloud_sync']);await refreshInstallationPresets();await flush();if(await session.run())void recordStatistic('feature',{feature:'sync'});}
     catch(error) {try {session.io.status(error.message==='FEATURE_DISABLED'?'site_disabled':'failed');} catch {status.textContent=t('sync_failed');}}
     finally {
         button.disabled=false;

@@ -1,4 +1,5 @@
 import {rejectDisabled} from './site-policy.js';
+import {apiFetch} from './api-transport.js';
 export function weatherRegion(value) {
     if(!value || typeof value!=='object' || !Number.isFinite(value.latitude) || !Number.isFinite(value.longitude) || Math.abs(value.latitude)>90 || Math.abs(value.longitude)>180)return null;
     return {latitude:Math.round(value.latitude*100)/100,longitude:Math.round(value.longitude*100)/100};
@@ -13,7 +14,7 @@ export function needsWeather(rows) {
     return rows.some(row=>{count=0;return row?.deleted!==true && visit(row?.rule);});
 }
 export class WeatherContext {
-    constructor({fetcher=(...args)=>globalThis.fetch(...args),clock=()=>Date.now(),changed=()=>{},status=()=>{}}={}) {
+    constructor({fetcher=apiFetch,clock=()=>Date.now(),changed=()=>{},status=()=>{}}={}) {
         Object.assign(this,{fetcher,clock,changed,status,key:null,cached:null,pending:null,retryAt:0,controller:null,generation:0});
     }
     read(value,needed=true) {

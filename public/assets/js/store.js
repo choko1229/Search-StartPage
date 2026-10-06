@@ -1,11 +1,13 @@
 import {openStateDatabase} from './store-database.js';
 import {recordSettings} from './settings-history.js';
-const key = 'search-startpage-v1';
+import {storageNamespace} from './api-transport.js';
+const namespace=await storageNamespace();
+const key = namespace.legacy;
 let state = {};
 try { state = JSON.parse(localStorage.getItem(key) || '{}'); } catch { /* Local storage may be disabled. */ }
 if (!state || typeof state !== 'object' || Array.isArray(state)) state = {};
 let database=null,initialError=null;
-try {database=await openStateDatabase(state);}catch(error){initialError=error;}
+try {database=await openStateDatabase(state,namespace.database);}catch(error){initialError=error;}
 if(database)state=database.initial;
 // Remove the obsolete copy only after the database transaction and readback
 // succeeded, so logout cleanup cannot leave a second copy of synced history.

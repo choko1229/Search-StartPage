@@ -23,8 +23,8 @@ try{
     $builder=new App\Services\ExtensionPackageBuilder();$output=$temporary.'/package';$result=$builder->build($source,$output);
     $manifest=json_decode(file_get_contents($output.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);
     $check($manifest['manifest_version']===3&&$manifest['chrome_url_overrides']===['newtab'=>'newtab.html'],'Manifest V3 replaces only New Tab');
-    $check(!isset($manifest['permissions'],$manifest['host_permissions'],$manifest['content_scripts'],$manifest['externally_connectable']),'packaging does not grant additional access');
-    $check($manifest['content_security_policy']['extension_pages']==="script-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none';",'packaged executable scripts only, no embedded remote frame');
+    $check($manifest['permissions']===['unlimitedStorage']&&$manifest['host_permissions']===['https://search.choko1229.net/*']&&!isset($manifest['content_scripts'])&&!isset($manifest['externally_connectable']),'only selected installation and local storage permissions, no public request bridge');
+    $check($manifest['content_security_policy']['extension_pages']==="script-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; connect-src 'self' https://search.choko1229.net;",'packaged executable scripts and selected server connections only, no remote frame');
     foreach(['ja'=>'newtab.html','en'=>'newtab-en.html'] as $locale=>$page){
         $html=file_get_contents($output.'/'.$page);
         $check(str_contains($html,'<html lang="'.$locale.'">')&&str_contains($html,'id="query"')&&str_contains($html,'id="favorites-grid"')&&str_contains($html,'src="/assets/js/search.js"'),'shared search/favorites entry in '.$locale);
@@ -32,6 +32,7 @@ try{
         $data=json_decode($boot[1],true,flags:JSON_THROW_ON_ERROR);
         $check($data['messages']===(new App\Helpers\Translator($source,$locale))->messages(),'complete shared translations in '.$locale);
         $check($data['providers']===App\Services\ProviderPresets::client(App\Services\ProviderPresets::validate(require $source.'/config/providers.php')),'shared provider presets in '.$locale);
+        $check($data['platform']===['kind'=>'extension','serverOrigin'=>'https://search.choko1229.net'],'compiled public server origin in '.$locale);
         $check(!str_contains($html,'<?php')&&!preg_match('/\son[a-z]+\s*=/i',$html)&&!str_contains($html,'_csrf'),'static page excludes PHP, executable inline handlers and server session tokens in '.$locale);
     }
     foreach($result['files'] as $path=>$hash){
@@ -53,6 +54,14 @@ try{
     $check(hash_file('sha256',$output.'/manifest.json')===$original,'existing package remains intact');
     $reject(fn()=>$builder->build($source,$source.'/nested'),'source directory output refused');
     symlink($temporary,$temporary.'/parent-link');$reject(fn()=>$builder->build($source,$temporary.'/parent-link/package-link'),'symlink parent refused');unlink($temporary.'/parent-link');
+    $local=$temporary.'/local-server';$builder->build($source,$local,'http://localhost:8115');
+    $localManifest=json_decode(file_get_contents($local.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);
+    $check($localManifest['host_permissions']===['http://localhost/*']&&str_contains($localManifest['content_security_policy']['extension_pages'],'connect-src \'self\' http://localhost:8115;'),'loopback development origin has an exact CSP and a single Chrome host pattern');
+    $check(str_contains(file_get_contents($local.'/newtab.html'),'http://localhost:8115/account'),'account link belongs to the selected server');
+    foreach(['http://server.example','https://user:password@server.example','https://server.example/?token=secret','https://server.example/#x','https://server.example/path','javascript:alert(1)'] as $origin)$reject(fn()=>$builder->build($source,$temporary.'/bad-origin',$origin),'unsafe server origin refused');
+    $version=file_get_contents($source.'/VERSION');file_put_contents($source.'/VERSION','99999.1.2');
+    $reject(fn()=>$builder->build($source,$temporary.'/bad-version'),'Chrome manifest version range enforced');file_put_contents($source.'/VERSION',$version);
+    $check(!file_exists($temporary.'/bad-origin')&&!file_exists($temporary.'/bad-version'),'rejected public settings create no output');
     file_put_contents($source.'/public/assets/js/unexpected.php','<?php');
     $reject(fn()=>$builder->build($source,$temporary.'/invalid'),'non-static asset refused');
     $check(!file_exists($temporary.'/invalid'),'failed build removes only its newly owned output');

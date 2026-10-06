@@ -1,6 +1,7 @@
 import {get,setMany} from './store.js';
 import {request} from './sync-api.js';
 import {StatisticsQueue} from './statistics-core.js';
+import {isOnline} from './api-transport.js';
 let timer;
 let initialized=false;
 async function persist(update) {
@@ -15,6 +16,7 @@ const queue=new StatisticsQueue({read:()=>get('statistics',null),write:persist,s
 }});
 async function deliver(){
     clearTimeout(timer);
+    if(!isOnline())return;
     try{await queue.flush();}catch{timer=setTimeout(deliver,60000);}
 }
 export async function recordStatistic(type,data={}) {
