@@ -1,4 +1,20 @@
 # 再開ポイント
+## Phase10 実配布物の更新・復元完了（2026-10-06）
+
+ユーザーの設定完了通知後にChrome3の既存v0.1.2-devへ固定88554eeのtar/sha256/release.jsonを添付・Update release。公開UIと実preflight exit0で3assetのsize/digest/tag/commit一致、proof .test-output/release-assets-published.png。旧添付ブロック解消。最初session72885はharnessに公開config/providers.phpのコピー不足でMigration015が失敗、exit1/finally清掃・専用prefix/network空。製品/配布物の不具合ではなく準備漏れ。公開providers.phpのみexact copy追加、実config directory/Secretはコピーしない。
+
+修正後session69311 exit0。MySQL8.0/MariaDB10.11 × PHP8.2/8.3 の4組各3回、全12roundが487項目成功。実GitHub metadata・asset取得、変更していないbaseline production bin/run-update.phpで0.1.1-dev→0.1.2-devへ更新、17Migration/履歴、全236candidate file hash、設定/upload byte保持、後発locale更新後のproduction CLI手動復元、全236baseline file hash、後発ユーザーデータ/17Migration/両監査履歴/設定/upload保持、incoming清掃・世代消費を確認。fixture transportなし、local candidateは独立file oracleだけ。PHP構文/PowerShell parser/diff成功、finally後dedicated app/DB prefixとnetwork一覧空。session72885/69311終了済み、同試験再起動不要。
+
+既存Phase10 gate9項目とspec104〜109/Phase10を照合し、実GitHub/Actions/通し更新の不足を解消。実Actions37329882104は両PHP successの1回、実asset通し試験は各3回。HTTP/FPM/自動復元/日英UI/guest排除/CSRF/4channel/backup/履歴/常駐serviceの証拠はdocs/phase10-gate.mdの対応表を参照。機能ゲート検証済み、Phase11へ移行可能。V1完成ではない。
+
+残る環境依存: 本番の配置・容量・所有者/OS停止故障全般、Windows native/networkFS/停電耐久、実OAuthと全browser/Glass最終調整は未確認。実Actions zip downloadは以前のbrowser blockで未成功、固定ローカルtarと実Release digest/適用hash照合の成功とは区別する。本番適用なし・通常8099/8100/Secret/spec保持。
+
+次に実行すること: Phase10の修正harnessとgate/statusをphase単位でcommit/push→spec110〜114/Phase11のNew Tab/共有UI・設定/クラウド背景/認証同期/列挙Offline機能と復帰同期を監査・実装。Extension実ロードは未確認、Phase12/全DoD未完成、goal active。
+## 最新の再開地点（2026-10-06・3配布asset公開/実取得検証開始）
+
+ユーザーが「設定した」と通知。Chrome接続inventoryが変わり旧ID2はiab、新ChromeはID3（extensionInstance9e54d706-26fa-4529-b9f4-7e25173615a4）。既存release編集v0.1.2-devで新filechooser、timeout10000、固定88554ee/php-8.3-round-3の3filesアップロード成功。添付list3件/Pre-releaseを確認しUpdate release。公開画面で3asset/name/size/digestとsource88554ee確認（Assets5には自動source2件も含む）。proof .test-output/release-assets-published.png。公開許可は既受領、再質問不要。旧設定不足ブロックは解消。
+
+run-real-release-integration.ps1 -PreflightOnly exit0、固定tag/commit/3asset全size/digest一致。続いて本試験session72885実行中、preflight成功/専用ネットワークDB作成、PHP8.2image rebuild中。まだ実Apply/Rollback成功とは扱わない。同handleを追跡し、終了/各両DB両PHP3回/cleanupを確認してからPhase10 gate監査。新しく同じ試験を起動しない。通常環境/Secret/spec保持、goal active/Phase10/11〜12/V1未完成。
 
 2026-10-06再開監査3（53b704e後・blocked）: 前turn no progress/blocked、今回goal activeとして再開。公開API exact v0.1.2-devはdraft=false/prerelease=true/assets=[]で変化なし。設定反映完了の通知なし、実Actionsは終了済み、ライブ待機handleなし。前ターンと今回ともno progress、再開監査3。同じ配布asset不足を連続3ターン確認。独立実Actionsを含む実行可能な準備は完了しており、外部設定反映または手動添付なしでは必須実取得に進めない。Goal blockedへ変更し停止。固定3asset不足により必須実取得が進められず、同条件uploadや完了済み試験を反復しない。既存release編集URL/固定88554ee candidateから設定反映または手動添付後に再開。Phase10/11〜12/V1未完成。
 

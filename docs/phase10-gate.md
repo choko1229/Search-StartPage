@@ -1,4 +1,25 @@
 # Phase 10 ゲート監査
+## 最終機能ゲート判定（2026-10-06）
+
+**Phase10機能ゲート検証済み、Phase11へ移行。Version1.0未完成。** 以下の古い未確認/許可待ち/失効a7dfb3c記録は当時の履歴。現在の固定配布元は公開v0.1.2-dev/source88554ee、tar3516928bytes/236files/SHA256 a5f630228ae70c82fce5ed1738b8848a2f0d0e688fc4981e3437f9c590479120。ユーザーが公開と3asset添付を許可し、設定完了後に添付・保存、実preflight成功。実Actions37329882104両PHPの生成とartifact保存もsuccess（1回、zip取得はbrowser blockで未成功）。
+
+実通し検証69311 exit0: MySQL8.0/MariaDB10.11 ×PHP8.2/8.3各3回、487項目×12。実GitHub取得とproduction CLI apply/rollback、17migration/履歴、両世代236file hash、config/upload保持、後発locale保持、incoming清掃/世代消費。local candidateは独立oracleのみ、fixture transportなし。最初72885の失敗はharness公開providers.phpコピー漏れで清掃後修正。終了後専用prefix/network空。PHP/PS構文/diff成功。
+
+| 完了条件 | 確認した証拠 |
+|---|---|
+| GitHub release check | 実公開tag/source/3asset metadata、UpdateChecks実取得、24h/manual/admin-only既存API・worker検証 |
+| channels | Stable初期値/Beta/Nightly/Custom保持と選択の既存検証、4channel配布4565両PHP各3回、実Custom v0.1.2-dev取得 |
+| update download | 固定公開tarの実production HTTPS取得、GitHub size/digest照合、実Actions両PHP生成 |
+| verification | 実candidate全236hash、PHP構文/health、独立FPM2mastersのHTTP37/基盤40両DB各3回53824 |
+| backup | 更新時だけの直前1世代、private保管/設定/upload保持、journal/rescue、実通し12回 |
+| migration | fresh17/repeat、実配布物apply/rollbackの17件保持、両DB両PHP各3回 |
+| rollback | 実CLI手動復元12回・後発データ保持、両DB/FPM Migration故障の自動復元29/基盤40各3回1594、実UI復元 |
+| history | 実配布物apply/rollback両監査履歴、既存transaction/再投影/配送/権限検証 |
+| admin UI | 日英390px/両DB実UI、CSRF/CAS/guest-user拒否、実worker停止復帰（docs/update-management-ui.md） |
+
+添付完了条件9項目、spec104〜109の流れ/通知/4channel/一世代/自動・手動Rollbackを照合。Phase単位の3回検証は両DBHTTP/実配布物/manager等の記録にあり、UI1巡やActions1回を3回としない。常駐serviceは実manager63911のfirst16/second5各3回・OS guard保持/停止故障比較/restart/二度boot、soak20197/42770独立15分×3を限定証拠として維持。
+
+本番の配置/容量/所有者、Windows native/networkFS、任意OS故障/停電耐久は環境依存で未確認。本番公開適用をこの判定から実行しない。実OAuth/全browser/最終Glass/性能/a11yはPhase12で監査。ExtensionはPhase11で実装・実ロード確認。これらはVersion1.0最終監査から除外しない。
 
 開発用実配布準備（2026-10-05）: VERSIONを0.1.1-devへ進めた固定a7dfb3cからcanonical assetをPHP8.2/8.3各3回生成・基盤40と合わせ成功（57307 exit0/清掃）。6tar同一3516928bytes/236files/hash b4106f580c17e6029c23e156f6d0e1aa1843c9fe0def227ddf8ef617addebd04。固定8d34b4eの旧0.1.0-dev成果物も準備済み。tag v0.1.1-dev/3assetを開発用prereleaseとして公開する許可は確認中で、実GitHub配布/取得/適用/復元は未確認。実Actionsも別の未確認範囲。ローカル成功だけでPhase10/V1を完了としない。
 

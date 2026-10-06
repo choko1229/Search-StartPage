@@ -48,6 +48,9 @@ try{
     $realApps+=$realApp
     Invoke-RealReleaseDocker @('exec',$realApp,'mkdir','-p',"$realRoot/config","$realRoot/tests")
     Invoke-RealReleaseDocker @('cp',"$realWorkspace/app","${realApp}:$realRoot/")
+    # Public provider defaults are needed by baseline migrations loaded through the test autoloader.
+    # Copy this exact tracked file; never copy the configuration directory or private config.php.
+    Invoke-RealReleaseDocker @('cp',"$realWorkspace/config/providers.php","${realApp}:$realRoot/config/providers.php")
     Invoke-RealReleaseDocker @('cp',"$realWorkspace/tests/real-release-integration.php","${realApp}:$realRoot/tests/real-release-integration.php")
     Invoke-RealReleaseDocker @('cp',$realBaseline,"${realApp}:$realRoot/baseline.tar")
     Invoke-RealReleaseDocker @('cp',(Join-Path $realCandidate 'search-startpage.tar'),"${realApp}:$realRoot/expected-candidate.tar")
