@@ -15,6 +15,8 @@ import './favorites.js';
 import './sync.js';
 import {favorites, openFavorite} from './favorites-store.js';
 import {initializeStatistics,recordStatistic} from './statistics.js';
+import {initializeOfflineMode} from './offline-mode.js';
+initializeOfflineMode();
 initializeStatistics();
 const input = document.getElementById('query');
 const select = document.getElementById('provider');

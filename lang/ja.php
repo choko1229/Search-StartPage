@@ -124,6 +124,8 @@ return [
     'sync_disabled'=>'同期はOFFです', 'sync_signed_out'=>'同期にはログインが必要です',
     'sync_working'=>'同期中…', 'sync_synced'=>'同期しました', 'sync_failed'=>'同期できませんでした。端末の変更は保持しています。',
     'sync_offline'=>'オフラインです。変更はこの端末に保存し、オンライン復帰後に同期します。',
+    'offline_local_mode'=>'オフラインの簡易表示です。端末内の設定・履歴・背景ファイルを使えます。変更はオンライン復帰後に同期します。',
+    'font_offline'=>'オフライン中は標準フォントで表示します。フォントの設定は保持しています。',
     'extension_startup_title'=>'Chromeの起動ページとログイン',
     'extension_startup_help'=>'新しいタブはこの拡張で開きます。Chrome起動時も開くには、Chrome設定の「起動時」→「特定のページまたはページセットを開く」で次のURLを追加してください。',
     'extension_account_help'=>'アカウント画面でDiscordにログインした後、新しいタブへ戻ると同期します。オフライン中の変更は端末に保存し、オンライン復帰後に同期します。',

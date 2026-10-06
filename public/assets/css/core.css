@@ -72,3 +72,6 @@ dd { margin: 0 0 1rem; }
 }
 
 .update-execution-status { overflow-wrap: anywhere; }
+.offline-notice { padding: .5rem .75rem; border: 1px solid var(--border); border-radius: .75rem; color: var(--text); background: var(--panel); }
+.offline-mode { --theme-duration: 0s; }
+.offline-mode *, .offline-mode *::before, .offline-mode *::after { animation: none !important; transition: none !important; }

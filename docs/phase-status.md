@@ -1,4 +1,19 @@
 # 実装と検証の記録
+## Phase11 Offline簡易表示・外部font抑制・locale補修（2026-10-06）
+
+前ターン78d4d71は実HTTP両DB各3回/生成候補・Web1巡のprogress。ロード完了通知は未受領。今回Chromeの現在inventoryを読取、対象タイトルを持つchrome-extension/newtabタブは見つからず（インストール未実行の証明ではない）。既存Web検証tabをmarkHandoff、Chrome settings URL制約を迂回しない。
+
+共通offline-mode.jsでaria-live status/端末内データを使う簡易表示、offline時のanimation/transition停止、onlineで復帰。同期通信停止/再開は前ターンの共通処理を維持。appearance.jsはonline状態をfont signatureに含め、OfflineでGoogle/custom font新規要求を出さず標準fontへ一時fallback、保存済みfont設定は変更せずonline/visibilityで再反映。これは外部fontの永続offline cacheではなく可読性を保つfallback。remote URL背景のoffline保存・全font/背景実動作は未確認・残件。
+
+locale-core.jsとmodule化extension-shellを追加。Browser ja→ja/他→en、保存済みchoice優先、明示locale query優先で、localStorageが無効/古いchoiceのままでも手動enja切替がredirectで戻されない。固定2pageだけへ遷移、不正locale/外部destinationは受け付けない。spec83はbrowser初期判定を指定し、locale cloud保存を明記しない。地域は既存settings同期で実Chrome確認を残す。
+
+Tests: 初期34138 JS37×3成功、追加後23614 exit0 JS39独立suite各3回/全JS構文成功。localeはblocked storage/explicit tab choice/invalid destination、Offline表示はネットワーク/設定読書きせずstatus1件/online復帰を検証。fontの実FontFace/Chrome通信はこの単体で成功扱いにしない。86093 exit0 PHP8.2/8.3生成185/基盤40各3回・構文成功、専用package prefix清掃済み。
+
+生存中の専用app marker/workspace candidate bounds/linkを確認し、app/public/lang/extensionだけを反映（config/DB/test loginは保持）。実CLI74filesから既存候補8対象filesをdependency→consumer→HTML順で更新、manifest SHA不変を確認。対象Folderは引き続き.test-output/extension-mysql-20261006 / extension-mariadb-20261006、同じ単一test host/unlimitedStorage/NewTab権限。候補を読み込み済みならChrome側Reloadが必要な可能性を残し、新しい権限を勝手に付けない。
+
+全検証handle終了、実UIの同じ4app/DBは維持、再生成/清掃はまだしない。通常環境/Secret/spec保持、DB/Migration/API変更なし。Phase11/12/V1未完・goal active。
+
+次: この補修/限定証拠をcommit/push→ロード完了を確認して既存Chrome候補の実Profile/Cookie/日英/NewTab/console/設定・履歴・fav・palette・clock/greeting・地域・背景・offline復帰を検証。回答待ちを経過時間で完了としない。remote URL背景/font offlineの不足を合理的に解消し、最後にcleanup-extension-http.ps1で専用env/生成ユーザー/入口を清掃。39suite/生成185を実Extension DoD成功に広げない。
 ## Phase11実HTTP両DB各3回成功・実Chromeロード待ち（2026-10-06）
 
 前ターン856d561は共通輸送/保存/既定設定のprogress。今回 fresh dedicated network search-extension-ui-20261006、app/DB exact4名、MySQL8/MariaDB10.11各tmpfs512MiB/extension_ui schema、新規configと通常権限の生成2ユーザーを準備。17Migration fresh/repeatを両DB確認・administrator0。通常8099/8100/config/Secretを使わず、公開HTTPは127.0.0.1:8115/8116だけ、DBにhost portなし。Weather外部呼出しはfixtureのみ無効。Appsはwww-data/cap-dropALL/no-new-privileges、host mountsなし。

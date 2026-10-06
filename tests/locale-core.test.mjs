@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {preferredLocale,localePage} from '../public/assets/js/locale-core.js';
+for(const language of ['ja','ja-JP','JA-jp'])assert.equal(preferredLocale(null,language),'ja');
+for(const language of ['en-US','fr',null,undefined])assert.equal(preferredLocale(null,language),'en');
+assert.equal(preferredLocale('en','ja-JP'),'en');assert.equal(preferredLocale('ja','en-US'),'ja');
+assert.equal(preferredLocale('unsupported','ja-JP'),'ja');
+assert.equal(preferredLocale('ja','ja-JP','en'),'en','explicit tab choice works even when storage still contains the old locale');
+assert.equal(preferredLocale(null,'ja-JP','en'),'en','blocked storage does not cause a redirect back to Japanese');
+assert.equal(preferredLocale('en','ja-JP','../../other'),'en');
+assert.equal(localePage('en','#settings'),'newtab-en.html?locale=en#settings');
+assert.equal(localePage('ja'),'newtab.html?locale=ja');
+assert.equal(localePage('en','https://other.example'),'newtab-en.html?locale=en');
+assert.throws(()=>localePage('javascript:alert(1)'),/LOCALE_INVALID/);
+console.log('Locale initial detection, persisted preference, blocked storage choice, tab routing and invalid destinations passed.');

@@ -124,6 +124,8 @@ return [
     'sync_disabled'=>'Sync is off', 'sync_signed_out'=>'Sign in to sync',
     'sync_working'=>'Syncing…', 'sync_synced'=>'Synced', 'sync_failed'=>'Sync failed. Your changes remain on this device.',
     'sync_offline'=>'Offline. Changes are saved on this device and will sync when you reconnect.',
+    'offline_local_mode'=>'Offline local view. Saved settings, history and local background files remain available. Changes sync when you reconnect.',
+    'font_offline'=>'Using a system font while offline. Your font preference is preserved.',
     'extension_startup_title'=>'Chrome startup page and sign-in',
     'extension_startup_help'=>'This extension opens new tabs. To open the site when Chrome starts, go to Chrome Settings → On startup → Open a specific page or set of pages, then add this URL.',
     'extension_account_help'=>'Sign in with Discord on the account page, then return to a new tab to sync. Offline changes stay on this device and sync when you reconnect.',

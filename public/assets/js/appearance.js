@@ -3,6 +3,7 @@ import {t,node} from './i18n.js';
 import {palettes,color,bounded,fontUrl,fontName,themePalette,greetingKey,searchStyles,widgetStyle,headerPreferences,animationLevel} from './appearance-core.js';
 import {syncUser} from './sync-api.js';
 import {regionSettings} from './region-settings.js';
+import {isOnline} from './api-transport.js';
 
 export function initializeAppearance() {
     const appearance=document.getElementById('settings-appearance'),general=document.getElementById('settings-general');
@@ -143,14 +144,15 @@ export function initializeAppearance() {
         root.style.setProperty('--theme-duration',`${reduced.matches?0:bounded(settings.themeTransition,0.75,0,5)}s`);
         root.style.fontSize=`${bounded(settings.fontSize,16,10,32)}px`;root.style.fontWeight=bounded(settings.fontWeight,400,100,900);root.style.lineHeight=bounded(settings.lineHeight,1.6,1,2.5);root.style.letterSpacing=`${bounded(settings.letterSpacing,0,-2,6)}px`;
         root.dataset.animation=animationLevel(settings.animationLevel,reduced.matches);
-        const signature=JSON.stringify([settings.fontMode,settings.googleFont,settings.customFontUrl]);
+        const online=isOnline();
+        const signature=JSON.stringify([settings.fontMode,settings.googleFont,settings.customFontUrl,online]);
         if(signature!==fontSignature) {
             fontSignature=signature;if(customFont)document.fonts.delete(customFont);customFont=null;googleLink?.remove();googleLink=null;
             fontStatus.textContent='';
             let family='system-ui, -apple-system, Segoe UI, sans-serif';
             if(settings.fontMode==='serif')family='Georgia, Times New Roman, serif';
             if(settings.fontMode==='mono')family='ui-monospace, Consolas, monospace';
-            if(settings.fontMode==='google' && fontName(settings.googleFont || 'Noto Sans')) {
+            if(online && settings.fontMode==='google' && fontName(settings.googleFont || 'Noto Sans')) {
                 const name=settings.googleFont || 'Noto Sans';googleLink=node('link',undefined,{rel:'stylesheet',href:`https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}&display=swap`});const link=googleLink;
                 fontStatus.textContent=t('font_loading');
                 const failed=()=>{if(googleLink===link){fontStatus.textContent=t('font_failed');root.style.fontFamily='system-ui, sans-serif';}};
@@ -158,17 +160,19 @@ export function initializeAppearance() {
                 link.addEventListener('load',()=>{document.fonts.load(`16px "${name}"`,'Aa').then(fonts=>{if(googleLink===link){if(fonts.length)fontStatus.textContent=t('font_loaded');else failed();}}).catch(failed);});
                 document.head.append(link);family=`${name}, sans-serif`;
             }
-            if(settings.fontMode==='custom' && fontUrl(settings.customFontUrl)) {
+            if(online && settings.fontMode==='custom' && fontUrl(settings.customFontUrl)) {
                 const face=new FontFace('StartpageCustom',`url(${JSON.stringify(fontUrl(settings.customFontUrl))})`);customFont=face;
                 fontStatus.textContent=t('font_loading');
                 face.load().then(loaded=>{if(customFont===face){document.fonts.add(loaded);root.style.fontFamily='StartpageCustom, sans-serif';fontStatus.textContent=t('font_loaded');}}).catch(()=>{if(customFont===face)fontStatus.textContent=t('font_failed');});
             }
+            if(!online && ['google','custom'].includes(settings.fontMode))fontStatus.textContent=t('font_offline');
             root.style.fontFamily=family;
         }
         renderDisplay();for(const read of controls)read();renderThemes();
     }
     window.addEventListener('data-change',event=>{if(event.detail==='settings')apply();});os.addEventListener('change',apply);reduced.addEventListener('change',apply);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)apply();});
+    window.addEventListener('online',apply);window.addEventListener('offline',apply);
     function tick(){if(!document.hidden)renderDisplay();setTimeout(tick,setting('clockEnabled',false)&&setting('clockSeconds',false)?1000:10000);}
     tick();
     setInterval(()=>{if(!document.hidden)apply();},60000);apply();

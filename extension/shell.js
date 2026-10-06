@@ -1,14 +1,14 @@
+import {preferredLocale,localePage} from './locale-core.js';
 const localeKey='search-extension-locale';
-const pages={ja:'newtab.html',en:'newtab-en.html'};
-let preferred;
-try {preferred=localStorage.getItem(localeKey);}catch {}
-if(!Object.hasOwn(pages,preferred))preferred=navigator.language.toLowerCase().startsWith('ja')?'ja':'en';
+let saved;
+try {saved=localStorage.getItem(localeKey);}catch {}
+const preferred=preferredLocale(saved,navigator.language,new URL(location.href).searchParams.get('locale'));
 const current=document.documentElement.lang;
-if(preferred!==current)location.replace(pages[preferred]+location.hash);
+if(preferred!==current)location.replace(localePage(preferred,location.hash));
 const select=document.getElementById('extension-locale');
 select.value=current;
 select.addEventListener('change',()=>{
-    if(!Object.hasOwn(pages,select.value))return;
+    if(!['ja','en'].includes(select.value))return;
     try {localStorage.setItem(localeKey,select.value);}catch {}
-    location.replace(pages[select.value]+location.hash);
+    location.replace(localePage(select.value,location.hash));
 });

@@ -16,7 +16,7 @@
 | 8 | Palette §48–52 | 全8カテゴリ/5初期groups/ランキング/実操作/操作別確認と同期/reset/拡張登録/原子削除/Logout回復を実装。JS31、両DB認証43/Logout実HTTP6/確認同期4、日英/mobile/履歴再検索/拡張UI/専用実IndexedDB失敗回復を検証。docs/phase8-gate.mdで7完了条件を照合 | 機能ゲート検証済み（実OAuth等はPhase12へ留保） |
 | 9 | Admin §90–100/118 | 添付の完了条件10項目をdocs/phase9-gate.mdで照合。権限実付与/解除、容量、匿名統計、DB/fileログ/監査、停止、flags/limits、presetsの両DB/API/日英UI証拠あり。独立2originの同期停止/復帰も確認。実OAuth/全browser等の未確認は保持 | 機能ゲート検証済み（未確認は後続Phaseで追跡） |
 | 10 | Update §104–109 | Phase9中の管理接続でチェック/4channel/配布物検査/backup/file+DB更新/Migration/自動・手動Rollback/history/UIを実装・先行検証済み。実公開88554ee/v0.1.2-devの両DB両PHP各3回487項目で取得/適用/復元と保持を検証。実Actions両PHP成功、既存FPM/自動復元/実managerも確認。docs/phase10-gate.md参照 | 機能ゲート検証済み（本番配置等は未確認） |
-| 11 | Extension §110–114 | Web home/favorites/JS/CSS/背景/日英の同一資産からMV3 static packageを生成。両PHP各3回179/基盤40、JS37suite各3回。共通API輸送・Offline通信抑制/復帰・server別保存・public presets共有を実装し単体検証。実HTTP19項目を両DB各3回成功（extension context/CookieはNode模擬）、Web1巡確認。実Chrome認証同期/Offline操作・復帰/実ロードは未確認 | 進行中 |
+| 11 | Extension §110–114 | Web home/favorites/JS/CSS/背景/日英の同一資産からMV3 static packageを生成。両PHP各3回185/基盤40、JS39suite各3回（Offline簡易表示/locale補修を含む）。共通API輸送・Offline通信抑制/復帰・server別保存・public presets共有を実装し単体検証。実HTTP19項目を両DB各3回成功（extension context/CookieはNode模擬）、Web1巡確認。実Chrome認証同期/Offline操作・復帰/実ロードは未確認 | 進行中 |
 | 12 | Quality §6/83/120–128 | 4ブラウザ、Mobile、a11y、セキュリティ、翻訳、性能、全回帰が必要 | 未着手 |
 
 ## 最終DoDの証拠方針

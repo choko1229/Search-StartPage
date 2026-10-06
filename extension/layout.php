@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/assets/css/core.css">
     <link rel="stylesheet" href="/assets/css/glass.css">
     <link rel="icon" href="/assets/icons/search.svg" type="image/svg+xml">
-    <script src="/assets/js/extension-shell.js" defer></script>
+    <script type="module" src="/assets/js/extension-shell.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main"><?= $e($t->get('skip_content')) ?></a>
