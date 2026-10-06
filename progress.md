@@ -1,5 +1,8 @@
 # 再開ポイント
 
+2026-10-06再開監査3（53b704e後・blocked）: 前turn no progress/blocked、今回goal activeとして再開。公開API exact v0.1.2-devはdraft=false/prerelease=true/assets=[]で変化なし。設定反映完了の通知なし、実Actionsは終了済み、ライブ待機handleなし。前ターンと今回ともno progress、再開監査3。同じ配布asset不足を連続3ターン確認。独立実Actionsを含む実行可能な準備は完了しており、外部設定反映または手動添付なしでは必須実取得に進めない。Goal blockedへ変更し停止。固定3asset不足により必須実取得が進められず、同条件uploadや完了済み試験を反復しない。既存release編集URL/固定88554ee candidateから設定反映または手動添付後に再開。Phase10/11〜12/V1未完成。
+
+
 2026-10-06再開監査3（08673b8後・blocked）: get_goal activeとして再開、前turnはno progress/blocked。exact公開release API assets=[]を確認、設定反映通知なし。同じ添付不足継続、実Actionsは完了済みで新規待機jobなし。今回はno progress、再開後3ターン連続で同じ添付不足を確認。独立実Actionsを含む準備が終了し、必須実取得に進むにはユーザーの設定反映通知または手動添付が必要。Goalをblockedに変更し停止する。既存upload失敗やdownload blockを反復/迂回せず、固定3files添付後だけ実preflight/本試験へ進む。Phase10/11〜12/V1未完成。
 
 
