@@ -1,4 +1,13 @@
 # 再開ポイント
+## Phase11開始・共有UIパッケージ生成（2026-10-06）
+
+Phase10は50dac6f main push/remote一致済み、69311終了・全12round/清掃済み。今回spec110〜114/Phase11とWeb home/favorites/views/modules、Chrome公式MV3/NewTab/CSP/通信仕様を確認し正式開始。ExtensionPackageBuilder/bin prepare-extension/extension layout・shellを追加。Webの同じhome/favorites、全JS/CSS/背景/日英翻訳・providerを静的生成、ManifestV3/newtab/CSP self/no iframe。既存出力/ソース内/parent symlink/非静的asset拒否、新規owned outputだけ清掃。config/DB/ユーザーデータを同梱しない。DB/Migration/API変更なし。
+
+最初86730はprovider defaults正規化漏れによるPHP Warningがあり成功扱いにしない。validate→clientへ修正しWarnings例外化、48487 exit0両PHP各3回160/基盤40成功。CLI自体のproc_open生成/metadata/manifest一致を追加して35485 exit0、PHP8.2/8.3各3回163/基盤40成功・構文/parser/diff/専用prefix清掃。実configなしnetwork none/www-data/cap-dropALL/host mount・portsなし。全handle終了。
+
+実CLIから70files生成成功、.test-output/extension-preview-20261006へコピー・生成環境清掃。生成物のmanifestがNewTab差替えを宣言することを検証しただけで、実Chromeへロードしていない。拡張内のAPIはまだ相対URLなのでサーバー輸送未接続。認証/同期/クラウド背景/全Offline機能/復帰同期/起動ページ案内/実ロード・Console/主要UIは未確認・未完。Phase11進行中、Phase12/V1未完成、goal active。通常環境/Secret/spec保持。
+
+次: この共有パッケージと限定証拠をcommit/push→共通API輸送を拡張の限定server origin/credentialsへ接続し、サーバーCSRF・権限・Sessionを維持→Offline時の不要な要求停止/ローカル機能/復帰時の同じsync・背景同期を検証。実Chromeロードには新しい拡張の権限とNewTab差替え範囲を具体化してから扱い、旧Chrome設定画面のBrowser URL制約を迂回しない。未完成パッケージを配布Releaseに添付しない。
 ## Phase10 実配布物の更新・復元完了（2026-10-06）
 
 ユーザーの設定完了通知後にChrome3の既存v0.1.2-devへ固定88554eeのtar/sha256/release.jsonを添付・Update release。公開UIと実preflight exit0で3assetのsize/digest/tag/commit一致、proof .test-output/release-assets-published.png。旧添付ブロック解消。最初session72885はharnessに公開config/providers.phpのコピー不足でMigration015が失敗、exit1/finally清掃・専用prefix/network空。製品/配布物の不具合ではなく準備漏れ。公開providers.phpのみexact copy追加、実config directory/Secretはコピーしない。
