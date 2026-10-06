@@ -1,4 +1,21 @@
 # Chrome拡張（Phase 11・実装中）
+## Phase11実HTTP両DB各3回成功・実Chromeロード待ち（2026-10-06）
+
+前ターン856d561は共通輸送/保存/既定設定のprogress。今回 fresh dedicated network search-extension-ui-20261006、app/DB exact4名、MySQL8/MariaDB10.11各tmpfs512MiB/extension_ui schema、新規configと通常権限の生成2ユーザーを準備。17Migration fresh/repeatを両DB確認・administrator0。通常8099/8100/config/Secretを使わず、公開HTTPは127.0.0.1:8115/8116だけ、DBにhost portなし。Weather外部呼出しはfixtureのみ無効。Appsはwww-data/cap-dropALL/no-new-privileges、host mountsなし。
+
+Authのremember cookie名は固定なので、通常localhostのCookieを壊さない専用extension-mysql.localhost / extension-mariadb.localhostへ分離。CLI/API origin guardをRFC6761の予約localhost下位名にも対応（外部HTTP、credentials/query/subpathは引き続き拒否）。Chromeで実名前解決・専用Webログイン画面・生成ユーザーのホーム/初回cloud選択/初回案内保留を確認。WebのJS初期化・プロフィール/検索/palette/favoritesをAXで確認、証拠 .test-output/extension-web-ready.png。Web1巡であり実Extension/実OAuth/全UI各3回ではない。
+
+失敗履歴: 25282はHTTP接続ECONNREFUSED。直接detach起動+ready待ち後8217も接続不可、13138の診断はcontainer内401/host ECONNREFUSED。専用bridgeへ変更した67936はhost HTTP404、Node Fetchがvirtual Hostを置換していた。HTTP検証側を固定loopback socketのnode:httpへ変更し、server発行Cookie/virtual Hostを保持（Browserではない）。28512は14項目通過後test画像のtype指定漏れINVALID_UPLOAD。各exit1/finallyで当該env清掃、製品成功とは扱わない。
+
+修正後17219 exit0、実HTTP19項目×MySQL/MariaDB各3round成功。guest/user/admin拒否、Web/extension役の独立deviceが同じ生成userへ結合、public presets、CSRF403/正当write/同revisionWebread/409conflict、別user owner403/別userread隔離、offline無送信/復帰writeとWebread、multipartPNG upload/byte一致download/Webbackgroundread/別owner拒否/unsafe URL422。extension役はruntime contextとCookie jarをNodeで模擬し、実サーバーへ通信した証拠。Chrome privilege/SameSite/Cookie自動転送の証拠ではない。
+
+4426 exit0 JS37独立suite各3回、35595 exit0 PHP8.2/8.3の生成181/基盤40各3回、PHP/JS/PS構文とdiff成功。sync-http/extension-httpは引数と専用fixtureが必要なので独立suiteから除外。検証worker handleは終了、実UI用4containersはKeepReadyで稼働を確認、これは終了後清掃済みとは記録しない。
+
+実CLIから両72files候補を.test-output/extension-mysql-20261006 / extension-mariadb-20261006へ保存。MySQL候補はsingle http://extension-mysql.localhost/* host permission/unlimitedStorage/NewTab override、CSP connect exact8115、remote scripts/frameなし。旧localhost候補は履歴、今回の実ロード対象にしない。cleanup-extension-http.ps1を準備し、exact network membership/app marker/DB tmpfs確認後のみ4containers/networkを削除する（まだ未実行）。temporary loginはtests内のguarded routerから生成通常userのみ、public/出荷物へ入らない。
+
+ユーザーへChrome内部設定URLはBrowser policyで操作できないため、MySQL候補フォルダーのLoad unpacked→NewTabを手動で行い完了通知するようasync質問。新しいタブ変更/限定test host通信/端末内保存を説明済み。回答・実ロード完了は未確認、Chrome settingsをCLI/CDP/native等で迂回しない。Web検証tabをmarkHandoff。現段階Phase11/12/V1未完成、goal active。
+
+次: この実HTTPfixture・localhost分離・限定証拠をcommit/push。環境を再生成せず生存している同じ4名/hostから続ける。ユーザーのロード完了後に実Chrome NewTab/console/日英/設定・fav・history・palette・clock/greeting・背景/cloud同期・offline復帰を検証し、次にMariaDB候補も確認。remote URL背景/fontのoffline可用性・locale/地域共有の残件を監査。完了後にtemporary accounts/entry/envとtest extensionを清掃し、cleanup実行を記録。Loaderが必要なまま完了と推測しない。本番適用なし/spec非変更。
 ## Phase11共通API・Offline制御・サーバー別保存・既定設定共有（2026-10-06）
 
 前ターン6b105b5は共有UI生成のprogress。今回共通api-transport.jsを追加、sync/background/metadata/suggest/weather/site-policy/statistics/palette account導線へ接続。Webは同じ相対API/same-origin、拡張はcompiled server originへcredentials include、cache no-store/redirect error固定。API経路は既知の検索/同期/背景/user/CSRF/logout/public presets等だけ、絶対URL/相対traversal/encoded path/制御文字/管理APIを拒否。任意URL proxy/message bridgeなし。ServerのCSRF/Auth/所有権検証は変更しない。ネットワーク輸送の単体証拠で実Chrome Cookie成功とは扱わない。

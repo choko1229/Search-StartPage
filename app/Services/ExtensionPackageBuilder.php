@@ -14,7 +14,7 @@ final class ExtensionPackageBuilder
             ||isset($url['user'])||isset($url['pass'])||isset($url['query'])||isset($url['fragment'])
             ||($url['path']??'/')!=='/'||!filter_var($serverOrigin,FILTER_VALIDATE_URL)||!preg_match('/^(?:[A-Za-z0-9.-]+|\[::1\])$/D',$url['host'])
             ||!in_array($url['scheme'],['http','https'],true)
-            ||($url['scheme']==='http'&&!in_array(strtolower($url['host']),['localhost','127.0.0.1','[::1]'],true)))throw new \RuntimeException('INVALID_EXTENSION_SERVER');
+            ||($url['scheme']==='http'&&!in_array(strtolower($url['host']),['localhost','127.0.0.1','[::1]'],true)&&!preg_match('/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+localhost$/iD',$url['host'])))throw new \RuntimeException('INVALID_EXTENSION_SERVER');
         $serverOrigin=$url['scheme'].'://'.strtolower($url['host']).(isset($url['port'])?':'.$url['port']:'');
         $hostPermission=$url['scheme'].'://'.strtolower($url['host']).'/*';
         UpdatePackagePaths::directory($source);

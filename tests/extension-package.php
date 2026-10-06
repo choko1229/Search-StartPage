@@ -58,6 +58,10 @@ try{
     $localManifest=json_decode(file_get_contents($local.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);
     $check($localManifest['host_permissions']===['http://localhost/*']&&str_contains($localManifest['content_security_policy']['extension_pages'],'connect-src \'self\' http://localhost:8115;'),'loopback development origin has an exact CSP and a single Chrome host pattern');
     $check(str_contains(file_get_contents($local.'/newtab.html'),'http://localhost:8115/account'),'account link belongs to the selected server');
+    $virtual=$temporary.'/virtual-server';$builder->build($source,$virtual,'http://extension-mysql.localhost:8115');
+    $virtualManifest=json_decode(file_get_contents($virtual.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);
+    $check($virtualManifest['host_permissions']===['http://extension-mysql.localhost/*'],'reserved localhost domain isolates the development host permission');
+    $check(str_contains(file_get_contents($virtual.'/newtab.html'),'http://extension-mysql.localhost:8115/account'),'development account link uses the isolated cookie host');
     foreach(['http://server.example','https://user:password@server.example','https://server.example/?token=secret','https://server.example/#x','https://server.example/path','javascript:alert(1)'] as $origin)$reject(fn()=>$builder->build($source,$temporary.'/bad-origin',$origin),'unsafe server origin refused');
     $version=file_get_contents($source.'/VERSION');file_put_contents($source.'/VERSION','99999.1.2');
     $reject(fn()=>$builder->build($source,$temporary.'/bad-version'),'Chrome manifest version range enforced');file_put_contents($source.'/VERSION',$version);

@@ -12,7 +12,8 @@ assert.equal(apiTarget('/api/favorites/metadata?url=https%3A%2F%2Fother.example'
 for(const path of ['https://other.example/api/user','//other.example/api/user','/api/../admin','/api/backgrounds/../../user','/api/backgrounds/%2e%2e/file','/api/user#x','/api/user\n','/api//user','/api\\user'])assert.throws(()=>apiTarget(path,context),/API_PATH_INVALID/);
 for(const path of ['/api/admin/users','/auth/login','/api/arbitrary','/api/backgrounds/id/download'])assert.throws(()=>apiTarget(path,context),/API_PATH_INVALID/);
 for(const serverOrigin of ['http://server.example','https://user:password@server.example','https://server.example/path','https://server.example/?key=secret','https://server.example/#x','file:///tmp','javascript:alert(1)','https://server.example/../'])assert.throws(()=>apiTarget('/api/user',{extension:true,serverOrigin}),/SERVER_ORIGIN_INVALID/);
-for(const serverOrigin of ['http://localhost:8115','http://127.0.0.1:8115','http://[::1]:8115'])assert.equal(apiTarget('/api/user',{extension:true,serverOrigin}),serverOrigin+'/api/user');
+for(const serverOrigin of ['http://localhost:8115','http://127.0.0.1:8115','http://[::1]:8115','http://extension-mysql.localhost:8115'])assert.equal(apiTarget('/api/user',{extension:true,serverOrigin}),serverOrigin+'/api/user');
+for(const serverOrigin of ['http://localhost.example','http://example.localhost.example','http://.localhost','http://bad..localhost'])assert.throws(()=>apiTarget('/api/user',{extension:true,serverOrigin}),/SERVER_ORIGIN_INVALID/);
 
 const original=Object.fromEntries(['navigator','location','document','fetch'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
 let online=true,extension=false,calls=[],serverOrigin=context.serverOrigin;

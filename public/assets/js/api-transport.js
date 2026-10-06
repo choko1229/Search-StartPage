@@ -10,7 +10,7 @@ export function apiTarget(path,{extension=false,serverOrigin=null}={}) {
     if(typeof serverOrigin!=='string'||!/^https?:\/\/(?:[A-Za-z0-9.-]+|\[::1\])(?::\d{1,5})?\/?$/.test(serverOrigin))throw new Error('SERVER_ORIGIN_INVALID');
     let origin;try{origin=new URL(serverOrigin);}catch{throw new Error('SERVER_ORIGIN_INVALID');}
     if(origin.username||origin.password||origin.pathname!=='/'||origin.search||origin.hash
-        ||!(origin.protocol==='https:'||(origin.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(origin.hostname))))throw new Error('SERVER_ORIGIN_INVALID');
+        ||!(origin.protocol==='https:'||(origin.protocol==='http:'&&(['localhost','127.0.0.1','[::1]'].includes(origin.hostname)||/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+localhost$/i.test(origin.hostname)))))throw new Error('SERVER_ORIGIN_INVALID');
     if(!/^\/api\/(?:csrf|user|sync|site-policy|provider-presets|auth\/logout|statistics\/event|search\/suggest|favorites\/metadata|weather|backgrounds(?:\/(?:url|upload|receipts\/[a-f0-9]{64}|[A-Za-z0-9_-]{1,80}(?:\/(?:upload|file))?))?)$/.test(pathname))throw new Error('API_PATH_INVALID');
     return origin.origin+path;
 }
