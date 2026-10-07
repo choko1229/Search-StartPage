@@ -1,12 +1,12 @@
 # Phase 11 ゲート監査
 
-判定: **実装・限定検証済みの項目あり、ユーザーのロード完了通知を受領、実NewTab表示確認待ち。Phase11未完了、Phase12へ進めない。**
+判定: **実装・限定検証済みの項目あり、ユーザーのロード完了通知を受領、NewTab表示はユーザー確認済み、実拡張ログイン・同期・Offline確認待ち。Phase11未完了、Phase12へ進めない。**
 
 根拠はspec.md §110〜114、Phase11のManifest/New Tab/Shared UI/Sync/Offline Mode、および現在のコードと検証記録。Nodeのextension context/Cookie jarをChromeの実Cookie成功として扱わない。
 
 | 条件 | 現在の証拠 | 必須の残る確認 |
 |---|---|---|
-| Manifest / New Tab | ExtensionPackageBuilderのMV3/newtab宣言、static日英生成、PHP両版各3回190/基盤40 | 実Chrome読込・新しいタブ置換・CSP/Console |
+| Manifest / New Tab | ExtensionPackageBuilderのMV3/newtab宣言、static日英生成、PHP両版各3回190/基盤40 | 読込・NewTab表示はユーザー確認済み。実拡張のCSP/Consoleは未確認 |
 | Shared UI / Settings | Webのhome/favoritesと同一JS/CSS、全設定modal、server namespace分離、locale routing | 拡張での設定操作、Webとの往復共有・日英 |
 | Auth / Cloud Sync | 既存Auth/CSRF/ownerを維持、両DB実HTTP19各3回、生成通常user・Web1巡 | Chrome host permission/SameSite/Cookie、実拡張での同期・競合・logout |
 | Cloud Background | 同じbackground API/session、実multipart画像取得/byte一致/別owner拒否 | 実拡張のcloud背景、地域・条件・動画制御 |
@@ -23,3 +23,5 @@
 Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで拒否された範囲なので、CLI/CDP/native等の別経路で迂回しない。2026-10-07に旧candidate `.test-output/extension-mysql-20261006` のロード完了通知を受領。操作可能なChrome一覧には対象tabがなく、ユーザーへ新しいタブを開いて表示を知らせる確認を提示。新media candidateは別folderでoptional host宣言を追加しており、旧質問を新しいgrantとして扱わない。ロード完了後、表示された対象tab/URLから検証する。
 
 検証専用4containers/networkは現在維持。通常環境/本番/config/Secret/specは変更しない。実検証終了後にcleanup-extension-http.ps1で所有marker/network/tmpfsを確認して清掃し、その結果も記録する。
+
+2026-10-07: 手動検証手順は [phase11-manual-check.md](phase11-manual-check.md)。結果欄は未実行。ユーザーのNewTab表示確認とWebプロフィール成功を、実拡張の認証/同期/Offline完了へ広げない。
