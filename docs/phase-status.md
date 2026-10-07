@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase11 お気に入り表示の状態変化（2026-10-07）
+
+ユーザー「これでいい？」で再開しprogress/status/git確認。Chromeの専用Web両タブでお気に入りtwes / example.com、使用回数1を実DOM確認。前回空だったlistに項目が到着した。Web設定のクラウド同期ON・同期しましたを確認し、証拠 .test-output/favorite-arrived-20261007.pngを保存。
+
+ただし実拡張のtabは操作一覧に現れず、追加元が拡張かWebかは不明。同じoriginのWeb2タブはIndexedDB/BroadcastChannelを共有するため、両タブの一致だけをクラウド/実拡張成功にしない。ユーザーへ追加元（Chrome新しいタブの拡張 / 専用Web）の確認欄を提示。名前が提示したExtension check 1007と違っていても、それだけを不合格理由にしない。結果を受領して拡張→Webの実証範囲を判定し、Web→拡張の逆向きへ進む。
+
+実拡張Cookie/Offline/復帰/背景/両DBの残件を維持。Phase11/12/V1未完、通常環境/Secret/spec保持。専用Web2tabをhandoff。
+
 ## Phase11 実拡張同期の操作結果待ち（2026-10-07）
 
 前ターン6f84079は初回案内の拡張ログインリンクを修正したprogress。今回mandatory progress/status/gitと現在Chrome3のinventory/お気に入り領域を確認。操作可能なのは専用Web2タブ、実拡張tabなし。Webのお気に入りは空、提示済みExtension check 1007の追加・同期結果は未受領。未実施/未回答を同期不具合にも成功にも扱わない。remaining relative /accountはapi-transportのWeb用returnだけで、初回案内の修正は保存済み。
