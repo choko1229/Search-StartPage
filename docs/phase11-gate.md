@@ -25,3 +25,5 @@ Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで�
 検証専用4containers/networkは現在維持。通常環境/本番/config/Secret/specは変更しない。実検証終了後にcleanup-extension-http.ps1で所有marker/network/tmpfsを確認して清掃し、その結果も記録する。
 
 2026-10-07: 手動検証手順は [phase11-manual-check.md](phase11-manual-check.md)。結果欄は未実行。ユーザーのNewTab表示確認とWebプロフィール成功を、実拡張の認証/同期/Offline完了へ広げない。
+
+2026-10-08補修: 初回案内のaccountUrl、共通ヘッダーdata-header-item、認証eventで名前/ヘッダー更新、初回案内close後のsync dialog表示。JS41suite各3回、Webヘッダー3回、Web認証切替の限定確認、Web初回案内/同期表示順序3回を確認。実拡張/Offline合格へ拡大しない。重複modal修正de298c0以降はGitHub送信がserver errorで失敗し、remote main45553acのまま。実拡張接続または手動結果待ちでblocked。
