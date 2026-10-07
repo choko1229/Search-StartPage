@@ -1,4 +1,4 @@
-param([switch]$KeepReady)
+param([switch]$KeepReady,[switch]$SkipCandidate)
 $ErrorActionPreference='Stop'
 $extensionDocker='C:\Users\choko\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe'
 $extensionNode='C:\Users\choko\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe'
@@ -38,10 +38,12 @@ try{
    if($LASTEXITCODE -ne 0){throw 'Real extension HTTP verification failed'}
    Write-Output "Extension HTTP $extensionEngine round $extensionRound completed."
   }
-  $extensionOutput=Join-Path $extensionWorkspace ".test-output/extension-$extensionEngine-20261006"
-  if(Test-Path -LiteralPath $extensionOutput){throw 'Dedicated extension candidate already exists'}
-  Invoke-ExtensionHttpDocker @('exec',$extensionApp,'php','/tmp/search-extension-web/bin/prepare-extension.php','/tmp/extension-candidate',"http://$extensionVhost")
-  Invoke-ExtensionHttpDocker @('cp',"${extensionApp}:/tmp/extension-candidate",$extensionOutput)
+  if(!$SkipCandidate){
+   $extensionOutput=Join-Path $extensionWorkspace ".test-output/extension-$extensionEngine-20261006"
+   if(Test-Path -LiteralPath $extensionOutput){throw 'Dedicated extension candidate already exists'}
+   Invoke-ExtensionHttpDocker @('exec',$extensionApp,'php','/tmp/search-extension-web/bin/prepare-extension.php','/tmp/extension-candidate',"http://$extensionVhost")
+   Invoke-ExtensionHttpDocker @('cp',"${extensionApp}:/tmp/extension-candidate",$extensionOutput)
+  }
  }
  $extensionReady=$true
  if($KeepReady){Write-Output 'Dedicated Web/extension UI environments remain ready for actual Chrome verification.'}

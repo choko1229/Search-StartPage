@@ -1,4 +1,6 @@
-import {get,setting,saveSettings,setMany,backgroundFile} from './store.js';
+import {get,setting,saveSettings,setMany,backgroundFile,snapshot} from './store.js';
+import {saveOfflineMedia,canSaveOfflineMedia} from './background-offline.js';
+import {offlineCopyValues,backgroundAccount,offlineCopyGuard,offlineMediaTarget} from './background-offline-core.js';
 import {t,node} from './i18n.js';
 import {normalizeBackground,selectBackground,backgroundPresets} from './background-core.js';
 import {color,bounded} from './appearance-core.js';
@@ -74,6 +76,8 @@ export function initializeBackground() {
             await setMany(state=>{const patch={backgroundMode:'library',backgroundSelected:row.id};return {settings:{...state.settings,...patch},settingsHistory:recordSettings(state.settingsHistory,state.settings || {},patch,'background'),backgrounds:[...(Array.isArray(state.backgrounds)?state.backgrounds:[]).filter(item=>item?.id!==row.id),row]};},files);resetForm();void recordStatistic('feature',{feature:'background'});
         }catch(failure){error.textContent=t(['INVALID_UPLOAD','INVALID_UPLOAD_NAME','UNSUPPORTED_BACKGROUND_FORMAT','BACKGROUND_TOO_LARGE','BACKGROUND_MIME_MISMATCH','BACKGROUND_RULE_INVALID','background_invalid'].includes(failure.message)?failure.message:'storage_unavailable');}finally{saving=false;add.disabled=false;}
     });
+    let offlineSaving=false;
+    panel.append(node('p',t('background_offline_copy_help'),{class:'muted'}));
     function renderLibrary(){
         clearThumbnails();const generation=libraryGeneration;
         librarySort.value=['saved','name','favorite'].includes(setting('backgroundLibrarySort','saved'))?setting('backgroundLibrarySort','saved'):'saved';
@@ -89,6 +93,21 @@ export function initializeBackground() {
             const button=node('button',row.id.startsWith('preset-')?t(row.id):row.name,{type:'button',class:'secondary','aria-pressed':String(setting('backgroundSelected','')===row.id)});
             button.disabled=row.deleted===true;button.addEventListener('click',()=>saveSettings({backgroundMode:'library',backgroundSelected:row.id},'background').catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(button);
             wrapper.append(node('small',`${t(row.cloudSync?'background_sync_on':'background_local_only')}${row.fileId?' · '+(row.fileSize/1048576).toFixed(2)+' MiB':''}`));
+            let offlineTarget;try{offlineTarget=offlineMediaTarget(row);}catch{}
+            if(offlineTarget&&!row.id.startsWith('preset-')){
+                const offline=node('button',t('background_offline_copy'),{type:'button',class:'secondary'});offline.disabled=offlineSaving||!canSaveOfflineMedia(row);
+                if(!canSaveOfflineMedia(row))wrapper.append(node('small',t('background_offline_extension_required')));
+                offline.title=t('background_offline_copy_help');offline.addEventListener('click',async()=>{
+                    if(offlineSaving)return;offlineSaving=true;offline.disabled=true;error.textContent=t('background_offline_working');
+                    const before=snapshot(),intent={id:row.id,url:offlineTarget.url,type:row.type,account:backgroundAccount(before),selection:before.settings?.backgroundSelected??'',mode:before.settings?.backgroundMode??'theme'};
+                    try{
+                        const {file,metadata}=await saveOfflineMedia(row),id=crypto.randomUUID();
+                        await setMany(state=>offlineCopyValues(state,intent,id,metadata,t('background_offline_suffix')),[{id,blob:file}],offlineCopyGuard);
+                        error.textContent=t('background_offline_saved');
+                    }catch(failure){error.textContent=t(failure.message==='BACKGROUND_CHANGED'?'background_offline_changed':'background_offline_failed');}
+                    finally{offlineSaving=false;renderLibrary();}
+                });wrapper.append(offline);
+            }
             if(!row.id.startsWith('preset-')){
                 const favorite=node('button',t('background_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_favorite')}: ${row.name}`,'aria-pressed':String(row.favorite)});favorite.addEventListener('click',()=>setMany(state=>({backgrounds:(state.backgrounds || []).map(item=>item.id===row.id?{...item,favorite:item.favorite!==true}:item)})).catch(()=>{error.textContent=t('storage_unavailable');}));wrapper.append(favorite);
                 if(row.deleted!==true){const edit=node('button',t('edit_favorite'),{type:'button',class:'secondary','aria-label':`${t('background_edit')}: ${row.name}`});edit.textContent=t('background_edit');edit.addEventListener('click',()=>{editingId=row.id;for(const [key,input] of Object.entries(fields)){const value=row[key];if(input.type==='checkbox')input.checked=value??defaults[key];else input.value=input.type==='file'?'':String(value??defaults[key]);}try{rules.set(row.rule??null);}catch{error.textContent=t('BACKGROUND_RULE_INVALID');return;}form.dataset.pending='true';fields.name.focus();});wrapper.append(edit);}

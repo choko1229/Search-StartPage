@@ -1,4 +1,23 @@
 # 再開ポイント
+## Phase11 URL背景の端末用コピー・実画面保持確認・検証環境復旧
+
+前の保存済みcommitは29ec31d。未保存だった背景offline機能を継続し、background-offline-core/jsを追加。保存ボタンの明示操作でURL画像/動画を匿名credentials omit/redirect error/cache no-storeで取得、画像25MiB/動画500MiB・stream上限/declared size/MIMEと既存magic検証を通過後にFileと新規upload/localOnly/cloudSync=falseの項目をatomic IndexedDB保存。元URL項目は変更せず、端末用コピーはlogout後も残ると表示。copyの自動cloud uploadなし、選択変更/背景変更/owner変更を尊重し、CAS guardはbackgrounds/settings/history/ownership/checkpointsを含む。
+
+Extensionはclick内で対象scheme/host1件だけoptional permissionを要求。新規に得た一時grantはfinally remove、以前のgrant/required grantは保持。未許可ならfetchしない。ManifestにHTTP/HTTPS wildcardをoptional宣言し、remote script/frame不可は維持。connect-srcは匿名media取得に必要なHTTP/HTTPSへ対応し、認証APIは既存apiTargetのselected server/path/credentials guardを維持する。宣言はgrant成功ではない。Web Response CSP connect selfを弱めず、同一originコピーだけ実行可能、外部URLは拡張またはファイルimportを案内。
+
+実画面: 専用MySQL Webの生成通常userでsourceのHTTP絶対URLは既存Background validationが拒否、サイト内relative pathへ修正し保存。最初button node detachedはfresh AXで取り直し、2.28MiBの「Generated offline URL source （端末用コピー）」selected/sync OFFと成功status、元source retainedを確認。preset既定画像は元が既にpackagedなのでコピーbutton対象外。relative target解決を追加し、resource取得とmetadata CASはcanonical targetで比較。初期testのcopy.url==emptyは既存normalizeのnullに合わせ訂正。image credentialsなし/拒否・解除/MIME/サイズ/immutable source/owner・selection raceはNodeで検証。
+
+Tests: 41661/98167と47310/84019はexit0、JS41suite×3/両PHP生成190+基盤40各3回。relative補修後82990 exit0 JS41suite×3/全JS構文。185旧生成から2media assets+optional宣言で190、生成76files。PHP/PS syntaxとdiff成功。これらは実Chrome optional popup/Extension全UI/実offlineの成功ではない。
+
+環境変化: Browser保持確認で接続拒否、Docker Linux pipe不在を確認。既許可Docker DesktopをHidden起動、Engine29.8.0復旧後同じ4containersがExited255。DB tmpfsなので旧cloud data保持と扱わない。cleanup helperをstoppedでもownership markerだけcpしてnetwork/tmpfsを確認する方式へ補修、実cleanup exit0。run-extension-http -KeepReady -SkipCandidateでfresh環境復旧、9962 exit0 両DB17 fresh/repeat・通常生成2user/admin0・実HTTP19各3回成功、候補を上書きしていない。現在4containersは維持、後でcleanup実行が必要。
+
+新しいChrome Web tab1823783180で再読込後のlocal保持を確認。旧remember cookieは新DBで未認証（guest表示）、ブラウザの元source/端末copy2行とcopy selectedをread-only DOMで確認。background-media imgはsrc blob:/complete true/1672×941なので、再読込・サーバー再生成後も端末内Fileから描画。保存時 .test-output/background-device-copy.png、保持 .test-output/background-device-copy-retained.png。Webのsame-origin1巡/保持確認であり、Extension privilege/remote optional host/全UI3回を代替しない。tabをmarkHandoff。
+
+新media候補は.test-output/extension-media-copy-mysql-20261006 / extension-media-copy-mariadb-20261006に別生成、旧レビュー済みextension-mysql/mariadb候補（required hostだけ）は保持。新required host/unlimitedStorage/NewTabは旧と一致、追加はoptional hosts/connect policy。相対補修後3mediaJSを現envから更新してhost source hash一致・manifest不変。旧手動Load質問への回答は未受領なので、新media宣言をその承認として扱わずChromeへ勝手にinstall/grantしない。
+
+DB/Migration/Server API変更なし、通常8099/8100/Secret/spec保持。全検証handle終了、goal active/Phase11/12/V1未完。
+
+次: 未保存のmedia機能・stop/recovery補修・限定証拠をcommit/push。ユーザーの実ロードを確認して旧候補で基本NewTab/Auth/cloud/offlineを検証、新media候補のoptional操作は権限と保存先をreview可能な状態で扱う。実Chrome popup/console/日英/UI/地域/背景/clock/palette/shortcuts/Offline復帰、URL背景コピーの拡張動作とfont復帰、MariaDB実UIが未確認。新環境の再生成を反復せず既存4名を使用し、確認後にcleanupする。全DoD前に完了扱いにしない。
 ## Phase11 Offline簡易表示・外部font抑制・locale補修（2026-10-06）
 
 前ターン78d4d71は実HTTP両DB各3回/生成候補・Web1巡のprogress。ロード完了通知は未受領。今回Chromeの現在inventoryを読取、対象タイトルを持つchrome-extension/newtabタブは見つからず（インストール未実行の証明ではない）。既存Web検証tabをmarkHandoff、Chrome settings URL制約を迂回しない。

@@ -24,7 +24,8 @@ try{
     $manifest=json_decode(file_get_contents($output.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);
     $check($manifest['manifest_version']===3&&$manifest['chrome_url_overrides']===['newtab'=>'newtab.html'],'Manifest V3 replaces only New Tab');
     $check($manifest['permissions']===['unlimitedStorage']&&$manifest['host_permissions']===['https://search.choko1229.net/*']&&!isset($manifest['content_scripts'])&&!isset($manifest['externally_connectable']),'only selected installation and local storage permissions, no public request bridge');
-    $check($manifest['content_security_policy']['extension_pages']==="script-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; connect-src 'self' https://search.choko1229.net;",'packaged executable scripts and selected server connections only, no remote frame');
+    $check($manifest['content_security_policy']['extension_pages']==="script-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; connect-src 'self' https: http:;",'packaged executable scripts only and media fetch support, no remote frame');
+    $check($manifest['optional_host_permissions']===['https://*/*','http://*/*'],'remote media hosts remain optional rather than automatically granted');
     foreach(['ja'=>'newtab.html','en'=>'newtab-en.html'] as $locale=>$page){
         $html=file_get_contents($output.'/'.$page);
         $check(str_contains($html,'<html lang="'.$locale.'">')&&str_contains($html,'id="query"')&&str_contains($html,'id="favorites-grid"')&&str_contains($html,'src="/assets/js/search.js"'),'shared search/favorites entry in '.$locale);
@@ -56,7 +57,7 @@ try{
     symlink($temporary,$temporary.'/parent-link');$reject(fn()=>$builder->build($source,$temporary.'/parent-link/package-link'),'symlink parent refused');unlink($temporary.'/parent-link');
     $local=$temporary.'/local-server';$builder->build($source,$local,'http://localhost:8115');
     $localManifest=json_decode(file_get_contents($local.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);
-    $check($localManifest['host_permissions']===['http://localhost/*']&&str_contains($localManifest['content_security_policy']['extension_pages'],'connect-src \'self\' http://localhost:8115;'),'loopback development origin has an exact CSP and a single Chrome host pattern');
+    $check($localManifest['host_permissions']===['http://localhost/*'],'loopback development keeps a single required Chrome host pattern');
     $check(str_contains(file_get_contents($local.'/newtab.html'),'http://localhost:8115/account'),'account link belongs to the selected server');
     $virtual=$temporary.'/virtual-server';$builder->build($source,$virtual,'http://extension-mysql.localhost:8115');
     $virtualManifest=json_decode(file_get_contents($virtual.'/manifest.json'),true,flags:JSON_THROW_ON_ERROR);

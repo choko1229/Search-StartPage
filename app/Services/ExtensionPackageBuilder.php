@@ -51,7 +51,8 @@ final class ExtensionPackageBuilder
             $manifest=['manifest_version'=>3,'name'=>'search.choko1229.net','version'=>$match[1],'version_name'=>$version,
                 'description'=>'A personal search start page.','chrome_url_overrides'=>['newtab'=>'newtab.html'],
                 'permissions'=>['unlimitedStorage'],'host_permissions'=>[$hostPermission],
-                'content_security_policy'=>['extension_pages'=>"script-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; connect-src 'self' $serverOrigin;"]];
+                'optional_host_permissions'=>['https://*/*','http://*/*'],
+                'content_security_policy'=>['extension_pages'=>"script-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; connect-src 'self' https: http:;"]];
             $write('manifest.json',json_encode($manifest,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n");
             foreach(['ja'=>'newtab.html','en'=>'newtab-en.html'] as $locale=>$page){
                 $t=new Translator($source,$locale);$e=View::escape(...);
