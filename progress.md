@@ -1,6 +1,8 @@
 # 再開ポイント
 ## Phase11 初回案内と同期選択の重複表示修正（2026-10-08）
 
+保存状況: 修正commit de298c0はローカル保存済み。GitHub mainへのpushは2回ともremote Internal Server Errorで拒否、remote反映未確認。次ターンは同じcommitのpushを再試行し、成功として扱わない。認証情報/remote設定を変更していない。
+
 前ターン45553acは認証表示修正・JS41各3回のprogress。mandatory progress/status/gitから再開、現在Chrome3の操作一覧は専用Web1823783333のみ。reload後primaryプロフィール・twes保持を確認したが、初回案内6/7と最初の同期が同時openになった。
 
 sync-dialogsの既存serial queueを維持し、showSyncDialogがopenのonboardingのclose eventを待ってからshowModalするよう修正。初回案内の値/保存位置や同期選択は変更せず、ユーザー入力を自動採用しない。既存settingsとその確認dialogの意図された関係は変更しない。
