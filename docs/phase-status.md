@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## GitHub送信復旧・実拡張検証待ち（2026-10-08）
+
+前ターンは実拡張証拠不足とGitHub server errorをblockedとして保存。今回mandatory progress/status/gitから再開。同じmain pushがexit0、remote 45553ac→72d5a74を確認。de298c0の重複modal修正とf038967/72d5a74の記録を含む送信が成功し、GitHub送信ブロックは解消。Secret/remote設定の変更や代替経路は使っていない。
+
+Chrome3現在inventoryは専用Web1823783333のみ。実拡張の操作接続・twes追加元/実Sync/Offline手動結果は未受領。すでに完了した試験/環境準備を反復せず、Webを拡張の証拠へ拡大しない。この再開ターンのprogressはGitHub外部状態の復旧と未送信修正の公開反映であり、Phase11の未確認条件は残る。
+
+次: 操作可能な実拡張tabまたはdocs/phase11-manual-check.mdの実Chrome結果から再開。拡張での最新候補Reload・ログイン/Cookie/往復同期・Offline9機能/復帰・背景/権限/両DBUIを確認し、未確認が残る間はPhase12/V1を合格扱いしない。必要な確認欄は提示済み。通常環境/Secret/spec保持、専用Webtabをhandoff、cleanupは検証終了後。現在独立して合理的に進める既知の補修は保存済み。
+
 ## Phase11 実拡張確認とGitHub送信のブロック保存（2026-10-08）
 
 前ターンde298c0/f038967は重複modal修正・UI3回のprogress。mandatory progress/status/git/spec110〜114/gateから再開。GitHub再pushはremote Internal Server Errorでexit1。累計3attempt（前ターン2回/今回1回）失敗。ls-remote成功でremote main=45553ac1084feecb96be372ba59b17eb6be0393d、ローカルHEAD=f038967aca57478fea8238c4f5de371ea90ba3fcを確認し、重複modal修正と送信失敗記録の未反映を確定。認証/remote設定は変更せず、未知の代替送信手段を使わない。

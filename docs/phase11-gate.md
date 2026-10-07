@@ -27,3 +27,5 @@ Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで�
 2026-10-07: 手動検証手順は [phase11-manual-check.md](phase11-manual-check.md)。結果欄は未実行。ユーザーのNewTab表示確認とWebプロフィール成功を、実拡張の認証/同期/Offline完了へ広げない。
 
 2026-10-08補修: 初回案内のaccountUrl、共通ヘッダーdata-header-item、認証eventで名前/ヘッダー更新、初回案内close後のsync dialog表示。JS41suite各3回、Webヘッダー3回、Web認証切替の限定確認、Web初回案内/同期表示順序3回を確認。実拡張/Offline合格へ拡大しない。重複modal修正de298c0以降はGitHub送信がserver errorで失敗し、remote main45553acのまま。実拡張接続または手動結果待ちでblocked。
+
+2026-10-08送信復旧: main pushが成功し72d5a74まで反映。GitHub server errorの送信ブロックは解消。実拡張の操作接続/手動検証結果待ちは継続。
