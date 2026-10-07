@@ -1,4 +1,15 @@
 # 再開ポイント
+## Phase11 読み込み完了通知後の再開（2026-10-07）
+
+ユーザーから「よみこんだ」を受領し、旧MySQL候補の手動ロード完了通知として再開。旧「ロード回答未受領」の状態は更新する。ただし実Chromeの表示・Cookie・同期・Offline成功はまだ確認していない。
+
+progress/status/gitを再確認、開始時worktreeは未追跡spec.mdのみ。Chrome3のagent/user tab一覧は両方空。操作ツールのtabs.newはabout:blankを生成し、Chrome NewTab置換の証拠にはならなかった。内部URLを別手段で迂回せず、ユーザーへChromeの＋/Ctrl+Tで新しいタブを開き、表示結果を知らせる確認を提示。拡張の再インストールは要求していない。
+
+専用exact4コンテナはUp、127.0.0.1:8115/8116のpublic provider-presetsは正しいHostで双方HTTP200。既存環境・候補を再生成せず、終了済み41/190/19検証も反復しない。通常環境・Secret・spec保持。新media候補のoptional grantは未実行。Phase11未完・Phase12未着手・V1未完を維持。
+
+追記: ユーザーから「検索画面が表示された」を受領。NewTab置換はユーザーによる表示確認であり、こちらのDOM/Console/CSP検証ではない。Chrome3の再inventoryにも対象拡張tabは現れなかった。操作ツールで読める通常HTTPタブから専用MySQL /_test/login の生成通常ユーザーで開始し、プロフィールと Generated isolated extension primary の挨拶を実DOMで確認、初回案内はあとで続ける。warn/errorログ0、証拠 .test-output/extension-resume-login-20261007.png、Web tab1823783297はhandoff。拡張NewTab再読込後の同じプロフィール表示について確認欄を提示。これは通常Webの実ログイン成功であり、拡張のCookie/同期成功は回答・実証待ち。
+次: 実際に開かれた対象NewTabの観測済みURL/metadataから操作可能か確認し、基本NewTab/日英/Consoleと生成通常ユーザーの実Cookie・Web往復同期を検証。内部ページ操作がツールで禁止される場合は迂回せず、具体的な手動検証手順を準備する。実Offline各機能・復帰・media権限・MariaDBと終了後cleanupは残件。
+
 ## Phase11 gate照合・実Chromeロード待ちblocked
 
 前ターンc3f5f08は背景copy/実Blob保持/環境復旧のprogress、main push済み。今回mandatory progress/status/gitを読取、worktreeは未追跡spec.mdだけ。spec110〜114/Phase11とコード・証拠をdocs/phase11-gate.mdの11条件に照合。実装/Node/生成/HTTP/Web1巡は範囲限定、実Chrome NewTab/privilege/Cookie/console/日英/offline各操作は未確認。Phase11完了条件を満たさないためPhase12へ進めない。

@@ -1,6 +1,6 @@
 # Phase 11 ゲート監査
 
-判定: **実装・限定検証済みの項目あり、実Chromeロード待ち。Phase11未完了、Phase12へ進めない。**
+判定: **実装・限定検証済みの項目あり、ユーザーのロード完了通知を受領、実NewTab表示確認待ち。Phase11未完了、Phase12へ進めない。**
 
 根拠はspec.md §110〜114、Phase11のManifest/New Tab/Shared UI/Sync/Offline Mode、および現在のコードと検証記録。Nodeのextension context/Cookie jarをChromeの実Cookie成功として扱わない。
 
@@ -20,6 +20,6 @@
 
 最新証拠: docs/chrome-extension.md / progress.md / docs/phase-status.md。JS41suite各3回、PHP生成190/40両版各3回、実HTTP19両DB各3回（Cookie/extension contextはNode模擬）。Webのsame-origin端末copy保存/再読込は実ChromeのWebページであり、拡張としての確認ではない。全部の未確認を消さず、Version1.0最終監査へ残す。
 
-Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで拒否された範囲なので、CLI/CDP/native等の別経路で迂回しない。旧candidate `.test-output/extension-mysql-20261006` の手動Load質問は未回答。新media candidateは別folderでoptional host宣言を追加しており、旧質問を新しいgrantとして扱わない。ロード完了後、表示された対象tab/URLから検証する。
+Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで拒否された範囲なので、CLI/CDP/native等の別経路で迂回しない。2026-10-07に旧candidate `.test-output/extension-mysql-20261006` のロード完了通知を受領。操作可能なChrome一覧には対象tabがなく、ユーザーへ新しいタブを開いて表示を知らせる確認を提示。新media candidateは別folderでoptional host宣言を追加しており、旧質問を新しいgrantとして扱わない。ロード完了後、表示された対象tab/URLから検証する。
 
 検証専用4containers/networkは現在維持。通常環境/本番/config/Secret/specは変更しない。実検証終了後にcleanup-extension-http.ps1で所有marker/network/tmpfsを確認して清掃し、その結果も記録する。
