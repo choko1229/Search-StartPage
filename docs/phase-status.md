@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase11 初回案内の拡張ログインリンク修正（2026-10-07）
+
+前ターンd489d47はWebアカウントの実画面証拠が増えたprogress。今回mandatory progress/status/git確認から再開。Webのお気に入りlistはまだ空、拡張の生成お気に入り追加・同期確認欄への回答未受領。受信失敗とも成功とも判断しない。
+
+再読込時の初回案内表示をコードで調査。「あとで続ける」はdialog.closeだけで、未完了の案内が次回再表示される既存挙動だった。別の実不具合として未ログインのdiscord stepにhref=/accountがあり、chrome-extension originの存在しないページへ向くことを確認。onboarding.jsへ共通accountUrlを適用し、Webは/account、拡張は検証済みselected server origin/accountへ遷移する。認証/権限/CSRFは変更しない。
+
+API transport（selected server accountUrlとWeb /accountを含む）とonboarding-core26を各3回実行し全exit0、onboarding.js構文/diff成功。これは拡張での実リンククリック成功ではなく、実NewTab/同期/Offline未確認を維持。既存4候補のonboarding.jsだけ更新しsource hash一致とmanifest SHA不変を確認。権限・候補の場所は変更せず、新候補のインストール/optional grantは行わない。Chrome側に修正を確実に反映するには対象拡張のReloadが必要な可能性を残す。ライブ隔離Webソースは変更していないが、WebのリンクURLは修正前後で同じ。
+
+次: 提示済みExtension check 1007の登録・同期結果を受領し、Web受信・逆方向編集を確認。拡張を直接観測できる場合は初回案内ログインリンクも実検証。既存手動検証手順でOffline/復帰/背景/両DBを進め、Phase11完了条件を満たすまでPhase12へ進めない。通常環境/Secret/spec保持、V1未完。
+
 ## Phase11 ユーザー準備後のアカウント実画面確認（2026-10-07）
 
 ユーザー「できたのでみてみて」により再開。progress/status/gitを確認、開始時未追跡spec.mdのみ。Chrome3 user inventoryに新規1823783309 chrome://newtab/ title search.choko1229.net と1823783310 /accountを観測。新しいタブbindingはmetadataだけ、AX観測はabout:blankを返し、拡張DOMの証拠を取得できなかった。既存内部URL制約を別surfaceで迂回しない。

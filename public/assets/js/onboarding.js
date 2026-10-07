@@ -2,6 +2,7 @@ import {get,setting,saveSettings,setMany,flush} from './store.js';
 import {t,node} from './i18n.js';
 import {providers} from './providers.js';
 import {syncUser} from './sync-api.js';
+import {accountUrl} from './api-transport.js';
 import {defaultKeys} from './search-preferences.js';
 import {onboardingSteps,onboardingPosition,onboardingPatch,onboardingBackgrounds} from './onboarding-core.js';
 
@@ -31,7 +32,7 @@ export async function initializeOnboarding() {
         if(step==='search'){select('initialMode','initial_mode',[['web',t('web_mode')],['ai',t('ai_mode')],['last',t('last_mode')]],'web');select('webDefault','web_default',providers('web').map(item=>[item.id,item.name]),'google');}
         if(step==='ai'){select('aiDefault','ai_default',providers('ai').map(item=>[item.id,item.name]),'chatgpt');select('aiOrder','ai_order',[['fixed',t('manual')],['usage',t('usage')],['recent',t('recent')]],'fixed');}
         if(step==='favorites'){select('favoriteDisplay','display',[['auto',t('auto')],['icon-name',t('icon-name')],['icon',t('icon')],['card',t('card')]],'auto');input('webKey','webKey','text',defaultKeys.webKey,{maxlength:'80'});input('aiKey','aiKey','text',defaultKeys.aiKey,{maxlength:'80'});}
-        if(step==='discord')fields.append(node('a',t('header_login'),{href:'/account',class:'button'}));
+        if(step==='discord')fields.append(node('a',t('header_login'),{href:accountUrl(),class:'button'}));
         next.focus();
     }
     async function advance(skipped=false){
