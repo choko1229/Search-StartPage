@@ -136,7 +136,7 @@ function renderHistory() {
 }
 function openHistory() {renderHistory(); document.getElementById('history-dialog').showModal();}
 document.getElementById('history-open').addEventListener('click', openHistory);
-document.querySelector('a[href="/#history"]')?.addEventListener('click', event => {
+document.querySelector('.site-header a[data-header-item="history"]')?.addEventListener('click', event => {
     event.preventDefault(); openHistory();
 });
 // Other pages use the same header link to reach the history on the home page.

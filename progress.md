@@ -1,4 +1,16 @@
 # 再開ポイント
+## Phase11 共通ヘッダーの拡張リンク修正（2026-10-08）
+
+ユーザー「全部自由にすすめて」で再開。mandatory progress/status/git読取、未追跡spec.mdのみ。判断可能な作業を継続し、拡張/共通JSのリンク・通信先を監査。twesの追加元はまだ不明で、Web2タブの一致を実拡張同期成功に広げない。
+
+実不具合: extension/layoutのsettings href=#settingsに対しsettings-modalのlistenerはhref=/#settingsだけを探していたため、拡張ヘッダークリックで設定dialogが開かない。Webと拡張の既存data-header-item=settingsを使って接続。履歴も共通data-header-item=historyで接続し、fragmentの形式に依存せずpreventDefault→openHistoryとする。URL/権限/認証/CSRF/DB変更なし。
+
+検証: 修正JS2本の構文各3回/diff成功。専用アプリexact2のownership markerを確認しsettings-modal/search/onboardingだけ反映、通常環境は未変更。Chrome Webのgenerated primaryでヘッダー設定と履歴を開閉し3roundともdialog visible=true、warn/error0、証拠 .test-output/header-history-20261008.png。これは共通Web回帰の証拠であり実NewTabクリックの証拠ではない。Web再読込後のtwes保持と初回案内6/7の保存位置も観測した。
+
+既存4候補のsettings-modal/searchだけ更新しsource hash一致・manifest SHA不変。新規install/optional grantは未実行、Chrome側のReload反映は未確認。Phase11/12/V1未完。
+
+次: 実拡張タブが操作可能になれば修正リンクのクリックとCookie/往復同期を検証。そうでなければ既存手動手順とtwes追加元/同期結果から実証を進める。Offline9機能/自動復帰/背景・権限/両DB実UIは未確認を維持。合理的に修正できるPhase11不具合は同Phase内で解消し、Phase12へ飛ばさない。通常環境/Secret/spec保持、専用Web確認tabをhandoff。
+
 ## Phase11 お気に入り表示の状態変化（2026-10-07）
 
 ユーザー「これでいい？」で再開しprogress/status/git確認。Chromeの専用Web両タブでお気に入りtwes / example.com、使用回数1を実DOM確認。前回空だったlistに項目が到着した。Web設定のクラウド同期ON・同期しましたを確認し、証拠 .test-output/favorite-arrived-20261007.pngを保存。

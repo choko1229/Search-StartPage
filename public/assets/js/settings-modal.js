@@ -96,7 +96,7 @@ export function initializeSettingsModal() {
         if((outside || event.target.closest('[data-close]')) && pending()){event.preventDefault();event.stopImmediatePropagation();void closeImportant();}
     },true);
     dialog.addEventListener('close',()=>{form.reset();dialog.style.removeProperty('width');dialog.style.removeProperty('height');});
-    const link=document.querySelector('.site-header a[href="/#settings"]');
+    const link=document.querySelector('.site-header a[data-header-item="settings"]');
     link?.addEventListener('click',event=>{event.preventDefault();document.getElementById('search-settings-open').click();});
     if(location.hash==='#settings')document.getElementById('search-settings-open').click();
     select(category);renderHistory();
