@@ -1,4 +1,11 @@
 # 再開ポイント
+## Phase11 gate照合・実Chromeロード待ちblocked
+
+前ターンc3f5f08は背景copy/実Blob保持/環境復旧のprogress、main push済み。今回mandatory progress/status/gitを読取、worktreeは未追跡spec.mdだけ。spec110〜114/Phase11とコード・証拠をdocs/phase11-gate.mdの11条件に照合。実装/Node/生成/HTTP/Web1巡は範囲限定、実Chrome NewTab/privilege/Cookie/console/日英/offline各操作は未確認。Phase11完了条件を満たさないためPhase12へ進めない。
+
+Chrome current inventoryを読取、対象titleのchrome-extension/newtab tabなし（インストールされていない証明ではない）。ロード完了の回答も未受領。78d4d71の質問/準備→29ec31dの補修→c3f5f08の背景保存→今回と連続goal turnで同じ実ロード不足が継続。独立した実装・生成・API準備・補修が済んだ後、必須の実Extension証拠へ進むには手動Loadまたは外部状態変化が必要。新しい成功試験を反復せず、Browser settings URL拒否を別surfaceで迂回しない。goal blockedへ変更する条件成立。V1/Phase11/12未完。
+
+再開: ユーザーが旧MySQL候補をLoad unpackedしNewTabを開いたこと、または実際の対象tabが現れたことを確認→同じ専用host/app/生成通常userから基本機能の実Extension検証。新media候補のoptional URI操作は別に具体的なgrant範囲を扱う。準備済みコード/フォルダーを作り直さず、各41/190/19試験を終了済みとして保持。専用環境4名をまずinspectし、停止/DB tmpfs消失があれば既存ownership guardで復旧し保持成功と推測しない。必要なcleanupはまだ未実行。通常環境/Secret/spec保持。
 ## Phase11 URL背景の端末用コピー・実画面保持確認・検証環境復旧
 
 前の保存済みcommitは29ec31d。未保存だった背景offline機能を継続し、background-offline-core/jsを追加。保存ボタンの明示操作でURL画像/動画を匿名credentials omit/redirect error/cache no-storeで取得、画像25MiB/動画500MiB・stream上限/declared size/MIMEと既存magic検証を通過後にFileと新規upload/localOnly/cloudSync=falseの項目をatomic IndexedDB保存。元URL項目は変更せず、端末用コピーはlogout後も残ると表示。copyの自動cloud uploadなし、選択変更/背景変更/owner変更を尊重し、CAS guardはbackgrounds/settings/history/ownership/checkpointsを含む。
