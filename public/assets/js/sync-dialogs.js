@@ -4,7 +4,12 @@ export function syncDialog(kind,conflicts=[],scope='') {
     const result=dialogQueue.then(()=>showSyncDialog(kind,conflicts,scope));
     dialogQueue=result.catch(()=>{});return result;
 }
-function showSyncDialog(kind, conflicts,scope) {
+async function showSyncDialog(kind, conflicts,scope) {
+    // Initial setup and its pending edits stay visible until the user closes it.
+    let onboarding;
+    while((onboarding=document.querySelector('dialog.onboarding[open]'))){
+        await new Promise(resolve=>onboarding.addEventListener('close',resolve,{once:true}));
+    }
     return new Promise(resolve=>{
         const dialog=node('dialog',undefined,{'aria-labelledby':'sync-dialog-title',class:'sync-dialog'});
         dialog.append(node('h2',t(kind==='initial'?'sync_initial_title':'sync_conflicts')+(scope?' · '+scope:''),{id:'sync-dialog-title'}));

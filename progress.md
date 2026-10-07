@@ -1,4 +1,16 @@
 # 再開ポイント
+## Phase11 初回案内と同期選択の重複表示修正（2026-10-08）
+
+前ターン45553acは認証表示修正・JS41各3回のprogress。mandatory progress/status/gitから再開、現在Chrome3の操作一覧は専用Web1823783333のみ。reload後primaryプロフィール・twes保持を確認したが、初回案内6/7と最初の同期が同時openになった。
+
+sync-dialogsの既存serial queueを維持し、showSyncDialogがopenのonboardingのclose eventを待ってからshowModalするよう修正。初回案内の値/保存位置や同期選択は変更せず、ユーザー入力を自動採用しない。既存settingsとその確認dialogの意図された関係は変更しない。
+
+検証: 専用exact2アプリのmarker確認後sync-dialogs1fileだけ反映。Web実Chrome3roundでopen dialogは初回案内のみ→案内のあとで続ける→最初の同期のみの順序をread-only DOMで確認。各initial同期であとで選択後open count1だったためfresh DOMを確認し、既存queueの次の背景同期選択であることを特定。最後に背景同期もあとでを選びopen0、warn/error0。データ置換や背景uploadは行っていない。証拠 .test-output/sync-dialog-queued-20261008.png。UI3roundは案内/初回同期の順序確認であり、全同期合格ではない。
+
+onboarding-core26/sync-session37各3回成功、JS構文/diff成功。既存4候補のsync-dialogsだけ更新、source hash一致・manifest不変。権限/install/DB/Migration/API変更なし、通常環境/Secret/spec保持。Webtabをhandoff。同期と背景同期のsessionは保留、再読込で再確認が必要。
+
+次: 修正と証拠をcommit/push。Phase11実拡張Cookie/往復同期/Offline9機能/復帰/背景・権限/両DBUIは未確認。twes追加元も未確認でWeb共有を拡張の成功へ拡大しない。合理的なPhase11補修が済んだ後、実拡張観測または手動結果が必要な条件をauditし、Phase11合格前にPhase12へ進めない。V1未完。
+
 ## Phase11 認証変更時の挨拶・ヘッダー表示更新（2026-10-08）
 
 前ターンb2ef659は共通ヘッダー修正とWeb3roundのprogress。mandatory progress/status/gitから再開。appearanceは起動時のsyncUserだけでusername/headerを設定しており、後の認証変更eventを購読していなかった。search-auth-changeへdisplayNameを加え、同じuserの名前変更も通知。appearanceがeventで名前/ログイン・プロフィール表示を再描画する。初期非同期応答はauthRevisionで、新しいevent後の表示を巻き戻さない。表示名は文字列だけをtextContentへ使い、認証/権限/所有権の判定は引き続き実APIに依存。名前の新しい永続cacheは追加しない。
