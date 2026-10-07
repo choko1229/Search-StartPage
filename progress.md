@@ -1,4 +1,18 @@
 # 再開ポイント
+## Phase11 認証変更時の挨拶・ヘッダー表示更新（2026-10-08）
+
+前ターンb2ef659は共通ヘッダー修正とWeb3roundのprogress。mandatory progress/status/gitから再開。appearanceは起動時のsyncUserだけでusername/headerを設定しており、後の認証変更eventを購読していなかった。search-auth-changeへdisplayNameを加え、同じuserの名前変更も通知。appearanceがeventで名前/ログイン・プロフィール表示を再描画する。初期非同期応答はauthRevisionで、新しいevent後の表示を巻き戻さない。表示名は文字列だけをtextContentへ使い、認証/権限/所有権の判定は引き続き実APIに依存。名前の新しい永続cacheは追加しない。
+
+検証: sync-auth-stateに同user表示名更新・重複抑制・503で状態維持・401で名前削除を追加。auth/transport/appearance42/playbackを各3回成功。さらに90996 exit0、独立JS41suite各3回成功（引数必須HTTP2本は除外）、syntax/diff成功。DB/Migration/API route変更なし。
+
+専用アプリexact2のmarker確認後appearance/sync-apiだけ反映。旧Webtabはmissing、同じChrome3から新Webtab1823783333を作成（browser再選択・環境再生成なし）。生成primary→otherの認証を別専用loginタブで切替し、開いたままのviewerがsyncUser後にotherの挨拶へ更新、primaryへ復帰することを実DOM確認。
+
+実UI3round計画は完了していない。round2 primaryは確認できたがotherへ向けたclickがdisabledに遭遇し、fresh DOMで最初の同期dialog待ちを確認。通信途中の旧名を最終不合格とは扱わず、初回同期のデータ選択を勝手に確定しない。「あとで」を選び生成primaryへ戻し、twes保持・primary挨拶・warn/error0を確認。viewer sessionの同期は保留状態なので、次は再読込して初回同期状態を確認し、同一生成ユーザーと保存データの選択を扱う。全UI3回/実拡張/全同期成功へ広げない。
+
+証拠 .test-output/auth-display-restored-20261008.png、viewerをhandoff、control loginタブをclose。既存4候補のappearance/sync-apiだけ更新しsource hash一致・manifest SHA不変。追加install/permissionなし、Chrome Reload反映は未確認。通常環境/Secret/spec保持。
+
+次: この修正をcommit/push。実拡張のCookie/往復同期/Offline9機能/自動復帰/背景・権限/両DB実UIは未確認。twes追加元は未受領のまま、Web共有を実拡張証拠にしない。修正可能なPhase11不具合を継続し、Phase11合格前にPhase12へ進めない。V1未完。
+
 ## Phase11 共通ヘッダーの拡張リンク修正（2026-10-08）
 
 ユーザー「全部自由にすすめて」で再開。mandatory progress/status/git読取、未追跡spec.mdのみ。判断可能な作業を継続し、拡張/共通JSのリンク・通信先を監査。twesの追加元はまだ不明で、Web2タブの一致を実拡張同期成功に広げない。

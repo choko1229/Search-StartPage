@@ -115,7 +115,19 @@ export function initializeAppearance() {
     const greeting=node('p','',{class:'greeting'}),clock=node('time','',{class:'clock'}),date=node('time','',{class:'date'});display.append(greeting,clock,date);document.querySelector('.search-home').prepend(display);
     const belowDisplay=node('section',undefined,{class:'home-display home-display-below','aria-label':t('home_display')});document.querySelector('.search-home').append(belowDisplay);
     let username='',fontSignature='',customFont=null,googleLink=null;
-    syncUser().then(user=>{username=user?.discord_display_name || user?.discord_username || '';header.querySelector('[data-header-item=account]').textContent=user?t('header_profile'):t('header_login');renderDisplay();}).catch(()=>{});
+    let authRevision=0;
+    function renderIdentity(authenticated,name) {
+        username=typeof name==='string'?name:'';
+        header.querySelector('[data-header-item=account]').textContent=authenticated?t('header_profile'):t('header_login');
+        renderDisplay();
+    }
+    window.addEventListener('search-auth-change',event=>{
+        authRevision++;renderIdentity(event.detail?.authenticated===true,event.detail?.displayName);
+    });
+    const initialAuthRevision=authRevision;
+    syncUser().then(user=>{
+        if(authRevision===initialAuthRevision)renderIdentity(Boolean(user),user?.discord_display_name || user?.discord_username);
+    }).catch(()=>{});
     function renderDisplay() {
         const now=new Date(),locale=document.documentElement.lang;
         greeting.hidden=!setting('greetingEnabled',true);greeting.textContent=setting('greetingMessage','') || `${t(greetingKey(now.getHours()))}${username?`${t('greeting_separator')}${username}`:''}`;

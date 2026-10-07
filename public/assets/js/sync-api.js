@@ -5,12 +5,14 @@ export async function request(url, options={}) {
     if(payload.error?.code==='FEATURE_DISABLED')throw new Error('FEATURE_DISABLED');
     return {status:response.status,data:payload.data};
 }
-let observedUserId;
+let observedUserId,observedDisplayName;
 function observeUser(user) {
     const userId=user?String(user.id):null;
-    if(userId!==observedUserId){
-        observedUserId=userId;
-        if(typeof window!=='undefined'&&typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('search-auth-change',{detail:{userId,authenticated:user!==null}}));
+    const name=user?.discord_display_name || user?.discord_username;
+    const displayName=typeof name==='string'?name:'';
+    if(userId!==observedUserId || displayName!==observedDisplayName){
+        observedUserId=userId;observedDisplayName=displayName;
+        if(typeof window!=='undefined'&&typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('search-auth-change',{detail:{userId,authenticated:user!==null,displayName}}));
     }
     return user;
 }
