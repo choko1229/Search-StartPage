@@ -1,4 +1,12 @@
 # 再開ポイント
+## Phase11 ユーザー準備後のアカウント実画面確認（2026-10-07）
+
+ユーザー「できたのでみてみて」により再開。progress/status/gitを確認、開始時未追跡spec.mdのみ。Chrome3 user inventoryに新規1823783309 chrome://newtab/ title search.choko1229.net と1823783310 /accountを観測。新しいタブbindingはmetadataだけ、AX観測はabout:blankを返し、拡張DOMの証拠を取得できなかった。既存内部URL制約を別surfaceで迂回しない。
+
+/accountの実DOMでGenerated isolated extension primary・同期しました・最終同期2026/10/7 23:34:01と現在Chrome端末を確認。これはWebアカウントの認証・同期表示で、拡張のCookie/Sync完了へ拡大しない。証拠 .test-output/extension-account-confirmed-20261007.png。Webホーム1823783297を再読込して受信確認を準備。
+
+具体的な次の実証として、拡張で生成お気に入りExtension check 1007 / https://example.com/を追加し今すぐ同期の結果を知らせる確認欄を提示。Web側にその項目が届くかをこちらで検証し、届けばWeb→拡張の逆向き編集へ進む。提示済み操作の結果は未受領・合格扱いしない。操作可能な対象tabが現れるか、手動操作結果から実証を続ける。新media候補/optional権限はまだ扱っていない。Phase11/12/V1未完。
+
 ## Phase11 実拡張の操作・確認回答待ち（2026-10-07）
 
 前ターン777f896は必須の実Chrome手動検証手順を具体化したprogress。今回はmandatory progress/status/gitとChrome3の現在inventoryを再確認。操作可能なのは通常HTTP Web tab1823783297だけで、拡張NewTabは現れない。提示済みのプロフィール確認欄は回答未受領。既存手順・試験を反復して機能進捗と扱わない。
