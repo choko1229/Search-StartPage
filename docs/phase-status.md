@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## Phase11 実拡張検証待ちblocked（2026-10-08）
+
+前ターンは現在の接続と既存progress/gateの再確認のみでno progress（live processを待ったverified waitではない）。今回もmandatory progress/status/gitとChrome3現在inventoryを再確認し、専用Web1823783333だけ。実拡張操作接続とtwes追加元/実Sync/Offline手動結果は未受領。
+
+72d5a74でblocked保存後の再開3ターン: 1)GitHub送信復旧dd13304（progress）、2)同じ実拡張不足の再確認（no progress）、3)今回再確認。送信は解消済みだが、実拡張証拠不足は3turn継続。合理的な準備/補修/手動手順は完了し、必須の実Extension Cookie/往復同期/Offline9機能/復帰/背景・権限/両DBUIには手動結果または操作可能な実拡張tabが必要。内部ページ制約を別surfaceで迂回せず、既存試験やstatus保存を機能進捗として反復しない。goalをblockedへ変更。
+
+次: 提示済みのtwes追加元の回答・docs/phase11-manual-check.mdの結果、または実拡張接続の変化を受領して再開。実Chromeの観測・手動確認・Node模擬を分離し、Phase11未確認のままPhase12へ進めない。最新修正はGitHub mainへ反映済み、送信再試行不要。通常環境/Secret/spec保持、Webtabをhandoff、専用検証環境のcleanupは実検証終了後。V1未完。
+
 ## GitHub送信復旧・実拡張検証待ち（2026-10-08）
 
 前ターンは実拡張証拠不足とGitHub server errorをblockedとして保存。今回mandatory progress/status/gitから再開。同じmain pushがexit0、remote 45553ac→72d5a74を確認。de298c0の重複modal修正とf038967/72d5a74の記録を含む送信が成功し、GitHub送信ブロックは解消。Secret/remote設定の変更や代替経路は使っていない。
