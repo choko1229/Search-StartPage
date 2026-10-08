@@ -1,4 +1,14 @@
 # 再開ポイント
+## Phase11 最新拡張パッケージの再検証（2026-10-08）
+
+前ターンcd6ffefはWeb端末動画の実保存/再生/再読込のprogress。mandatory progress/status/git確認、未追跡spec.mdのみ。最近のaccountUrl/header/auth presentation/sync dialog変更後の最新ソースを対象に、既存run-extension-package -Rounds3を実行。91217をpollしexit0、PHP8.2/8.3それぞれ生成190・基盤40各3回成功。generated asset digestは最新JSと一致、日英/Manifest/権限・CSP/私有設定除外/CLI origin制約・失敗清掃を検証。これらはChrome実権限/同期/Offlineの代用ではない。
+
+専用package prefixのps -aは空、finally清掃済み。DB/host mount/ports/通信なしの検証だけで、通常/専用UI DBは変更なし。最新候補の新規installやoptional grantは行っていない。完了済みの旧190を無意味に反復したのでなく、後の共通JS修正が生成物へ含まれることを再確認した。
+
+Web3432現在お気に入りはtwes-web、Round2のtwes-extension-2回答/受信は未確認。実拡張操作tabは未取得。1回目の往復は確認済みだが、必要な3回/全設定・背景/Offline・復帰/両DBは未達を維持。新たなコード/DB/Migration変更なし。
+
+次: 提示済みのRound2回答または実Web DOMのtwes-extension-2到着から逆方向を続ける。独立した最新生成・Web動画確認は終了済みとして保持し、未確認の実拡張/Offline条件を満たす前にPhase12へ進めない。通常環境/Secret/spec保持、Web3432をhandoff、UI環境cleanupは全実検証終了後。V1未完。
+
 ## Phase11 端末内動画の実保存・再生確認（2026-10-08）
 
 前ターン4386067はお気に入り往復1回目のユーザー確認と実動画素材準備のprogress。mandatory progress/status/gitから再開し、生成済みtest-pattern.mp4の9370bytes/SHA一致を確認。Chrome3 inventory空から新専用Webtab1823783432を作成しmarkHandoff。primary/twes-web保持、旧動画entry未存在を確認。背景のinitial選択はあとでとしクラウド置換を実行しない。
