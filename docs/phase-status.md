@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase11 拡張からWebへの同期確認・逆方向の準備（2026-10-08）
+
+ユーザーがtwesの追加元を「Chromeの＋で開いた新しいタブ」と回答。2026-10-07のWeb実DOM/同期ON・同期しました/両タブtwes表示（favorite-arrived-20261007.png）と合わせ、実拡張→Webのお気に入り一例を確認。Node模擬結果ではなくユーザーの実拡張操作＋Web実観測であり、全項目/逆向き/3roundの合格には広げない。旧追加元未確認条件は解消。
+
+mandatory progress/status/git/gate確認、開始時未追跡spec.mdのみ。専用exact4はUp24h、再生成なし。Chrome3の対象tabなしのため新Webtabを作り、同じ生成primaryとtwes保持を確認。/api/syncを別タブで読取ろうとしたがERR_BLOCKED_BY_CLIENTで開けず、API応答/クラウド内容の読取成功とは扱わない。別手段で迂回していない。
+
+逆向きに向けたWeb初回同期で端末/クラウドのデータ選択が必要だった。案内を閉じた直後のsnapshotにはまだ出ず、設定→同期のclickはno_matches。fresh DOMで最初の同期dialogが前面に出たことを確認し、再クリック/force操作せずデータの選択を保留。現在の端末データはtwesを含む。ブラウザ操作の確認ルールによる実行直前確認として、専用生成ユーザーのクラウドを端末データで置き換える「端末のデータ」採用の許可を提示。通常環境/本番の操作へ拡大しない。
+
+証拠 .test-output/sync-choice-ready-20261008.png、Webtabをhandoff。許可を受領したら同じdialogで端末を選択し、同期成功を確認→Webでtwesをtwes-webへ変更→同期成功後に拡張側で反映を確認する。保留なら置換しない。逆向き・実拡張Offline9機能/復帰/背景・権限/両DBは未確認。Phase11/12/V1未完、通常環境/Secret/spec保持。
+
 ## 最新再開条件: 実拡張の接続・手動結果待ち（2026-10-08）
 
 512bfc3でblocked保存後の再開3ターンを確認。1)goal activeと現在inventoryを再確認、Web1823783333もmissing。2)mandatory読取とinventory空を再確認。3)今回も読取/現在inventory空、twes追加元/実Sync/Offlineの手動結果は未受領。すべてno progressでlive process待ちではない。同じ実拡張証拠不足が3turn継続し、外部状態変化/回答なしに必須ゲートを進められないためgoalをblockedへ変更する。

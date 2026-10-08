@@ -8,7 +8,7 @@
 |---|---|---|
 | Manifest / New Tab | ExtensionPackageBuilderのMV3/newtab宣言、static日英生成、PHP両版各3回190/基盤40 | 読込・NewTab表示はユーザー確認済み。実拡張のCSP/Consoleは未確認 |
 | Shared UI / Settings | Webのhome/favoritesと同一JS/CSS、全設定modal、server namespace分離、locale routing | 拡張での設定操作、Webとの往復共有・日英 |
-| Auth / Cloud Sync | 既存Auth/CSRF/ownerを維持、両DB実HTTP19各3回、生成通常user・Web1巡 | Chrome host permission/SameSite/Cookie、実拡張での同期・競合・logout |
+| Auth / Cloud Sync | 既存Auth/CSRF/ownerを維持、両DB実HTTP19各3回、生成通常user・Web1巡、twesの拡張→Web一例をユーザー追加元回答＋Web実DOMで確認 | Chrome host permission/SameSite/Cookie、実拡張での同期・競合・logout |
 | Cloud Background | 同じbackground API/session、実multipart画像取得/byte一致/別owner拒否 | 実拡張のcloud背景、地域・条件・動画制御 |
 | Offline Search | 同じproviders/search/core、local候補、外部suggest抑制 | 拡張offlineで入力/履歴候補/キー操作 |
 | Offline Favorites / History | 同じIndexedDB store/CRUD/history、保存失敗/原子性の既存単体 | offline編集・再読込保持・復帰同期 |
@@ -29,3 +29,5 @@ Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで�
 2026-10-08補修: 初回案内のaccountUrl、共通ヘッダーdata-header-item、認証eventで名前/ヘッダー更新、初回案内close後のsync dialog表示。JS41suite各3回、Webヘッダー3回、Web認証切替の限定確認、Web初回案内/同期表示順序3回を確認。実拡張/Offline合格へ拡大しない。重複modal修正de298c0以降はGitHub送信がserver errorで失敗し、remote main45553acのまま。実拡張接続または手動結果待ちでblocked。
 
 2026-10-08送信復旧: main pushが成功し72d5a74まで反映。GitHub server errorの送信ブロックは解消。実拡張の操作接続/手動検証結果待ちは継続。
+
+2026-10-08ユーザー回答: twesはChromeの＋で開いた新しいタブから追加。Web実表示と合わせ拡張→Webのお気に入り同期一例を確認。逆向き/3round/全設定/Offlineを合格扱いしない。逆向きの前に専用生成ユーザーの初回データ選択を具体化し、端末データ採用の実行直前確認を提示。
