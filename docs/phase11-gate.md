@@ -35,3 +35,5 @@ Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで�
 2026-10-08逆方向準備: 許可済みの専用primary端末データ採用後、Web実UIでtwes→twes-webへ名前変更し、今すぐ同期/同期しましたを確認。拡張受信回答待ち。背景の初回選択は別途あとでとし置換・uploadなし。
 
 2026-10-08受信回答: 拡張でtwes-webへ変更されていたとユーザー確認。お気に入りの拡張→Web→拡張1回目を限定確認。Round2/3、全設定/背景/Offline/両DBは未確認。非公開情報を含まない実H264動画素材を生成し、保存/再生の実UIはまだ未完。
+
+2026-10-08動画: Web専用Chromeで生成H264動画の端末内保存/sync OFF/Blob decode、再生停止3回・reload保持を確認、元背景へ復帰。実拡張/Cloud/Offline証拠ではない。次の実拡張テスト用fixtureを再利用する。

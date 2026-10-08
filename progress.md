@@ -1,4 +1,16 @@
 # 再開ポイント
+## Phase11 端末内動画の実保存・再生確認（2026-10-08）
+
+前ターン4386067はお気に入り往復1回目のユーザー確認と実動画素材準備のprogress。mandatory progress/status/gitから再開し、生成済みtest-pattern.mp4の9370bytes/SHA一致を確認。Chrome3 inventory空から新専用Webtab1823783432を作成しmarkHandoff。primary/twes-web保持、旧動画entry未存在を確認。背景のinitial選択はあとでとしクラウド置換を実行しない。
+
+Generated local video 1008を動画/端末ファイル/cloud OFFで準備、既存Filechooser経由で生成MP4を選び保存。今回はinput.filesの未対応readを挟まず保存clickへ進み、Save disabledの間は完了扱いせず新library button visibleまで待つ。重複entry作成なし。UIラベル「この端末に保存（同期OFF）・0.01MiB」を確認。
+
+実Chrome Webのbackground-media videoはlocalBlob=true/readyState4/320x180/duration2/paused=false/currentTime0.908516。再生・一時停止ボタンを3round操作してpaused=true→playing=trueを確認。reload後にもBlob/同じ寸法/2秒/ready4/playingを確認。元のGenerated offline URL source（端末用コピー）へUIで戻し、Blob画像complete/1672x941、動画selected=falseを確認。warn/error0。証拠 .test-output/local-video-playing-20261008.png。これはWeb端末内ファイルの保存/再生/再読込であり、実拡張/実Offline/Cloud video成功へ広げない。
+
+お気に入りの最後の実DOMはtwes-web。Round2（拡張でtwes-extension-2保存/同期）の確認欄は回答未受領。未実施/未到着/失敗を混同しない。コード/DB/Migration変更なし、通常環境/Secret/spec保持。動画は端末の検証libraryに保持し、素材/専用4環境も再利用する。
+
+次: Round2の回答または実Web DOMで拡張変更の到着を確認して逆方向へ進み、3roundを満たす。動画は拡張で同じfixtureを取り込み/Cloud/Offline保持・復帰を別に検証。Background初回データ採用は既存main初回採用の許可へ拡大しない。Phase11/12/V1未完、現在Webtab3432をhandoff、旧3399を再利用しない。
+
 ## Phase11 お気に入り往復1回目確認・動画素材準備（2026-10-08）
 
 ユーザーがChromeの＋で開いた新しいタブの名前がtwes-webへ変わったと回答。拡張でtwes追加→Web実表示→Web実UIでtwes-web保存/同期しました→拡張でtwes-web受信の一例を確認。拡張の入力/受信はユーザー回答、Webは実DOMという証拠範囲を明記。Round1のお気に入り往復であり、全設定/3round/Offline/両DB合格へ広げない。
