@@ -1,4 +1,14 @@
 # 実装と検証の記録
+## Phase11 背景クラウド検証の具体的な採用確認準備（2026-10-08）
+
+前ターン75040cfは最新生成検証のprogress。mandatory progress/status/gitから再開。Web3432をreloadし、案内close後に生成primaryの背景側initial sync dialogを確認。背景のクラウド採用は前のmain初回端末採用許可と別操作なので、まだ選択していない。画面 .test-output/background-sync-choice-ready-20261008.pngを保存してhandoff。
+
+「クラウドのデータ」を採用し、続けて生成2秒/9370byteのMP4を専用生成ユーザーのクラウド背景として保存・取得する検証について、実行直前の確認欄を提示。クラウド対象の端末背景一覧を置換し得ることを説明。端末専用背景はbackgroundDocumentsのprotectedIds設計/既存テストで保持対象であり、採用後に元の端末画像・動画保持も実確認する。許可回答未受領。通常/本番へ拡大しない。
+
+独立して確認できたことは準備まで。Cloud adoption/Cloud video upload/downloadは未実行、前のWeb端末動画成功を代替にしない。Round2 twes-extension-2も未回答、reload後のWebはtwes-webのまま。失敗/成功のどちらにも推測しない。既存生成190/基盤40・Web再生停止3回等の終了済み試験を再実行していない。
+
+次: 背景採用・動画検証の許可があれば同じprimary/dialogでcloudを選択し、端末専用画像/動画保持を確認してから、既存生成MP4を別のCloud ON項目で保存・同期・取得/再生を実確認。許可されなければ選択を保留。Round2手動結果またはWeb到着からお気に入り往復も継続。実拡張/Offline/全設定/3round/両DBは未確認が残り、Phase11/12/V1未完。通常環境/Secret/spec保持、コード/DB/Migration変更なし。
+
 ## Phase11 最新拡張パッケージの再検証（2026-10-08）
 
 前ターンcd6ffefはWeb端末動画の実保存/再生/再読込のprogress。mandatory progress/status/git確認、未追跡spec.mdのみ。最近のaccountUrl/header/auth presentation/sync dialog変更後の最新ソースを対象に、既存run-extension-package -Rounds3を実行。91217をpollしexit0、PHP8.2/8.3それぞれ生成190・基盤40各3回成功。generated asset digestは最新JSと一致、日英/Manifest/権限・CSP/私有設定除外/CLI origin制約・失敗清掃を検証。これらはChrome実権限/同期/Offlineの代用ではない。
