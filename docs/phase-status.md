@@ -1,4 +1,16 @@
 # 実装と検証の記録
+## Phase11 お気に入り往復1回目確認・動画素材準備（2026-10-08）
+
+ユーザーがChromeの＋で開いた新しいタブの名前がtwes-webへ変わったと回答。拡張でtwes追加→Web実表示→Web実UIでtwes-web保存/同期しました→拡張でtwes-web受信の一例を確認。拡張の入力/受信はユーザー回答、Webは実DOMという証拠範囲を明記。Round1のお気に入り往復であり、全設定/3round/Offline/両DB合格へ広げない。
+
+Round2として拡張でtwes-web→twes-extension-2編集/保存/同期を行う確認欄を提示。現時点で回答未受領、最後のWeb DOMはtwes-webのまま。未実施/未到着/失敗を混同しない。次は回答または新Web DOMでtwes-extension-2を確認して逆向きの再編集へ進む。
+
+独立作業: 実動画確認用の非公開情報を含まない2秒テストpatternを既存search-compression-test:20261002から生成。使い捨てexact container search-extension-media-fixture-20261008はnetwork none/www-data/cap-dropALL/no-new-privileges/memory512m/cpus1、DB/host mount/portsなし。FFmpeg exit0、ffprobe H264/yuv420p/320x180/2.000秒、9370bytes、SHA256 7454f6e8549abd3b6ceb4a43ec8f2bd935daa1d840829010d6adbcf5e2a0ffb0。.test-output/extension-media-fixture-20261008/test-pattern.mp4へ保存しfinally exact containerをrm exit0。通常app/DBは変更なし。
+
+Web背景formをGenerated local video 1008 / 動画 / 端末ファイル / cloud OFFで準備。filechooserのsetFilesは返ったが、DOM input.files読取はnot iterableで失敗し保存clickへ進まなかった。次のread/save attemptはtab1823783399 missing、現在Chrome3 user inventory空を確認。新動画の保存・再生・offline・cloud uploadは未確認、成功扱いしない。旧tab3399を再利用せず現在inventoryまたは同じChrome3の新専用Webから再開。動画entryが既にあるかも先に確認し、file/entryを重複作成しない。
+
+次: Round2の手動回答を受領してWeb到着確認、必要3round。動画は生成済みfixtureを再利用して同じ専用userのWeb/device保存/再生・停止・再読込を確認し、拡張/Cloud/Offlineの別実証を続ける。通常環境/Secret/spec保持、Phase11/12/V1未完。コード/DB/Migration変更なし。
+
 ## Phase11 Webから拡張への逆方向同期の送信準備完了（2026-10-08）
 
 ユーザーが専用extension-mysql.localhost:8115/生成primaryの「端末のデータ」採用を実行直前に許可。fresh DOMで同じinitial sync dialogとprimary/twesを確認し、端末を選択。次の背景同期initial dialogは別操作なので「あとで」で保留し、背景の置換/uploadを実行しない。
