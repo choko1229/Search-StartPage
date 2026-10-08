@@ -1,4 +1,14 @@
 # 再開ポイント
+## Phase11 Webから拡張への逆方向同期の送信準備完了（2026-10-08）
+
+ユーザーが専用extension-mysql.localhost:8115/生成primaryの「端末のデータ」採用を実行直前に許可。fresh DOMで同じinitial sync dialogとprimary/twesを確認し、端末を選択。次の背景同期initial dialogは別操作なので「あとで」で保留し、背景の置換/uploadを実行しない。
+
+Web実UIでtwesの編集を開き、URL https://example.com/は保持したまま名前をtwes-webへ変更・保存。設定のクラウド同期ONを確認し、今すぐ同期をクリック、同期しましたのvisibleを待って成功表示を確認。証拠 .test-output/reverse-sync-ready-20261008.png。これはWeb保存・同期送信の一例で、拡張での受信はまだ未確認。
+
+Chromeの＋で新しいタブを開きtwes-webになったか確認する欄を提示。未反映なら拡張側の今すぐ同期、initial/競合が出たらその結果を受領する。回答を経過時間で成功扱いしない。Web確認tab1823783399をhandoff、旧1823783333は再利用しない。/api/syncの読取用1823783403はERR_BLOCKED_BY_CLIENTの中間tabなので保持しない。
+
+次: 拡張の受信回答または操作可能tabからWeb→拡張の一例を確定し、必要3round・共有設定/地域・背景・日英・Offline9機能/自動復帰/両DBへ進む。初回の端末採用許可を新しいデータ置換・別user/DB・背景操作へ拡大しない。Phase11/12/V1未完、通常環境/Secret/spec保持。コード/DB/Migration変更なし。
+
 ## Phase11 拡張からWebへの同期確認・逆方向の準備（2026-10-08）
 
 ユーザーがtwesの追加元を「Chromeの＋で開いた新しいタブ」と回答。2026-10-07のWeb実DOM/同期ON・同期しました/両タブtwes表示（favorite-arrived-20261007.png）と合わせ、実拡張→Webのお気に入り一例を確認。Node模擬結果ではなくユーザーの実拡張操作＋Web実観測であり、全項目/逆向き/3roundの合格には広げない。旧追加元未確認条件は解消。
