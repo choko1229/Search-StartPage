@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## 最新再開条件: 実拡張の接続・手動結果待ち（2026-10-08）
+
+512bfc3でblocked保存後の再開3ターンを確認。1)goal activeと現在inventoryを再確認、Web1823783333もmissing。2)mandatory読取とinventory空を再確認。3)今回も読取/現在inventory空、twes追加元/実Sync/Offlineの手動結果は未受領。すべてno progressでlive process待ちではない。同じ実拡張証拠不足が3turn継続し、外部状態変化/回答なしに必須ゲートを進められないためgoalをblockedへ変更する。
+
+旧記録のWebtab1823783333は現在存在しない。Chrome3のbindingは維持してよいが、tabを再利用しない。再開は実拡張の操作可能なtabまたはdocs/phase11-manual-check.mdの結果、まずtwesの追加元回答から。接続変化時は現在inventoryから対象を取得し、専用環境の現況も再確認する。環境停止だけで旧DB tmpfs保持を推測しない。
+
+既知の実装補修/検証/手順/候補は保存済み。main push完了、不要な試験反復/環境再生成/送信再試行をしない。Phase11の実Chrome Cookie/往復同期/Offline9機能/復帰/背景・権限/両DBUIは未確認、Phase12/V1未完。通常環境/Secret/spec保持、専用cleanupは実検証終了後。
+
 ## Phase11 実拡張検証待ちblocked（2026-10-08）
 
 前ターンは現在の接続と既存progress/gateの再確認のみでno progress（live processを待ったverified waitではない）。今回もmandatory progress/status/gitとChrome3現在inventoryを再確認し、専用Web1823783333だけ。実拡張操作接続とtwes追加元/実Sync/Offline手動結果は未受領。
