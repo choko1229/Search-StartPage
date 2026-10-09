@@ -1,4 +1,12 @@
 # 実装と検証の記録
+## 最新再開条件: 背景の採用許可・追加同期結果待ち
+
+d9c428bでblocked保存後の再開3turnを照合。前2turnはmandatory読取/Chrome inventoryの再確認だけでno progress、verified waitではない。今回もprogress/status/gitとChrome3のagent/user inventoryを確認し双方空。背景採用/生成動画Cloud検証の許可とRound2のtwes-extension-2結果は未受領。同じ回答/実拡張証拠不足が3turn継続し、独立した準備/補修/終了済み試験は保存済みなので、goalをblockedへ変更する。
+
+旧Web3432は現在の一覧に存在せず再利用しない。稼働環境/DB保持の今回の再確認は未実行。回答後は現在のChrome3から新しい専用Webを取得し、exact4環境/marker/生成primary/データ選択を再確認してから許可された範囲だけを実行。停止/再生成なら旧tmpfsデータ保持を推測しない。未承認のbackground adoption/Cloud videoは未実行。
+
+次: 提示済み確認欄またはチャットで「専用ユーザーの背景採用・動画検証を許可する」という回答、またはRound2結果/実拡張接続変化から再開。main初回採用の旧許可を背景へ拡大せず、経過時間を承認・成功としない。実ChromeとWeb/Nodeの証拠を分離し、Phase11の残条件前にPhase12へ進めない。Phase11/12/V1未完、通常環境/Secret/spec保持、検証終了後cleanupの条件を維持。
+
 ## Phase11 追加の実拡張結果・背景採用回答待ちblocked（2026-10-08）
 
 前ターンc0ef7dbは背景採用/生成動画Cloud検証を具体化して初回選択画面・確認欄を準備したprogress。今回mandatory progress/status/gitと現在Web3432のDOMを再確認。primary/twes-webと背景initial sync dialogがそのまま。Round2のtwes-extension-2操作結果/受信と背景採用の許可は未受領。データ選択/Cloud videoを実行していない。
