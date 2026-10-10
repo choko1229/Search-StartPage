@@ -1,4 +1,16 @@
 # 再開ポイント
+## Phase11 実拡張操作環境の制約確認・blocked監査
+
+前ターンb1aad21はMariaDB動画の実Web保存/清掃/再取得確認のprogress。mandatory progress/status/git/gate確認。Chrome3 user inventoryに3681 chrome://newtab/ title search.choko1229.netを観測し、文書化されたuser.claimTabで取得したが、DOMsnapshot空、取得後URL/titleはabout:blank、screenshotも空画面。実Extension DOM/Console/CSP成功として扱わない。今後このNewTabを同じ方法で繰り返し取得しない。
+
+現在のbrowser.capabilitiesはviewportのみ。ネットワークOffline/Onlineの操作capは公開されていない。以前のChrome内部管理URL制約をCLI/CDP/native等で迂回せず、navigator値の偽装やWeb/Node模擬を実Chrome Extension Offlineの証拠へ変えない。現在の実操作環境では必須UI/privilege/CSP/Offline/復帰/権限条件を取得できない。
+
+ユーザーの全面継続指示後の3turn（e61db64: default NewTab createはabout:blank、独立したMySQL/補修を実行、b1aad21:同じ実Extension未取得のまま独立MariaDB Web検証完了、今回:存在するuserNewTabでもblankへ変わる接続挙動/cap不足を実確認）で、実Extension操作/検証環境不足が継続。関連する合理的な補修・生成・両DB Web media確認は終了済み。次の必須ゲートには拡張を操作できる接続または実Chrome結果が必要で、現在は意味ある独立作業がなくgoal blockedへ変更。
+
+再開: 実拡張を読み取り/操作できる環境が用意される、またはdocs/phase11-manual-check.mdの実結果を受領したら、最新候補のUI/Console/CSP/設定・media共有/Offline9機能/復帰/権限を確認する。無期限に終了済みを再試験したりPhase12へ飛ばしたりしない。既存favorite往復1例・両DB Web media・Node41/生成190/40の確認範囲を維持し、Goal完了としない。Phase11/12/V1未完。
+
+背景採用/生成動画の旧許可待ちは解消済みで再質問不要。コード/DB/Migration変更なし、通常環境/Secret/spec保持。MariaDB Web3671をhandoff、userNewTab3681は空の中間状態なので保持markを付けない。必要な専用環境/素材を維持、実検証終了後cleanup。
+
 ## Phase11 MariaDB側のクラウド動画実Web検証
 
 前ターンe61db64はMySQL動画の実同期/再取得とlogout初回同期補修のprogress。mandatory progress/status/git/router制約を確認。専用exact4はUp3days、再生成なし。Chrome3のMariaDB専用origin extension-mariadb.localhost:8116へ新tab3671を作り生成primaryでログイン。local saved dataなしの初期状態からmain/backgroundのcloudデータは自動取得、初回の置換選択を手動確定する操作は行っていない。MySQL側のcookie/DB/保存データを流用しない。
