@@ -40,4 +40,11 @@ session.io.accept=async()=>{await Promise.resolve();throw new Error('durable_wri
 await assert.rejects(session.run(),/durable_write_failed/);assert.equal(state.base,null);assert.equal(session.busy,false);
 session.io.accept=async(...args)=>{await Promise.resolve();accepted(...args);};
 await session.run();assert.ok(state.base);assert.equal(state.status,'synced');
-console.log('37 sync session assertions passed.');
+({state,session}=setup({'providers-web':{google:{id:'google'}}},{version:1,document:{favorites:{cloud:{id:'cloud'}}}}));
+session.io.hasLocalData=()=>false;
+assert.equal(await session.run(),true);assert.equal(state.answers,0);assert.equal(state.writes,0);
+assert.equal(state.local.favorites.cloud.id,'cloud','a cleared device restores cloud data without treating public defaults as private edits');
+({state,session}=setup({}, {version:1,document:{favorites:{cloud:{id:'cloud'}}}}));
+session.io.hasLocalData=()=>true;
+assert.equal(await session.run(),false);assert.equal(state.answers,1);assert.equal(state.writes,0,'an explicit local deletion still requires the initial choice');
+console.log('Sync session merge, acknowledgement, retries, ownership and initial user-data decisions passed.');

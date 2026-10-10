@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {syncDocument,syncValues} from '../public/assets/js/sync-data.js';
+import {syncDocument,syncValues,hasLocalSyncData} from '../public/assets/js/sync-data.js';
 const presets={web:[{id:'google',url:'https://google.com/?q={query}'}],ai:[]};
 const state={settings:{theme:'dark',syncHistory:false,clearSyncedOnLogout:true},history:[{id:'secret',query:'private',at:10}],backgrounds:[{id:'file',localOnly:true}],favorites:[{id:'f',name:'old'}]};
 const cloudHistory={remote:{id:'remote',query:'cloud',at:1}};
@@ -34,4 +34,15 @@ const localBackground={...state,settings:{backgroundMode:'library',backgroundSel
 assert.equal(syncDocument(localBackground,presets).settings.backgroundMode,undefined);
 assert.equal(syncDocument(localBackground,presets).settings.backgroundSelected,undefined);
 assert.equal(syncValues(localBackground,{settings:{backgroundMode:'solid'}},checkpoint,'now',presets).settings.backgroundMode,'library');
-console.log('28 sync data assertions passed.');
+assert.equal(hasLocalSyncData({},presets),false,'public defaults are not saved user data');
+assert.equal(hasLocalSyncData({'providers-web':null,favorites:[],settings:{syncEnabled:true,clearSyncedOnLogout:true,backgroundMode:'library',backgroundSelected:'local'}},presets),false);
+assert.equal(hasLocalSyncData({'providers-web':structuredClone(presets.web)},presets),false);
+assert.equal(hasLocalSyncData({'providers-web':[]},presets),true,'explicitly removing providers is a local edit');
+assert.equal(hasLocalSyncData({'providers-web':[{...presets.web[0],url:'https://custom.example/?q={query}'}]},presets),true);
+assert.equal(hasLocalSyncData({favorites:[{id:'deleted',deleted:true}]},presets),true);
+assert.equal(hasLocalSyncData({settings:{theme:'dark'}},presets),true);
+assert.equal(hasLocalSyncData({history:[{id:'private'}]},presets),false,'history is not considered for sync while disabled');
+assert.equal(hasLocalSyncData({history:[{id:'private'}],settings:{syncHistory:true}},presets),true);
+assert.equal(hasLocalSyncData({favorites:{unrecognized:'retained'}},presets),true,'unrecognized saved data must not silently select cloud replacement');
+assert.equal(hasLocalSyncData({'providers-web':{unrecognized:'retained'}},presets),true);
+console.log('Sync data mapping, local-only preservation and initial user-data detection passed.');

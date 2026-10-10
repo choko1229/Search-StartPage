@@ -1,4 +1,21 @@
 # 実装と検証の記録
+## Phase11 許可済みクラウド動画検証完了・ログアウト再同期の補修（2026-10-10）
+
+ユーザーの専用primary背景採用/生成動画検証許可と「すべて任せGoal完了まで進める」を受領。mandatory progress/status/git確認、専用exact4はUp2days、app exact2 marker一致、MP4 SHA一致。再生成せずChrome3の新専用Web3609でprimaryを確認して背景cloudを採用。端末専用source/画像copy/localVideoが残ることを実UI確認。未承認という旧ブロックは解消。
+
+Cloud media: Generated cloud video 1010 R1/R2/R3をH264 320x180/2秒/9370bytes素材からCloud ONで保存し、背景の今すぐ同期/同期しましたを確認。通常のログアウト（同期済み端末データ削除ON）でlogout-data.hidden=trueを確認し、guestの一覧から全cloud動画が消え端末専用画像/動画だけ残ることを観測。再ログインの自動取得後に全3本を選択し、localBlob/readyState4/320x180/duration2/paused=falseを確認。元の端末画像・localVideoも保持。証拠 cloud-videos-synced-20261010.png / cloud-videos-retrieved-20261010.png（.test-output）。これはWeb実Chromeの保存/清掃/再取得/再生であり、実拡張/実Offlineの合格へ拡大しない。
+
+実不具合1: 同期済みproviderを清掃して空配列を残すと公開defaultsを上書きし、guest検索先が空。account-dataで全owned provider消去時にoverrideを除き、永続valuesをnullにしてpublic defaultsへ戻す。local/unowned providersと他user stateは保持。
+実不具合2: 上記fallback defaultsをSyncSessionが個人の端末データと数えて再ログインでFirst syncを要求。hasLocalSyncDataをsync-dataへ追加、SyncSession optional adapterをsync.jsから接続。公開defaults/ローカル専用設定を除外し、実設定・favorites/folders・同期ON history・異なるprovider override・明示的な空override・未認識の保存形式は選択対象として保持。個人の変更を勝手にcloudへ置換しない。
+
+失敗範囲: 修正1だけのUI loopはguest default回復1回まで確認後、再ログインFirst sync dialogによりSign out locatorがno_matches。3回成功として扱わず原因調査/修正2後に再実行。最終のUI loopは3roundすべてguest Google等の公開検索先10件と、再ログイン後のtwes-web自動復旧が成功、余計な初回選択なし。証拠 logout-provider-defaults-20261010.png。
+
+Tests: account/clientPresets各3回、追加account/sync-data/session各3回成功。中間41suite16522/59783はexit0。最終67592 exit0 独立JS41suite各3回（引数必須HTTP2本除外）。82750 exit0 PHP8.2/8.3生成190/基盤40各3回、asset SHA/CSP/私有入力除外/失敗清掃/CLI guards成功。package prefix ps-a空、diff成功。今回はCore修正後の回帰であり終了済みを無意味に反復していない。DB/Migration/API route変更なし。
+
+専用app exact2と候補4folderのaccount-data/sync-data/session/sync assetsを最終反映、source hash一致・manifest SHA不変。新しいhost grant/installなし。UIは日本語・primary・元の端末画像へ復帰、Blob complete1672x941、warn/error0。Web3609をhandoff。CuaのURLなしcreateBrowserTabもabout:blankであり実NewTab証拠にならず、その空tabはclose。内部URL制約は迂回しない。
+
+次: 修正/結果をcommit/push。実拡張の最新asset反映・UI/Console/CSP・3roundの追加往復、共有設定/地域/Cloud背景、Offline9機能/復帰/権限、MariaDBの実UIが残る。Round1のfavorite往復は確認済み、Round2のユーザー結果は未受領（最後のWebはtwes-web）。合理的な独立作業を継続し、未確認を成功にせずPhase11合格前にPhase12へ進めない。実OAuthは旧ユーザー指示の範囲で未確認、V1未完。通常環境/Secret/specを保持、必要な専用環境と素材を再利用、終了後cleanup。
+
 ## 最新再開条件: 背景の採用許可・追加同期結果待ち
 
 d9c428bでblocked保存後の再開3turnを照合。前2turnはmandatory読取/Chrome inventoryの再確認だけでno progress、verified waitではない。今回もprogress/status/gitとChrome3のagent/user inventoryを確認し双方空。背景採用/生成動画Cloud検証の許可とRound2のtwes-extension-2結果は未受領。同じ回答/実拡張証拠不足が3turn継続し、独立した準備/補修/終了済み試験は保存済みなので、goalをblockedへ変更する。

@@ -15,6 +15,8 @@ export function removeSyncedData(state, userId) {
         if (!Array.isArray(ids) || !Array.isArray(state[key])) continue;
         const owned = new Set(ids);
         next[key] = state[key].filter(item => !owned.has(item.id) || (key === 'backgrounds' && keepBackground(item,userId)));
+        // An absent provider override uses public installation defaults after logout.
+        if ((key === 'providers-web' || key === 'providers-ai') && next[key].length === 0) delete next[key];
     }
     if(backgroundsOwned) {
         const ids=new Set(Array.isArray(state.backgroundOwnership.ids)?state.backgroundOwnership.ids:[]);

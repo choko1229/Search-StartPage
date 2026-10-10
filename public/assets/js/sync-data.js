@@ -1,7 +1,22 @@
-import {collectionMap} from './sync-core.js';
+import {collectionMap,equal} from './sync-core.js';
 export const syncCollections = ['favorites','favorite-folders','history','providers-web','providers-ai'];
 const localSettings = new Set(['syncEnabled','syncHistory','clearSyncedOnLogout','backgroundSelected','backgroundSwitch','backgroundInterval']);
 const localSetting=(state,key)=>localSettings.has(key) || key==='backgroundMode' && state.settings?.backgroundMode==='library';
+export function hasLocalSyncData(state,presets) {
+    if(Object.keys(state.settings || {}).some(key=>!localSetting(state,key)))return true;
+    for(const key of ['favorites','favorite-folders',...(state.settings?.syncHistory===true?['history']:[])]) {
+        if(state[key]!=null && !Array.isArray(state[key]))return true;
+        if(Array.isArray(state[key]) && state[key].length)return true;
+    }
+    for(const mode of ['web','ai']) {
+        const saved=state[`providers-${mode}`];
+        if(saved!=null && !Array.isArray(saved))return true;
+        if(!Array.isArray(saved))continue;
+        const ordered=rows=>collectionMap(rows.map((row,index)=>({...row,sortOrder:index})));
+        if(!equal(ordered(saved),ordered(presets[mode] || [])))return true;
+    }
+    return false;
+}
 export function syncDocument(state, presets, cloudHistory = {}, checkpoint = state.syncCheckpoint) {
     const settings = Object.fromEntries(Object.entries(state.settings || {}).filter(([key])=>!localSetting(state,key)));
     const document = {settings};

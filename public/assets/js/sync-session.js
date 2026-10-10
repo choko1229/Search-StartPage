@@ -17,7 +17,8 @@ export class SyncSession {
             let initialChoice = null;
             if (!checkpoint) {
                 const local = this.io.local(checkpoint);
-                if (populated(local) && populated(cloud.document)) initialChoice = await this.io.initial();
+                const localPopulated=this.io.hasLocalData?this.io.hasLocalData(local):populated(local);
+                if (localPopulated && populated(cloud.document)) initialChoice = await this.io.initial();
                 else initialChoice = populated(cloud.document) ? 'cloud' : 'local';
                 if (initialChoice === 'later') {this.paused = true;this.io.status('later');return false;}
                 if (!['local','cloud'].includes(initialChoice)) throw new Error('invalid_initial_choice');

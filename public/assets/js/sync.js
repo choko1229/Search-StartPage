@@ -1,7 +1,7 @@
 import {get,setMany,setting,snapshot,flush,saveSettings} from './store.js';
 import {presets,t,node} from './i18n.js';
 import {SyncSession,syncInterval} from './sync-session.js';
-import {syncDocument,syncValues,syncCollections} from './sync-data.js';
+import {syncDocument,syncValues,syncCollections,hasLocalSyncData} from './sync-data.js';
 import {syncDialog} from './sync-dialogs.js';
 import {request,syncUser as user,writeSync} from './sync-api.js';
 import {mergeSync,equal} from './sync-core.js';
@@ -33,6 +33,7 @@ const session=new SyncSession({
     checkpoint:id=>{const value=get('syncCheckpoint',null);return String(value?.userId)===String(id)?value:null;},
     preferences:()=>({historyEnabled:setting('syncHistory',false)}),
     local:checkpoint=>syncDocument(snapshot(),presets,cloudHistory,checkpoint),
+    hasLocalData:()=>hasLocalSyncData(snapshot(),presets),
     read:async()=>{
         const result=await request('/api/sync');if(result.status!==200)throw new Error('sync_read_failed');
         cloudHistory=result.data.document.history || {};return result.data;
