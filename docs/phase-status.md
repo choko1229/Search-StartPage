@@ -1,4 +1,16 @@
 # 実装と検証の記録
+## Phase11 MariaDB側のクラウド動画実Web検証
+
+前ターンe61db64はMySQL動画の実同期/再取得とlogout初回同期補修のprogress。mandatory progress/status/git/router制約を確認。専用exact4はUp3days、再生成なし。Chrome3のMariaDB専用origin extension-mariadb.localhost:8116へ新tab3671を作り生成primaryでログイン。local saved dataなしの初期状態からmain/backgroundのcloudデータは自動取得、初回の置換選択を手動確定する操作は行っていない。MySQL側のcookie/DB/保存データを流用しない。
+
+Generated MariaDB cloud video R1/R2/R3を既存9370byte H264素材からCloud ONで新規保存・同期し、今すぐ同期/同期しましたを確認。ツールcallのwall timeが5346.79秒だったが終了出力は全3件成功。その後、現在DOMと同期表示を別callで再確認し、再起動/再uploadで重複させていない。以後の操作は15〜20秒timeoutの短いcallに分割。長時間待ちを新しい成功結果/通信性能合格と扱わない。
+
+通常logout（同期済み端末データ削除ON）でlogout-data hiddenを確認。guestのbackground一覧はpublic preset4のみ、cloud動画/旧generated imageは消去。guestの検索先はGoogle等10件で空にならない。再ログイン後、追加選択なしに3cloud動画を自動取得し、各選択でBlob/readyState4/320x180/duration2/paused=falseを確認。warn/error0。証拠 .test-output/mariadb-cloud-synced.png / mariadb-cloud-retrieved.png。元のtheme background・日本語へ復帰、background-layer hidden=true/locale ja。tab3671をhandoff。
+
+結果: Web実ChromeでMySQL/MariaDB両方の3動画保存・cache清掃・再取得・decodeを確認。今回Node模擬/生成を実UIの代用にしていないが、実Extension/実Offline/全共有設定/追加favorite往復の合格には広げない。コード/DB/Migration変更なし、通常環境/Secret/spec保持、既存素材/専用4環境を維持。
+
+次: 実拡張の最新asset反映・CSP/Console・shared設定/背景・Offline9機能/復帰・権限を現環境で確認する。favorite往復1例は既確認、追加roundのtwes-extension-2は未受領。終了済み190/40や41の反復だけで進捗とせず、Phase11必須の実証に進めない条件が続く場合は現状態からblocked audit。Phase12/V1未完、全実検証終了後に専用cleanup。
+
 ## Phase11 許可済みクラウド動画検証完了・ログアウト再同期の補修（2026-10-10）
 
 ユーザーの専用primary背景採用/生成動画検証許可と「すべて任せGoal完了まで進める」を受領。mandatory progress/status/git確認、専用exact4はUp2days、app exact2 marker一致、MP4 SHA一致。再生成せずChrome3の新専用Web3609でprimaryを確認して背景cloudを採用。端末専用source/画像copy/localVideoが残ることを実UI確認。未承認という旧ブロックは解消。

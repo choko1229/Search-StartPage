@@ -41,3 +41,5 @@ Chrome内部管理URLへのナビゲーションはBrowser UseのURL policyで�
 2026-10-08最新生成: 最近の共通JS補修後の最新ソースをPHP8.2/8.3で生成190/基盤40各3回成功（91217 exit0）、asset digest一致・専用検証清掃。Chromeでの実Extension/Offline条件は引き続き未確認部分あり。
 
 2026-10-10: 許可済みprimary背景cloud採用・Webで3動画保存/通常logout cache清掃/再取得/再生を確認、端末専用背景保持。空provider overrideと公開defaultsの初回同期誤検知を修正し、guest検索先/自動再同期3round成功。最終JS41各3回・生成190/40両PHP各3回成功。実Extension/Offline/両DB UIの残ゲートは未確認を維持。
+
+MariaDB実Web追記: 専用originのgenerated primaryで3動画Cloud ON保存・同期、通常logout cache清掃、guest public検索先、再ログイン自動取得/3動画Blob decodeを確認。両DBのWeb範囲を確認済み。Extension/Offline/全設定の未確認を残す。
